@@ -12,6 +12,25 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-02 (explicit assignments and truthful history)
+
+- The selected-object Inspector now creates one explicit assignment for one Role Profile with a
+  human-written brief. The backend validates membership, idempotency, role, target object, and
+  single-Job cardinality; it creates the normal visible Run, Job, Work Claim target, Reserved
+  Region, Change Set, and activity event. With no compatible local Runner, the Job truthfully waits.
+- `@Role` and owner-routed object comments now target the attached object rather than silently
+  falling back to the Role Profile's owned section. Single-Role triggers ignore static team
+  dependencies, preserving the contract that `@Role`, owner routing, and explicit assignment each
+  create exactly one Job. Team Runs and `@team` still enforce configured dependencies.
+- History continues to show all Change Sets, but offers the restore action only for applied canvas
+  object/body/edge entries supported by the conflict-aware undo engine. Run and comment records no
+  longer expose a non-functional restore button.
+- Evidence: `bun run check` passed formatting, zero-warning ESLint, strict TypeScript, 29 test files /
+  86 tests, and Runner typecheck. Runner tests passed 10 files / 26 tests; Runner and Next.js builds
+  passed; landing Playwright passed four desktop/mobile tests. Convex development validation first
+  caught a non-portable TypeScript alias, then passed after the fix and deployed the functions. The
+  AuthKit homepage was restored to the production URL after each Convex development attempt.
+
 ## Snapshot — 2026-09-02 (lazy object content editing)
 
 - Added selected-object body loading through `canvas.getObjectBody`; large bodies stay out of the
@@ -254,8 +273,8 @@ The latest GitHub Actions quality-gate run also passed. A Vercel “Ready” bui
 a working production application until the new Production environment variables are picked up by a
 redeploy.
 
-Latest local proof: `bun run check` passed formatting, ESLint, strict TypeScript, 28 test files /
-83 tests, and Runner typecheck. `bun run runner:test` passed (10 files / 26 tests) and
+Latest local proof: `bun run check` passed formatting, ESLint, strict TypeScript, 29 test files /
+86 tests, and Runner typecheck. `bun run runner:test` passed (10 files / 26 tests) and
 `bun run runner:build` passed. `bunx convex codegen` pushed development functions.
 `bunx convex deploy --yes` deployed production functions to `befitting-bird-666`.
 `vercel --prod --yes` deployed Ready production to the stable alias. `curl` of `/` returned HTTP
@@ -300,8 +319,8 @@ suite passes in desktop and mobile Chromium; authenticated application coverage 
 - [x] Added connected content/body editing for renderer families, including debounced persistence,
       lazy body loading, autosave/conflict feedback, links/media, and drawing data where applicable.
       Representative authenticated browser coverage is still required.
-- [ ] Add explicit assignment flows. History-point browsing/restore now uses conflict-aware Change
-      Set revert; a dedicated `restore_history_point` command is still missing.
+- [x] Added selected-object explicit assignment and conflict-aware history-point restore. History
+      keeps unsupported Run/comment Change Sets visible without offering a fake restore action.
 - [x] Role/team/Runner management UI now creates, edits, removes roles and teams, and can rename,
       revoke, and re-pair Runners. Authenticated browser coverage is still required.
 - [ ] Decide and document the command-service boundary, then route remaining user/WebMCP mutations
