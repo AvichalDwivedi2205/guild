@@ -12,17 +12,24 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
-## Snapshot — 2026-09-01
+## Snapshot — 2026-09-01 (evening)
 
 - Branch: `main`
 - Baseline commit before this ledger: `46639c8`
-- GitHub Actions: latest `Guild quality gates` run passed.
+- GitHub Actions: latest `Guild quality gates` run passed before this batch.
 - Vercel project: `avichal-dwivedis-projects/guild`
 - Stable production URL: <https://guild-rose-two.vercel.app>
-- Latest production deployment state: Vercel reports **Ready**, but `/` and `/callback` return
-  HTTP 500 because production authentication/backend environment configuration is incomplete.
-- Convex development project: provisioned. Deployment of the latest functions and the separate
-  production deployment remain pending WorkOS configuration.
+- WorkOS: dedicated Guild AuthKit application now has local and production redirect URIs, logout
+  return URLs, homepage, sign-in, and sign-up URLs. Production WorkOS environment mutations remain
+  forbidden for this dashboard role; Guild uses the existing staging AuthKit application that
+  already lists both callbacks.
+- Convex development: functions and official codegen pushed; `WORKOS_CLIENT_ID` and
+  `WORKOS_API_KEY` names are present (values never recorded here).
+- Convex production: `https://befitting-bird-666.convex.cloud` now has the current schema, indexes,
+  and functions. Vercel Production `NEXT_PUBLIC_CONVEX_URL` points at this deployment.
+- Vercel Production now has the required WorkOS and Convex environment **names**. A production
+  redeploy is still required before those runtime values take effect on the current Ready
+  deployment.
 - No OpenAI or Anthropic provider key is required or permitted by the current product contract.
 
 ## WorkOS values to configure
@@ -111,11 +118,11 @@ requires the broader production and E2E evidence listed later.
 | #   | Capability                                 | State       | Remaining acceptance evidence or gap                                   |
 | --- | ------------------------------------------ | ----------- | ---------------------------------------------------------------------- |
 | 1   | Infinite shared project canvas             | Implemented | Production smoke and large-workspace interaction                       |
-| 2   | Multiplayer human collaboration            | Partial     | Real cursor/viewport publishing and two-context E2E                    |
+| 2   | Multiplayer human collaboration            | Partial     | Two real browser-context E2E for live cursors and viewports            |
 | 3   | Local AI Workers as teammates              | Partial     | Pair and run real signed-in Codex and Claude clients                   |
 | 4   | Multiple Workers simultaneously            | Partial     | Real concurrent Codex/Claude Jobs and separate-region proof            |
 | 5   | WebMCP and local Runner paths              | Partial     | Production browser-agent and real Runner verification                  |
-| 6   | Worker Role Profiles                       | Partial     | Full create/edit/delete and Runner-selection management UI             |
+| 6   | Worker Role Profiles                       | Partial     | Authenticated create/edit/delete browser coverage                      |
 | 7   | Assignment-scoped autonomous canvas access | Implemented | Production adversarial/capability E2E                                  |
 | 8   | Sections and project spaces                | Implemented | Representative browser flow                                            |
 | 9   | Requirements and PRD representation        | Partial     | Rich body editing and representative browser flow                      |
@@ -125,7 +132,7 @@ requires the broader production and E2E evidence listed later.
 | 13  | AI architecture                            | Implemented | Representative semantic-connector E2E                                  |
 | 14  | Implementation planning and tasks          | Implemented | Authenticated integration/E2E coverage                                 |
 | 15  | Semantic traceability                      | Implemented | End-to-end relationship editing coverage                               |
-| 16  | Reversible execution                       | Partial     | History-point browsing/restoration; complete conflict-preservation E2E |
+| 16  | Reversible execution                       | Partial     | History-point restore is Change-Set revert; full conflict E2E remains  |
 | 17  | Comments and mentions                      | Implemented | Authenticated `@Role`, `@team`, and unowned-comment E2E                |
 | 18  | Worker activity visibility                 | Partial     | Real Worker progress/result production flow                            |
 | 19  | Live Worker target cursors                 | Partial     | Real concurrent target-cursor browser proof                            |
@@ -134,7 +141,7 @@ requires the broader production and E2E evidence listed later.
 | 22  | Decision memory                            | Partial     | Explicit history/decision retrieval UX and E2E                         |
 | 23  | Persistent project context                 | Implemented | Production persistence/reconnect E2E                                   |
 | 24  | Project overview                           | Implemented | Authenticated component/E2E coverage                                   |
-| 25  | Team management                            | Partial     | Role/team CRUD and Runner rename/revoke/re-pair UI                     |
+| 25  | Team management                            | Partial     | Authenticated role/team/Runner management browser coverage             |
 | 26  | Assemble Team                              | Implemented | Authenticated deterministic browser E2E                                |
 
 ## Verification actually completed
@@ -154,25 +161,31 @@ bunx convex insights --details
 
 The successful two-test Playwright run is not the full E2E suite required by `Initial_Prompt.md`.
 The latest GitHub Actions quality-gate run also passed. A Vercel “Ready” build is not equivalent to
-a working production application while runtime routes return 500.
+a working production application until the new Production environment variables are picked up by a
+redeploy.
 
-After adding this ledger and its handoff instructions, `bun run check` passed again: formatting,
-ESLint, strict TypeScript, 23 test files / 64 tests, and Runner typecheck.
+After this batch, `bun run check` passed: formatting, ESLint, strict TypeScript, 24 test files /
+65 tests, and Runner typecheck. `bun run runner:test` passed (10 files / 26 tests) and
+`bun run runner:build` passed. `bunx convex codegen` pushed development functions.
+`bunx convex deploy --yes` deployed production functions to `befitting-bird-666`.
 
 ## Remaining work, in priority order
 
 ### P0 — unblock and prove production
 
-- [ ] User supplies correct WorkOS client ID, API key, and cookie password in local/Vercel/Convex
-      environments without committing secrets.
-- [ ] Run the managed WorkOS/Convex setup, regenerate official Convex types, and deploy current
-      functions to the development deployment.
-- [ ] Create/configure a separate Convex production deployment and point Vercel Production's
-      `NEXT_PUBLIC_CONVEX_URL` at it instead of the development deployment.
-- [ ] Add the exact production callback/sign-in/logout values in WorkOS and redeploy Vercel.
-- [ ] Verify sign-in, callback, workspace creation, membership denial, sign-out, and a clean browser
-      console at <https://guild-rose-two.vercel.app>.
-- [ ] Seed an idempotent real judge workspace and recommended Team.
+- [x] Required WorkOS/Convex environment **names** are present locally and on Vercel Production
+      (values never recorded here). Local `.env.local` now also has the cookie password and
+      localhost redirect names.
+- [x] Official Convex codegen ran; current functions are on the development deployment.
+- [x] Separate Convex production deployment exists at `befitting-bird-666` and Vercel Production
+      `NEXT_PUBLIC_CONVEX_URL` points at it.
+- [x] Guild AuthKit application has exact local/production callback, sign-in, homepage, and logout
+      URLs. Production WorkOS environment writes are still forbidden for this dashboard role.
+- [ ] Redeploy Vercel Production so the new environment variables take effect, then verify sign-in,
+      callback, workspace creation, membership denial, sign-out, and a clean browser console at
+      <https://guild-rose-two.vercel.app>.
+- [x] Idempotent `seed.ensureJudgeWorkspace` plus workspace-list “Seed judge workspace” action that
+      assembles the recommended Team on first create. Needs a signed-in production click to prove.
 
 ### P0 — prove real execution surfaces
 
@@ -186,18 +199,18 @@ ESLint, strict TypeScript, 23 test files / 64 tests, and Runner typecheck.
 
 ### P1 — close product gaps
 
-- [ ] Publish human cursor movement near 5 Hz and viewport near 2 Hz, show editing targets, clean up
-      sessions, and verify with two real browser contexts.
+- [x] Human cursor publishes near 5 Hz and viewport near 2 Hz, including editing targets and
+      session cleanup. Two real browser-context verification is still required.
 - [ ] Add connected content/body editing for renderer families, including debounced persistence,
       lazy body loading, autosave/conflict feedback, links/media, and drawing data where applicable.
-- [ ] Add explicit assignment and history-point browsing/restoration flows required by the source
-      contract.
-- [ ] Add complete role/team/Runner management UI: create/edit/remove roles and teams, select
-      engines/Runners, rename, revoke, and re-pair.
+- [ ] Add explicit assignment flows. History-point browsing/restore now uses conflict-aware Change
+      Set revert; a dedicated `restore_history_point` command is still missing.
+- [x] Role/team/Runner management UI now creates, edits, removes roles and teams, and can rename,
+      revoke, and re-pair Runners. Authenticated browser coverage is still required.
 - [ ] Decide and document the command-service boundary, then route remaining user/WebMCP mutations
       through one consistent idempotent attribution path where required.
-- [ ] Persist WebMCP invocation audit data including tool name, user, workspace, outcome, and
-      duration.
+- [x] WebMCP invocations now record tool name, user, workspace, outcome, duration, and optional
+      Change Set in `activityEvents`.
 - [ ] Review accessibility, keyboard interaction, focus behavior, mobile layout, reconnect/offline
       behavior, and hydration/console output across the real application.
 
