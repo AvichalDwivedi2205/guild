@@ -12,6 +12,25 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-02 (visual system and team configuration)
+
+- Rebuilt the public landing page, workspace list, app shell, and canvas chrome from `UI.md`'s
+  glass-panel, editorial, dark/light visual language while preserving Guild's canonical one-workspace,
+  one-canvas product contract. The reference's multi-board hierarchy, generic hosted agents, and
+  public MCP join concepts were not copied.
+- Role Profile forms now expose the required capabilities and static dependencies, support manual
+  creation before a team exists, and hide sections already owned by another Role Profile. The
+  backend validates dependencies and exclusive ownership, increments semantic revisions, transfers
+  ownership on edit, and removes stale section ownership and dependency references on deletion.
+- Saved teams now use a user-provided name and only the currently selected Role Profiles rather
+  than a hard-coded name and every workspace role.
+- Evidence: `bun run check` passed formatting, zero-warning ESLint, strict TypeScript, 25 test files /
+  76 tests, and Runner typecheck. Runner tests passed 10 files / 26 tests; Runner and Next.js
+  production builds passed; landing Playwright passed four desktop/mobile tests. The in-app browser
+  and Chrome both rendered the local landing page; Chrome on the configured
+  `http://localhost:3000` origin had no console warnings or errors. WorkOS reached its real sign-in
+  page, but authenticated workspace mutation testing remains blocked on a user-completed sign-in.
+
 ## Snapshot — 2026-09-02 (presence correctness audit)
 
 - Audited Cursor's six-commit batch against `Initial_Prompt.md`, the canonical product documents,
@@ -217,12 +236,13 @@ The latest GitHub Actions quality-gate run also passed. A Vercel “Ready” bui
 a working production application until the new Production environment variables are picked up by a
 redeploy.
 
-After this batch, `bun run check` passed: formatting, ESLint, strict TypeScript, 24 test files /
-65 tests, and Runner typecheck. `bun run runner:test` passed (10 files / 26 tests) and
+Latest local proof: `bun run check` passed formatting, ESLint, strict TypeScript, 25 test files /
+76 tests, and Runner typecheck. `bun run runner:test` passed (10 files / 26 tests) and
 `bun run runner:build` passed. `bunx convex codegen` pushed development functions.
 `bunx convex deploy --yes` deployed production functions to `befitting-bird-666`.
 `vercel --prod --yes` deployed Ready production to the stable alias. `curl` of `/` returned HTTP
-200 and `/sign-in` returned HTTP 307 to WorkOS AuthKit.
+200 and `/sign-in` returned HTTP 307 to WorkOS AuthKit. The current four-test landing Playwright
+suite passes in desktop and mobile Chromium; authenticated application coverage is still pending.
 
 ## Remaining work, in priority order
 
