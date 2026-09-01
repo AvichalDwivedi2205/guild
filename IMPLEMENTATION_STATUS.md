@@ -27,9 +27,10 @@ Status vocabulary:
   `WORKOS_API_KEY` names are present (values never recorded here).
 - Convex production: `https://befitting-bird-666.convex.cloud` now has the current schema, indexes,
   and functions. Vercel Production `NEXT_PUBLIC_CONVEX_URL` points at this deployment.
-- Vercel Production now has the required WorkOS and Convex environment **names**. A production
-  redeploy is still required before those runtime values take effect on the current Ready
-  deployment.
+- Vercel Production was redeployed after the environment names were set. `/` now returns HTTP 200
+  with the Guild landing page. `/sign-in` and `/workspaces` return HTTP 307 to WorkOS AuthKit with
+  the production callback. Bare `/callback` without an OAuth code still returns HTTP 500, which is
+  expected from AuthKit `handleAuth()` until a real sign-in completes.
 - No OpenAI or Anthropic provider key is required or permitted by the current product contract.
 
 ## WorkOS values to configure
@@ -168,6 +169,8 @@ After this batch, `bun run check` passed: formatting, ESLint, strict TypeScript,
 65 tests, and Runner typecheck. `bun run runner:test` passed (10 files / 26 tests) and
 `bun run runner:build` passed. `bunx convex codegen` pushed development functions.
 `bunx convex deploy --yes` deployed production functions to `befitting-bird-666`.
+`vercel --prod --yes` deployed Ready production to the stable alias. `curl` of `/` returned HTTP
+200 and `/sign-in` returned HTTP 307 to WorkOS AuthKit.
 
 ## Remaining work, in priority order
 
@@ -181,8 +184,10 @@ After this batch, `bun run check` passed: formatting, ESLint, strict TypeScript,
       `NEXT_PUBLIC_CONVEX_URL` points at it.
 - [x] Guild AuthKit application has exact local/production callback, sign-in, homepage, and logout
       URLs. Production WorkOS environment writes are still forbidden for this dashboard role.
-- [ ] Redeploy Vercel Production so the new environment variables take effect, then verify sign-in,
-      callback, workspace creation, membership denial, sign-out, and a clean browser console at
+- [x] Vercel Production redeployed. Landing page is HTTP 200; `/sign-in` starts a real WorkOS
+      AuthKit authorize redirect to the production callback.
+- [ ] Complete a real signed-in production browser pass: callback with a valid OAuth code,
+      workspace creation, membership denial, sign-out, and a clean browser console at
       <https://guild-rose-two.vercel.app>.
 - [x] Idempotent `seed.ensureJudgeWorkspace` plus workspace-list “Seed judge workspace” action that
       assembles the recommended Team on first create. Needs a signed-in production click to prove.
