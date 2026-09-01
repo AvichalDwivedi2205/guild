@@ -4,6 +4,7 @@ import type { Doc, Id } from './_generated/dataModel';
 import { mutation, query } from './_generated/server';
 import { requireWorkspaceMember } from './lib/auth';
 import { parseContentSnapshot } from './lib/content';
+import { canConflictAwareRestore } from '../src/domain/history';
 
 type Segment = Doc<'changeEntries'>['segment'];
 
@@ -25,15 +26,25 @@ export const list = query({
       .withIndex('by_workspaceId', (index) => index.eq('workspaceId', args.workspaceId))
       .order('desc')
       .take(Math.max(1, Math.min(args.limit ?? 40, 80)));
-    return changeSets.map((changeSet) => ({
-      _id: changeSet._id,
-      summary: changeSet.summary,
-      source: changeSet.source,
-      actorKind: changeSet.actorKind,
-      state: changeSet.state,
-      createdAt: changeSet.createdAt,
-      canRestore: changeSet.state === 'applied',
-    }));
+    return await Promise.all(
+      changeSets.map(async (changeSet) => {
+        const entries = await ctx.db
+          .query('changeEntries')
+          .withIndex('by_changeSetId_and_sequence', (index) =>
+            index.eq('changeSetId', changeSet._id),
+          )
+          .take(100);
+        return {
+          _id: changeSet._id,
+          summary: changeSet.summary,
+          source: changeSet.source,
+          actorKind: changeSet.actorKind,
+          state: changeSet.state,
+          createdAt: changeSet.createdAt,
+          canRestore: canConflictAwareRestore(changeSet.state, changeSet.source, entries),
+        };
+      }),
+    );
   },
 });
 

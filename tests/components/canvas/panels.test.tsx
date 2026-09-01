@@ -163,6 +163,43 @@ describe('CanvasRightPanel', () => {
     expect(onEditingObjectChange).toHaveBeenLastCalledWith(null);
   });
 
+  it('creates one explicit assignment for the selected object', () => {
+    const assignJob = vi.fn().mockResolvedValue(true);
+    const data = workspaceData();
+    data.roleProfiles = [
+      {
+        id: 'role-architect',
+        name: 'Architect',
+        handle: 'architect',
+        responsibility: 'Own system design',
+        instructions: 'Design the system.',
+        engine: 'codex',
+        color: '#7c3aed',
+        ownedSectionId: 'section-architect',
+        capabilities: ['read_workspace', 'write_owned_section'],
+        dependencyRoleProfileIds: ['role-product'],
+        state: 'idle',
+        currentJobId: null,
+      },
+    ];
+    useCanvasInteractionStore.setState({ selectedNodeIds: ['task-1'] });
+
+    render(
+      <CanvasRightPanel panel="inspector" setPanel={vi.fn()} data={data} actions={{ assignJob }} />,
+    );
+
+    fireEvent.change(screen.getByLabelText('Assignment brief'), {
+      target: { value: 'Review the implementation plan.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Assign Job' }));
+
+    expect(assignJob).toHaveBeenCalledWith({
+      targetObjectId: 'task-1',
+      roleProfileId: 'role-architect',
+      brief: 'Review the implementation plan.',
+    });
+  });
+
   it('offers manual Role Profile creation when the workspace has no team', () => {
     render(
       <CanvasRightPanel

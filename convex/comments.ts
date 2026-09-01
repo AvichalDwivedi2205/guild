@@ -51,6 +51,7 @@ async function routeHumanComment(
     revision: number;
     body: string;
     ownerRoleProfileId?: Id<'roleProfiles'>;
+    targetObjectId?: Id<'canvasObjects'>;
     userId: Id<'users'>;
     source: 'ui' | 'webmcp';
   },
@@ -88,6 +89,9 @@ async function routeHumanComment(
     triggerKey: route.triggerKey,
     createdByUserId: input.userId,
     source: input.source,
+    ...(input.targetObjectId && route.kind !== 'team'
+      ? { targetObjectId: input.targetObjectId }
+      : {}),
   });
   await ctx.db.patch(input.commentId, {
     mentionedRoleProfileIds: route.roleProfileIds as Id<'roleProfiles'>[],
@@ -207,6 +211,7 @@ export const add = mutation({
       revision: 0,
       body,
       ...(target.ownerRoleProfileId ? { ownerRoleProfileId: target.ownerRoleProfileId } : {}),
+      ...(args.objectId ? { targetObjectId: args.objectId } : {}),
       userId: user._id,
       source,
     });

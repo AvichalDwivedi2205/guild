@@ -1,5 +1,5 @@
-import type { CanvasObjectType } from '@/domain/canvas';
-import { allocateReservedRegions, type Rectangle, type ReservedRegion } from '@/domain/geometry';
+import type { CanvasObjectType } from './canvas';
+import { allocateReservedRegions, type Rectangle, type ReservedRegion } from './geometry';
 
 export const localEngines = ['codex', 'claude'] as const;
 export type LocalEngine = (typeof localEngines)[number];
@@ -14,6 +14,25 @@ export const jobStates = [
   'cancelled',
 ] as const;
 export type JobState = (typeof jobStates)[number];
+
+export const jobTriggers = [
+  'run_team',
+  'explicit_assignment',
+  'comment_role',
+  'comment_team',
+  'comment_owner',
+] as const;
+export type JobTrigger = (typeof jobTriggers)[number];
+
+export function usesStaticRoleDependencies(trigger: JobTrigger): boolean {
+  return trigger === 'run_team' || trigger === 'comment_team';
+}
+
+export function isSingleRoleTrigger(trigger: JobTrigger): boolean {
+  return (
+    trigger === 'explicit_assignment' || trigger === 'comment_role' || trigger === 'comment_owner'
+  );
+}
 
 const allowedJobTransitions = {
   blocked_by_dependency: ['queued', 'cancelled'],

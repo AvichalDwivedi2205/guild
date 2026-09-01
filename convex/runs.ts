@@ -189,6 +189,47 @@ export const startTeam = mutation({
   },
 });
 
+export const assign = mutation({
+  args: {
+    workspaceId: v.id('workspaces'),
+    roleProfileId: v.id('roleProfiles'),
+    targetObjectId: v.id('canvasObjects'),
+    brief: v.string(),
+    idempotencyKey: v.string(),
+    source: v.optional(v.union(v.literal('ui'), v.literal('webmcp'))),
+  },
+  returns: v.object({
+    runId: v.id('teamRuns'),
+    jobId: v.id('jobs'),
+    waitingForRunner: v.boolean(),
+    idempotentReplay: v.boolean(),
+  }),
+  handler: async (ctx, args) => {
+    const { user } = await requireWorkspaceMember(ctx, args.workspaceId, 'editor');
+    const started = await createTeamRun(ctx, {
+      workspaceId: args.workspaceId,
+      roleProfileIds: [args.roleProfileId],
+      brief: args.brief,
+      trigger: 'explicit_assignment',
+      triggerKey: args.idempotencyKey,
+      createdByUserId: user._id,
+      source: args.source ?? 'ui',
+      targetObjectId: args.targetObjectId,
+    });
+    const jobId = started.jobIds[0];
+    if (!jobId) throw new Error('assignment_job_not_created');
+    const job = await ctx.db.get(jobId);
+    if (!job) throw new Error('job_not_found');
+    const runners = await availableRunners(ctx);
+    return {
+      runId: started.runId,
+      jobId,
+      waitingForRunner: job.state === 'queued' && !compatibleRunnerExists(job, runners),
+      idempotentReplay: started.replay,
+    };
+  },
+});
+
 export const getStatus = query({
   args: { teamRunId: v.id('teamRuns') },
   returns: v.union(v.null(), v.any()),

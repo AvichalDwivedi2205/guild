@@ -4,10 +4,24 @@ import {
   canTransitionJob,
   createTeamRunPlan,
   deriveWaitingForRunner,
+  isSingleRoleTrigger,
+  usesStaticRoleDependencies,
   type RunnerAvailability,
 } from '@/domain/jobs';
 
 describe('Job scheduling', () => {
+  it('applies static dependencies only to deterministic team fan-out', () => {
+    expect(usesStaticRoleDependencies('run_team')).toBe(true);
+    expect(usesStaticRoleDependencies('comment_team')).toBe(true);
+    expect(usesStaticRoleDependencies('explicit_assignment')).toBe(false);
+    expect(usesStaticRoleDependencies('comment_role')).toBe(false);
+    expect(usesStaticRoleDependencies('comment_owner')).toBe(false);
+    expect(isSingleRoleTrigger('explicit_assignment')).toBe(true);
+    expect(isSingleRoleTrigger('comment_role')).toBe(true);
+    expect(isSingleRoleTrigger('comment_owner')).toBe(true);
+    expect(isSingleRoleTrigger('run_team')).toBe(false);
+  });
+
   it('allows only canonical durable lifecycle transitions', () => {
     expect(canTransitionJob('blocked_by_dependency', 'queued')).toBe(true);
     expect(canTransitionJob('queued', 'leased')).toBe(true);

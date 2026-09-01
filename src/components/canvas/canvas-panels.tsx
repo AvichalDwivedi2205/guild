@@ -91,6 +91,79 @@ function semanticsFromDraft(
   };
 }
 
+function ObjectAssignmentComposer({
+  object,
+  data,
+  actions,
+}: {
+  object: CanvasObject;
+  data: CanvasWorkspaceData;
+  actions: CanvasWorkspaceActions;
+}) {
+  const preferredRoleId = data.roleProfiles.some(
+    (role) => role.id === object.semantics.ownerRoleProfileId,
+  )
+    ? object.semantics.ownerRoleProfileId!
+    : (data.roleProfiles[0]?.id ?? '');
+  const [roleProfileId, setRoleProfileId] = useState(preferredRoleId);
+  const [brief, setBrief] = useState('');
+  const [assigning, setAssigning] = useState(false);
+
+  if (data.roleProfiles.length === 0) {
+    return <p className={styles.mutedText}>Create a Role Profile before assigning this object.</p>;
+  }
+
+  return (
+    <form
+      className={styles.runComposer}
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (!actions.assignJob || !roleProfileId || !brief.trim()) return;
+        setAssigning(true);
+        void actions
+          .assignJob({
+            targetObjectId: object.id,
+            roleProfileId,
+            brief: brief.trim(),
+          })
+          .then((saved) => {
+            if (saved) setBrief('');
+          })
+          .finally(() => setAssigning(false));
+      }}
+    >
+      <Field label="Assignment role">
+        <select value={roleProfileId} onChange={(event) => setRoleProfileId(event.target.value)}>
+          {data.roleProfiles.map((role) => (
+            <option key={role.id} value={role.id}>
+              {role.name} · {role.engine === 'claude' ? 'Claude Code' : 'Codex'}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <Field label="Assignment brief">
+        <textarea
+          value={brief}
+          rows={3}
+          maxLength={10_000}
+          placeholder="What should this Worker change or produce?"
+          onChange={(event) => setBrief(event.target.value)}
+        />
+      </Field>
+      <p className={styles.mutedText}>
+        Creates one visible Job for this object. Execution waits for your paired local Runner.
+      </p>
+      <button
+        className={styles.primaryPanelButton}
+        type="submit"
+        disabled={!actions.assignJob || !roleProfileId || !brief.trim() || assigning}
+      >
+        <Play size={14} fill="currentColor" /> {assigning ? 'Assigning…' : 'Assign Job'}
+      </button>
+    </form>
+  );
+}
+
 function InspectorPanel({
   object,
   data,
@@ -152,6 +225,10 @@ function InspectorPanel({
           bodyStatus={data.selectedObjectBodyStatus}
           updateContent={actions.updateContent}
         />
+      </section>
+      <section className={styles.panelSection}>
+        <h4>Assign work</h4>
+        <ObjectAssignmentComposer key={object.id} object={object} data={data} actions={actions} />
       </section>
       <section className={styles.panelSection}>
         <h4>Style</h4>

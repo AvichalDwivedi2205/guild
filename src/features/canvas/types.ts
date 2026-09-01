@@ -187,6 +187,11 @@ export type CanvasWorkspaceActions = {
     brief: string;
     roleProfileIds: readonly string[];
   }) => void | Promise<void>;
+  assignJob?: (input: {
+    targetObjectId: string;
+    roleProfileId: string;
+    brief: string;
+  }) => Promise<boolean>;
   assembleTeam?: (projectDescription: string) => void | Promise<void>;
   stopRun?: (runId: string) => void | Promise<void>;
   retryJob?: (jobId: string) => void | Promise<void>;

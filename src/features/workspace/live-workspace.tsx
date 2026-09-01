@@ -323,6 +323,7 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
   const addComment = useMutation(api.comments.add);
   const resolveComment = useMutation(api.comments.resolve);
   const startTeam = useMutation(api.runs.startTeam);
+  const assignJob = useMutation(api.runs.assign);
   const assembleTeam = useMutation(api.teams.assembleRecommended);
   const stopRun = useMutation(api.runs.stop);
   const retryJob = useMutation(api.runs.retryJob);
@@ -656,6 +657,23 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
             source: 'ui',
           }),
         ),
+      assignJob: async (input) => {
+        setActionState(null);
+        try {
+          await assignJob({
+            workspaceId: targetWorkspaceId,
+            targetObjectId: input.targetObjectId as Id<'canvasObjects'>,
+            roleProfileId: input.roleProfileId as Id<'roleProfiles'>,
+            brief: input.brief,
+            idempotencyKey: newKey('assignment'),
+            source: 'ui',
+          });
+          return true;
+        } catch (error) {
+          reportOperationError(error);
+          return false;
+        }
+      },
       assembleTeam: (projectDescription) =>
         perform(() => assembleTeam({ workspaceId: targetWorkspaceId, projectDescription })),
       stopRun: (runId) =>
@@ -726,6 +744,7 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
     };
   }, [
     addComment,
+    assignJob,
     assembleTeam,
     createRoleProfile,
     executeCommands,

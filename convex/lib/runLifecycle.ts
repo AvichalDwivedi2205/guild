@@ -1,10 +1,14 @@
 import type { Doc, Id } from '../_generated/dataModel';
 import type { MutationCtx } from '../_generated/server';
+import {
+  isSingleRoleTrigger,
+  usesStaticRoleDependencies,
+  type JobTrigger,
+} from '../../src/domain/jobs';
 import { allocateReservedRegions, type Rectangle } from './geometry';
-import { boundedText, limits } from './policies';
+import { assertIdempotencyKey, boundedText, limits } from './policies';
 
-export type RunTrigger =
-  'run_team' | 'explicit_assignment' | 'comment_role' | 'comment_team' | 'comment_owner';
+export type RunTrigger = JobTrigger;
 
 export type RunSource = 'ui' | 'webmcp';
 
@@ -54,8 +58,10 @@ export async function createTeamRun(
     createdByUserId: Id<'users'>;
     source: RunSource;
     teamId?: Id<'teams'>;
+    targetObjectId?: Id<'canvasObjects'>;
   },
 ): Promise<{ runId: Id<'teamRuns'>; jobIds: Id<'jobs'>[]; replay: boolean }> {
+  assertIdempotencyKey(input.triggerKey);
   const existing = await ctx.db
     .query('teamRuns')
     .withIndex('by_workspaceId_and_triggerKey', (query) =>
@@ -74,6 +80,12 @@ export async function createTeamRun(
   if (uniqueRoleIds.length < 1 || uniqueRoleIds.length > limits.jobsPerRun) {
     throw new Error('invalid_role_profile_count');
   }
+  if (isSingleRoleTrigger(input.trigger) && uniqueRoleIds.length !== 1) {
+    throw new Error('single_role_trigger_requires_one_role');
+  }
+  if (input.targetObjectId && !isSingleRoleTrigger(input.trigger)) {
+    throw new Error('target_object_requires_single_role_trigger');
+  }
   const brief = input.brief.trim();
   if (!brief || brief.length > 100_000) throw new Error('invalid_run_brief');
   const workspace = await ctx.db.get(input.workspaceId);
@@ -88,17 +100,27 @@ export async function createTeamRun(
     if (!role || role.workspaceId !== input.workspaceId) throw new Error('role_profile_not_found');
     return role;
   });
+  const directTarget = input.targetObjectId ? await ctx.db.get(input.targetObjectId) : null;
+  if (
+    input.targetObjectId &&
+    (!directTarget || directTarget.workspaceId !== input.workspaceId || directTarget.isDeleted)
+  ) {
+    throw new Error('assignment_target_not_found');
+  }
+  const targetByRole = new Map<Id<'roleProfiles'>, Doc<'canvasObjects'>>();
   for (const role of roleProfiles) {
-    const target = await ctx.db.get(role.ownedSectionId);
+    const target = directTarget ?? (await ctx.db.get(role.ownedSectionId));
     if (
       !target ||
       target.workspaceId !== input.workspaceId ||
       target.isDeleted ||
-      target.type !== 'section'
+      (!directTarget && target.type !== 'section')
     ) {
       throw new Error('owned_section_not_found');
     }
+    targetByRole.set(role._id, target);
     if (
+      usesStaticRoleDependencies(input.trigger) &&
       role.staticDependencyRoleProfileIds.some(
         (dependencyId) => !uniqueRoleIds.includes(dependencyId),
       )
@@ -137,19 +159,24 @@ export async function createTeamRun(
 
   const jobIds: Id<'jobs'>[] = [];
   for (const role of roleProfiles) {
+    const target = targetByRole.get(role._id);
+    if (!target) throw new Error('assignment_target_not_found');
+    const dependencyRoleIds = usesStaticRoleDependencies(input.trigger)
+      ? role.staticDependencyRoleProfileIds
+      : [];
     const jobId = await ctx.db.insert('jobs', {
       workspaceId: input.workspaceId,
       teamRunId: runId,
       roleProfileId: role._id,
       engine: role.engine,
-      targetSectionId: role.ownedSectionId,
+      targetSectionId: target._id,
       hierarchyPath: [],
       brief,
       workspaceDigest: digest,
       roleInstructions: role.instructions,
       expectedArtifactTypes: role.expectedArtifactTypes,
       dependencyJobIds: [],
-      state: role.staticDependencyRoleProfileIds.length === 0 ? 'queued' : 'blocked_by_dependency',
+      state: dependencyRoleIds.length === 0 ? 'queued' : 'blocked_by_dependency',
       attempt: 0,
       fencingToken: 0,
       logicalOutputKey: `${runId}:${role._id}`,
@@ -162,11 +189,14 @@ export async function createTeamRun(
   const jobByRole = new Map(roleProfiles.map((role, index) => [role._id, jobIds[index]!]));
   for (const [index, role] of roleProfiles.entries()) {
     const jobId = jobIds[index]!;
-    const target = await ctx.db.get(role.ownedSectionId);
-    if (!target) throw new Error('owned_section_not_found');
+    const target = targetByRole.get(role._id);
+    if (!target) throw new Error('assignment_target_not_found');
+    const dependencyRoleIds = usesStaticRoleDependencies(input.trigger)
+      ? role.staticDependencyRoleProfileIds
+      : [];
     await ctx.db.patch(jobId, {
       hierarchyPath: [...target.hierarchyPath, target._id],
-      dependencyJobIds: role.staticDependencyRoleProfileIds.map((dependencyId) => {
+      dependencyJobIds: dependencyRoleIds.map((dependencyId) => {
         const dependencyJobId = jobByRole.get(dependencyId);
         if (!dependencyJobId) throw new Error('missing_dependency_job');
         return dependencyJobId;
@@ -195,6 +225,8 @@ export async function createTeamRun(
     });
   }
 
+  const isExplicitAssignment = input.trigger === 'explicit_assignment';
+  const runLabel = isExplicitAssignment ? 'explicit assignment' : 'Team Run';
   const changeSetId = await ctx.db.insert('changeSets', {
     workspaceId: input.workspaceId,
     actorKind: input.source === 'webmcp' ? 'webmcp' : 'human',
@@ -202,7 +234,7 @@ export async function createTeamRun(
     teamRunId: runId,
     source: input.source,
     idempotencyKey: `run:${input.triggerKey}`,
-    summary: `Started Team Run with ${jobIds.length} Job${jobIds.length === 1 ? '' : 's'}`,
+    summary: `Started ${runLabel} with ${jobIds.length} Job${jobIds.length === 1 ? '' : 's'}`,
     state: 'applied',
     createdAt: now,
   });
@@ -223,8 +255,10 @@ export async function createTeamRun(
     actorKind: input.source === 'webmcp' ? 'webmcp' : 'human',
     actorUserId: input.createdByUserId,
     source: input.source,
-    eventType: 'team_run_started',
-    summary: `Started ${jobIds.length} Worker Job${jobIds.length === 1 ? '' : 's'}`,
+    eventType: isExplicitAssignment ? 'job_assigned' : 'team_run_started',
+    summary: isExplicitAssignment
+      ? 'Assigned one Worker Job'
+      : `Started ${jobIds.length} Worker Job${jobIds.length === 1 ? '' : 's'}`,
     changeSetId,
     teamRunId: runId,
     createdAt: now,
