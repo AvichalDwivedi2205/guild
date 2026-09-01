@@ -12,6 +12,20 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-02 (production redeploy and local client readiness)
+
+- Deployed the current Convex functions and schema to production `befitting-bird-666`; deployment
+  validation passed and the AuthKit application homepage remained the stable production URL.
+- Deployed Vercel production deployment `dpl_BNF9XRiAEjZGS59Htp6AwhExRLQX`; it reached `Ready` and
+  was aliased to <https://guild-rose-two.vercel.app>. The landing route returned HTTP 200, while
+  sign-in, sign-up, workspace, and Runner-pair routes returned the expected HTTP 307 AuthKit
+  redirects with the exact production callback. Recent deployment error/warning logs were empty.
+- Both required local Worker clients are installed and authenticated: Codex CLI `0.151.0-alpha.7.2`
+  via ChatGPT and Claude Code `2.1.234` via a first-party Claude subscription. No model API key is
+  required. The landing UI rendered cleanly with no browser warnings/errors in the in-app browser.
+  Both available browsers reached real WorkOS sign-in but had no Guild session, so authenticated
+  workspace and real Runner proof still require the user-owned sign-in step.
+
 ## Snapshot — 2026-09-02 (connected canvas and Runner lifecycle tests)
 
 - Added connected Convex tests for independent style/semantics segment writes from the same base
@@ -304,7 +318,8 @@ Latest local proof: `bun run check` passed formatting, ESLint, strict TypeScript
 `bunx convex deploy --yes` deployed production functions to `befitting-bird-666`.
 `vercel --prod --yes` deployed Ready production to the stable alias. `curl` of `/` returned HTTP
 200 and `/sign-in` returned HTTP 307 to WorkOS AuthKit. The current four-test landing Playwright
-suite passes in desktop and mobile Chromium; authenticated application coverage is still pending.
+suite passes in desktop and mobile Chromium. The latest production deployment is
+`dpl_BNF9XRiAEjZGS59Htp6AwhExRLQX`; authenticated application coverage is still pending.
 
 ## Remaining work, in priority order
 
@@ -329,7 +344,8 @@ suite passes in desktop and mobile Chromium; authenticated application coverage 
 ### P0 — prove real execution surfaces
 
 - [ ] Pair and revoke a real macOS Runner through the deployed app.
-- [ ] Detect the user's signed-in Codex CLI and Claude Code clients.
+- [x] Detected authenticated local Codex CLI `0.151.0-alpha.7.2` and Claude Code `2.1.234`
+      first-party client sessions; no provider API keys were used.
 - [ ] Execute at least one Codex Job and one Claude Job concurrently, confirm separate Reserved
       Regions, progress/results, cancellation, retry, stale-attempt rejection, and collision
       rejection.
