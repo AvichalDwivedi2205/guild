@@ -2,7 +2,7 @@
 
 import '@testing-library/jest-dom/vitest';
 
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CanvasRightPanel } from '@/components/canvas/canvas-panels';
@@ -264,5 +264,170 @@ describe('CanvasRightPanel', () => {
       name: 'Launch crew',
       roleProfileIds: ['role-architect'],
     });
+  });
+
+  it('starts a Team Run with the visible brief and selected Role Profiles', async () => {
+    const startTeamRun = vi.fn().mockResolvedValue(undefined);
+    const data = workspaceData();
+    data.roleProfiles = [
+      {
+        id: 'role-architect',
+        name: 'Architect',
+        handle: 'architect',
+        responsibility: 'Own system design',
+        instructions: 'Design the system.',
+        engine: 'codex',
+        color: '#7c3aed',
+        ownedSectionId: 'section-architect',
+        capabilities: ['read_workspace', 'write_owned_section'],
+        dependencyRoleProfileIds: [],
+        state: 'idle',
+        currentJobId: null,
+      },
+    ];
+    render(
+      <CanvasRightPanel panel="team" setPanel={vi.fn()} data={data} actions={{ startTeamRun }} />,
+    );
+
+    fireEvent.change(screen.getByPlaceholderText('What should this team build on the canvas?'), {
+      target: { value: 'Design the production architecture.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Run Team' }));
+    await waitFor(() =>
+      expect(startTeamRun).toHaveBeenCalledWith({
+        brief: 'Design the production architecture.',
+        roleProfileIds: ['role-architect'],
+      }),
+    );
+  });
+
+  it('adds and resolves comments against the visible target', async () => {
+    const addComment = vi.fn().mockResolvedValue(undefined);
+    const resolveComment = vi.fn().mockResolvedValue(undefined);
+    render(
+      <CanvasRightPanel
+        panel="comments"
+        setPanel={vi.fn()}
+        data={workspaceData()}
+        actions={{ addComment, resolveComment }}
+      />,
+    );
+
+    fireEvent.change(screen.getByPlaceholderText('Workspace note…'), {
+      target: { value: 'Keep the decision visible.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Add comment' }));
+    await waitFor(() =>
+      expect(addComment).toHaveBeenCalledWith({
+        targetObjectId: null,
+        body: 'Keep the decision visible.',
+      }),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Resolve' }));
+    expect(resolveComment).toHaveBeenCalledWith('comment-1');
+  });
+
+  it('exposes real Runner readiness, rename, and revocation controls', () => {
+    const renameRunner = vi.fn();
+    const revokeRunner = vi.fn();
+    const data = workspaceData();
+    data.runners = [
+      {
+        id: 'runner-1',
+        name: 'Avichal’s Mac',
+        status: 'auth_needed',
+        engines: ['codex', 'claude'],
+        configuredConcurrency: 2,
+        activeJobs: 0,
+        lastSeenAt: timestamp,
+      },
+    ];
+    render(
+      <CanvasRightPanel
+        panel="runner"
+        setPanel={vi.fn()}
+        data={data}
+        actions={{ renameRunner, revokeRunner }}
+      />,
+    );
+
+    expect(screen.getByText('Local client sign-in required on Runner machine.')).toBeVisible();
+    expect(screen.getByText('Codex, Claude Code')).toBeVisible();
+    fireEvent.change(screen.getByLabelText('Runner name'), {
+      target: { value: 'Studio Mac' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Rename' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Revoke' }));
+    expect(renameRunner).toHaveBeenCalledWith({ runnerId: 'runner-1', name: 'Studio Mac' });
+    expect(revokeRunner).toHaveBeenCalledWith('runner-1');
+  });
+
+  it('reports Job states and wires stop, retry, and Run undo actions', () => {
+    const stopRun = vi.fn();
+    const retryJob = vi.fn();
+    const undoRun = vi.fn();
+    const data = workspaceData();
+    data.jobs = [
+      {
+        ...data.jobs[0]!,
+        state: 'failed',
+        waitingForRunner: false,
+        errorMessage: 'Worker process exited before completion.',
+      },
+    ];
+    data.teamRuns = [{ ...data.teamRuns[0]!, state: 'running', canUndo: true }];
+    render(
+      <CanvasRightPanel
+        panel="runs"
+        setPanel={vi.fn()}
+        data={data}
+        actions={{ stopRun, retryJob, undoRun }}
+      />,
+    );
+
+    expect(screen.getByText('Failed')).toBeVisible();
+    expect(screen.getByText('Worker process exited before completion.')).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'Stop Run' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Undo Run' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Retry Job' }));
+    expect(stopRun).toHaveBeenCalledWith('run-1');
+    expect(undoRun).toHaveBeenCalledWith('run-1');
+    expect(retryJob).toHaveBeenCalledWith('job-1');
+  });
+
+  it('reports only restorable history points as actionable undo results', () => {
+    const restoreHistoryPoint = vi.fn();
+    const data = workspaceData();
+    data.history = [
+      {
+        id: 'change-1',
+        summary: 'Updated requirement',
+        source: 'ui',
+        actorKind: 'human',
+        createdAt: timestamp,
+        canRestore: true,
+      },
+      {
+        id: 'change-2',
+        summary: 'Started Team Run',
+        source: 'ui',
+        actorKind: 'human',
+        createdAt: timestamp,
+        canRestore: false,
+      },
+    ];
+    render(
+      <CanvasRightPanel
+        panel="activity"
+        setPanel={vi.fn()}
+        data={data}
+        actions={{ restoreHistoryPoint }}
+      />,
+    );
+
+    expect(screen.getAllByRole('button', { name: 'Restore this point' })).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: 'Restore this point' }));
+    expect(restoreHistoryPoint).toHaveBeenCalledWith('change-1');
+    expect(screen.getByText('Started Team Run')).toBeVisible();
   });
 });

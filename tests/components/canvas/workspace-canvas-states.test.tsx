@@ -1,0 +1,126 @@
+// @vitest-environment jsdom
+
+import '@testing-library/jest-dom/vitest';
+
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import type { PropsWithChildren, ReactNode } from 'react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { WorkspaceCanvas } from '@/components/canvas/workspace-canvas';
+import type { CanvasWorkspaceData } from '@/features/canvas/types';
+
+vi.mock('@xyflow/react', () => ({
+  Background: () => null,
+  BackgroundVariant: { Dots: 'dots' },
+  MiniMap: ({ ariaLabel }: { ariaLabel: string }) => <div aria-label={ariaLabel} />,
+  Panel: ({ children }: PropsWithChildren) => <div>{children}</div>,
+  ReactFlow: ({ children }: { children: ReactNode }) => (
+    <div data-testid="react-flow">{children}</div>
+  ),
+  ReactFlowProvider: ({ children }: PropsWithChildren) => <>{children}</>,
+  ViewportPortal: ({ children }: PropsWithChildren) => <>{children}</>,
+  useReactFlow: () => ({
+    fitView: vi.fn(),
+    zoomIn: vi.fn(),
+    zoomOut: vi.fn(),
+    getZoom: () => 1,
+    getViewport: () => ({ x: 0, y: 0, zoom: 1 }),
+    screenToFlowPosition: ({ x, y }: { x: number; y: number }) => ({ x, y }),
+  }),
+}));
+
+vi.mock('@/components/theme-toggle', () => ({ ThemeToggle: () => <button>Theme</button> }));
+vi.mock('@/components/canvas/canvas-toolbar', () => ({
+  CanvasCreationToolbar: () => <div>Creation toolbar</div>,
+  ToolbarModeIcon: () => <span aria-hidden="true" />,
+}));
+vi.mock('@/components/canvas/canvas-panels', () => ({
+  CanvasRightPanel: () => <div>Workspace panels</div>,
+}));
+vi.mock('@/components/canvas/node-renderers', () => ({ canvasNodeTypes: {} }));
+vi.mock('@/components/canvas/connector-edge', () => ({ canvasEdgeTypes: {} }));
+
+function data(status: CanvasWorkspaceData['status']): CanvasWorkspaceData {
+  return {
+    workspaceId: 'workspace-states',
+    workspaceTitle: 'State workspace',
+    status,
+    errorMessage: status === 'error' ? 'Guild Cloud did not respond.' : null,
+    conflictMessage: status === 'conflict' ? 'Object changed after this editor loaded it.' : null,
+    objects: [],
+    edges: [],
+    collaborators: [],
+    comments: [],
+    activity: [],
+    roleProfiles: [],
+    runners: [],
+    jobs: [],
+    teamRuns: [],
+    teams: [],
+    history: [],
+    selectedObjectBodyStatus: 'idle',
+  };
+}
+
+beforeEach(() => {
+  class MockResizeObserver {
+    observe() {}
+    disconnect() {}
+  }
+  vi.stubGlobal('ResizeObserver', MockResizeObserver);
+});
+
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
+
+describe('WorkspaceCanvas state surfaces', () => {
+  it('shows a bounded loading surface while live state connects', () => {
+    render(<WorkspaceCanvas data={data('loading')} actions={{}} />);
+
+    expect(screen.getByLabelText('Loading canvas')).toBeVisible();
+    expect(screen.getByText('Loading shared canvas…')).toBeVisible();
+  });
+
+  it('shows an actionable empty canvas only after live state is ready', () => {
+    const createObject = vi.fn();
+    render(<WorkspaceCanvas data={data('ready')} actions={{ createObject }} />);
+
+    expect(screen.getByRole('heading', { name: 'Start shaping this project' })).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'Create sticky note' }));
+    expect(createObject).toHaveBeenCalledWith({
+      type: 'sticky',
+      position: { x: 0, y: 0 },
+      size: { width: 190, height: 168 },
+    });
+  });
+
+  it.each([
+    ['error', 'Connection error', 'Guild Cloud did not respond.', 'alert'],
+    ['conflict', 'Edit conflict', 'Object changed after this editor loaded it.', 'alert'],
+    ['offline', 'Offline', 'Changes are disabled until connection returns.', 'status'],
+    ['reconnecting', 'Reconnecting', 'Trying to restore live updates…', 'status'],
+  ] as const)(
+    'renders the %s notice and retries through the live action',
+    (status, title, message, role) => {
+      const retryConnection = vi.fn();
+      render(<WorkspaceCanvas data={data(status)} actions={{ retryConnection }} />);
+
+      const notice = screen.getByRole(role);
+      expect(notice).toHaveTextContent(title);
+      expect(notice).toHaveTextContent(message);
+      fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+      expect(retryConnection).toHaveBeenCalledOnce();
+    },
+  );
+
+  it('wires both the toolbar button and Command-Z to conflict-aware undo', () => {
+    const undo = vi.fn();
+    render(<WorkspaceCanvas data={data('ready')} actions={{ undo }} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Undo (Command Z)' }));
+    fireEvent.keyDown(window, { key: 'z', metaKey: true });
+    expect(undo).toHaveBeenCalledTimes(2);
+  });
+});
