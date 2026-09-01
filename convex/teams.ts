@@ -55,6 +55,18 @@ export const save = mutation({
   },
 });
 
+export const remove = mutation({
+  args: { teamId: v.id('teams') },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const team = await ctx.db.get(args.teamId);
+    if (!team) throw new Error('team_not_found');
+    await requireWorkspaceMember(ctx, team.workspaceId, 'editor');
+    await ctx.db.delete(team._id);
+    return null;
+  },
+});
+
 const recommendedRoles = [
   {
     handle: 'product',

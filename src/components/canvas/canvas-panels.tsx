@@ -21,8 +21,10 @@ import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
 
 import { projectAreas, type CanvasObject, type ProjectSemantics } from '@/domain/canvas';
 import { useCanvasInteractionStore } from '@/features/canvas/store';
+import type { LocalEngine } from '@/domain/jobs';
 import type {
   CanvasJob,
+  CanvasRoleProfile,
   CanvasRunner,
   CanvasWorkspaceActions,
   CanvasWorkspaceData,
@@ -392,28 +394,193 @@ function CommentsPanel({
   );
 }
 
-function ActivityPanel({ data }: { data: CanvasWorkspaceData }) {
-  if (data.activity.length === 0) {
+function HistoryPanel({
+  data,
+  actions,
+}: {
+  data: CanvasWorkspaceData;
+  actions: CanvasWorkspaceActions;
+}) {
+  if (data.history.length === 0) {
     return (
       <EmptyPanel
-        title="No activity yet"
-        body="Real human, WebMCP Controller, and Worker changes appear here."
+        title="No history points"
+        body="Attributed Change Sets appear here so a conflict-aware revert can restore an earlier point."
       />
     );
   }
   return (
     <ol className={styles.activityList}>
-      {data.activity.map((event) => (
-        <li key={event.id}>
-          <span className={styles.activityDot} style={{ background: event.actor.color }} />
+      {data.history.map((point) => (
+        <li key={point.id}>
+          <span className={styles.activityDot} />
           <div>
-            <strong>{event.actor.name}</strong>
-            <p>{event.summary}</p>
-            <time>{displayTime(event.createdAt)}</time>
+            <strong>{point.summary}</strong>
+            <p>
+              {point.actorKind} · {point.source}
+            </p>
+            <time>{displayTime(point.createdAt)}</time>
+            {point.canRestore && actions.restoreHistoryPoint ? (
+              <button type="button" onClick={() => void actions.restoreHistoryPoint?.(point.id)}>
+                Restore this point
+              </button>
+            ) : null}
           </div>
         </li>
       ))}
     </ol>
+  );
+}
+
+function RoleEditor({
+  data,
+  actions,
+  role,
+}: {
+  data: CanvasWorkspaceData;
+  actions: CanvasWorkspaceActions;
+  role?: CanvasRoleProfile;
+}) {
+  const sections = data.objects.filter((object) => object.type === 'section');
+  const [draft, setDraft] = useState({
+    name: role?.name ?? '',
+    handle: role?.handle ?? '',
+    responsibility: role?.responsibility ?? '',
+    instructions: role?.instructions ?? '',
+    engine: (role?.engine ?? 'codex') as LocalEngine,
+    color: role?.color ?? '#7c3aed',
+    ownedSectionId: role?.ownedSectionId ?? '',
+  });
+  const [saving, setSaving] = useState(false);
+
+  const submit = async (event: FormEvent) => {
+    event.preventDefault();
+    setSaving(true);
+    try {
+      if (role) {
+        await actions.updateRoleProfile?.({
+          roleProfileId: role.id,
+          ...draft,
+          ownedSectionId: draft.ownedSectionId || role.ownedSectionId || '',
+          capabilities: role.capabilities,
+          dependencyRoleProfileIds: role.dependencyRoleProfileIds,
+        });
+      } else {
+        await actions.createRoleProfile?.({
+          ...draft,
+          ...(draft.ownedSectionId ? { ownedSectionId: draft.ownedSectionId } : {}),
+        });
+        setDraft({
+          name: '',
+          handle: '',
+          responsibility: '',
+          instructions: '',
+          engine: 'codex',
+          color: '#7c3aed',
+          ownedSectionId: '',
+        });
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form className={styles.runComposer} onSubmit={(event) => void submit(event)}>
+      <Field label="Name">
+        <input
+          value={draft.name}
+          onChange={(event) => setDraft({ ...draft, name: event.target.value })}
+          required
+        />
+      </Field>
+      <Field label="Handle">
+        <input
+          value={draft.handle}
+          onChange={(event) => setDraft({ ...draft, handle: event.target.value })}
+          required
+        />
+      </Field>
+      <Field label="Responsibility">
+        <input
+          value={draft.responsibility}
+          onChange={(event) => setDraft({ ...draft, responsibility: event.target.value })}
+          required
+        />
+      </Field>
+      <Field label="Instructions">
+        <textarea
+          value={draft.instructions}
+          onChange={(event) => setDraft({ ...draft, instructions: event.target.value })}
+          rows={3}
+          required
+        />
+      </Field>
+      <Field label="Engine">
+        <select
+          value={draft.engine}
+          onChange={(event) => setDraft({ ...draft, engine: event.target.value as LocalEngine })}
+        >
+          <option value="codex">Codex</option>
+          <option value="claude">Claude Code</option>
+        </select>
+      </Field>
+      <Field label="Owned section">
+        <select
+          value={draft.ownedSectionId}
+          onChange={(event) => setDraft({ ...draft, ownedSectionId: event.target.value })}
+        >
+          <option value="">{role ? 'Keep current section' : 'Create a new section'}</option>
+          {sections.map((section) => (
+            <option key={section.id} value={section.id}>
+              {section.title || section.id}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <button type="submit" disabled={saving || (!role && !actions.createRoleProfile)}>
+        {saving ? 'Saving…' : role ? 'Save Role Profile' : 'Add Role Profile'}
+      </button>
+    </form>
+  );
+}
+
+function ActivityPanel({
+  data,
+  actions,
+}: {
+  data: CanvasWorkspaceData;
+  actions: CanvasWorkspaceActions;
+}) {
+  return (
+    <div className={styles.panelBody}>
+      <section className={styles.panelSection}>
+        <h4>History points</h4>
+        <HistoryPanel data={data} actions={actions} />
+      </section>
+      <section className={styles.panelSection}>
+        <h4>Activity</h4>
+        {data.activity.length === 0 ? (
+          <EmptyPanel
+            title="No activity yet"
+            body="Real human, WebMCP Controller, and Worker changes appear here."
+          />
+        ) : (
+          <ol className={styles.activityList}>
+            {data.activity.map((event) => (
+              <li key={event.id}>
+                <span className={styles.activityDot} style={{ background: event.actor.color }} />
+                <div>
+                  <strong>{event.actor.name}</strong>
+                  <p>{event.summary}</p>
+                  <time>{displayTime(event.createdAt)}</time>
+                </div>
+              </li>
+            ))}
+          </ol>
+        )}
+      </section>
+    </div>
   );
 }
 
@@ -653,6 +820,12 @@ function TeamPanel({
                   : 'None.'}
               </p>
             </div>
+            <RoleEditor data={data} actions={actions} role={role} />
+            {actions.removeRoleProfile ? (
+              <button type="button" onClick={() => void actions.removeRoleProfile?.(role.id)}>
+                <Trash2 size={13} /> Remove Role Profile
+              </button>
+            ) : null}
             <div className={styles.roleInstructions}>
               <strong>Recent activity</strong>
               {data.activity.filter(
@@ -674,6 +847,51 @@ function TeamPanel({
             </div>
           </details>
         ))}
+      </section>
+      <section className={styles.panelSection}>
+        <h4>Add Role Profile</h4>
+        <RoleEditor data={data} actions={actions} />
+      </section>
+      <section className={styles.panelSection}>
+        <h4>Teams</h4>
+        {data.teams.length === 0 ? (
+          <EmptyPanel
+            title="No saved teams"
+            body="Save the current Role Profile selection as a reusable team."
+          />
+        ) : (
+          data.teams.map((team) => (
+            <article className={styles.runnerCard} key={team.id}>
+              <strong>{team.name}</strong>
+              <p>
+                {team.roleProfileIds
+                  .map(
+                    (roleId) =>
+                      data.roleProfiles.find((role) => role.id === roleId)?.name ?? roleId,
+                  )
+                  .join(', ')}
+              </p>
+              {actions.removeTeam ? (
+                <button type="button" onClick={() => void actions.removeTeam?.(team.id)}>
+                  <Trash2 size={13} /> Remove team
+                </button>
+              ) : null}
+            </article>
+          ))
+        )}
+        {actions.saveTeam ? (
+          <button
+            type="button"
+            onClick={() =>
+              void actions.saveTeam?.({
+                name: 'Workspace team',
+                roleProfileIds: data.roleProfiles.map((role) => role.id),
+              })
+            }
+          >
+            Save current Role Profiles as team
+          </button>
+        ) : null}
       </section>
     </div>
   );
@@ -779,17 +997,32 @@ function runnerLabel(runner: CanvasRunner) {
     : runner.status.slice(0, 1).toUpperCase() + runner.status.slice(1);
 }
 
-function RunnerPanel({ data }: { data: CanvasWorkspaceData }) {
+function RunnerPanel({
+  data,
+  actions,
+}: {
+  data: CanvasWorkspaceData;
+  actions: CanvasWorkspaceActions;
+}) {
+  const [names, setNames] = useState<Record<string, string>>({});
   if (data.runners.length === 0) {
     return (
-      <EmptyPanel
-        title="Guild Runner offline"
-        body="Canvas editing remains available. Queued Worker Jobs wait durably until an authorized compatible Runner connects."
-      />
+      <div className={styles.panelBody}>
+        <EmptyPanel
+          title="Guild Runner offline"
+          body="Canvas editing remains available. Queued Worker Jobs wait durably until an authorized compatible Runner connects."
+        />
+        <a className={styles.runTeamButton} href="/runner/pair">
+          Pair a Guild Runner
+        </a>
+      </div>
     );
   }
   return (
     <div className={styles.panelBody}>
+      <a className={styles.runTeamButton} href="/runner/pair">
+        Re-pair a Guild Runner
+      </a>
       {data.runners.map((runner) => (
         <article className={styles.runnerCard} key={runner.id}>
           <div className={styles.runnerHeader}>
@@ -827,6 +1060,34 @@ function RunnerPanel({ data }: { data: CanvasWorkspaceData }) {
           {runner.status === 'revoked' ? (
             <p className={styles.jobError}>Pairing revoked. Re-pair this Runner to resume Jobs.</p>
           ) : null}
+          <Field label="Runner name">
+            <input
+              value={names[runner.id] ?? runner.name}
+              onChange={(event) =>
+                setNames((current) => ({ ...current, [runner.id]: event.target.value }))
+              }
+            />
+          </Field>
+          <div className={styles.runActions}>
+            {actions.renameRunner ? (
+              <button
+                type="button"
+                onClick={() =>
+                  void actions.renameRunner?.({
+                    runnerId: runner.id,
+                    name: names[runner.id] ?? runner.name,
+                  })
+                }
+              >
+                Rename
+              </button>
+            ) : null}
+            {actions.revokeRunner && runner.status !== 'revoked' ? (
+              <button type="button" onClick={() => void actions.revokeRunner?.(runner.id)}>
+                Revoke
+              </button>
+            ) : null}
+          </div>
         </article>
       ))}
     </div>
@@ -901,10 +1162,10 @@ export function CanvasRightPanel({
           {panel === 'comments' ? (
             <CommentsPanel selectedObjectId={selectedObjectId} data={data} actions={actions} />
           ) : null}
-          {panel === 'activity' ? <ActivityPanel data={data} /> : null}
+          {panel === 'activity' ? <ActivityPanel data={data} actions={actions} /> : null}
           {panel === 'team' ? <TeamPanel data={data} actions={actions} /> : null}
           {panel === 'runs' ? <JobsPanel data={data} actions={actions} /> : null}
-          {panel === 'runner' ? <RunnerPanel data={data} /> : null}
+          {panel === 'runner' ? <RunnerPanel data={data} actions={actions} /> : null}
         </aside>
       ) : null}
     </>

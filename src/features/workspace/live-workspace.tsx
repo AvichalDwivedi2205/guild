@@ -15,6 +15,7 @@ import type {
   CanvasJob,
   CanvasRoleProfile,
   CanvasRunner,
+  CanvasTeam,
   CanvasTeamRun,
   CanvasWorkspaceActions,
   CanvasWorkspaceData,
@@ -22,6 +23,7 @@ import type {
 import { createConvexWebMcpService } from '@/features/webmcp/convex-service';
 import { WebMcpTools } from '@/features/webmcp/webmcp-tools';
 import { mapCanvasContext, type ConvexCanvasContext } from '@/features/workspace/canvas-mapper';
+import { CURSOR_INTERVAL_MS, nextPresencePayload } from '@/features/workspace/presence-publisher';
 
 type RunRow = {
   run: Doc<'teamRuns'>;
@@ -30,6 +32,15 @@ type RunRow = {
 };
 
 type PresenceSignal = Doc<'liveSignals'> & { user: Doc<'users'> | null };
+type HistoryRow = {
+  _id: string;
+  summary: string;
+  source: string;
+  actorKind: string;
+  state: string;
+  createdAt: number;
+  canRestore: boolean;
+};
 type ActionState = { kind: 'error' | 'conflict'; message: string } | null;
 
 function newKey(prefix: string): string {
@@ -77,6 +88,9 @@ function mapLiveData(input: {
   runners: readonly Doc<'runners'>[];
   runRows: readonly RunRow[];
   presence: readonly PresenceSignal[];
+  teams: readonly Doc<'teams'>[];
+  history: readonly HistoryRow[];
+  sessionId: string;
   actionState: ActionState;
 }): CanvasWorkspaceData {
   const mapped = mapCanvasContext(input.context);
@@ -139,16 +153,18 @@ function mapLiveData(input: {
     };
   });
 
-  const humans: CanvasCollaborator[] = input.presence.map((signal) => ({
-    id: signal.userId,
-    kind: 'human',
-    name: signal.user?.name ?? 'Collaborator',
-    initials: initials(signal.user?.name ?? 'Collaborator'),
-    color: '#111827',
-    state: signal.editingObjectId ? 'editing' : 'viewing',
-    ...(signal.cursor ? { position: signal.cursor } : {}),
-    ...(signal.editingObjectId ? { targetObjectId: signal.editingObjectId } : {}),
-  }));
+  const humans: CanvasCollaborator[] = input.presence
+    .filter((signal) => signal.sessionId !== input.sessionId)
+    .map((signal) => ({
+      id: signal.userId,
+      kind: 'human',
+      name: signal.user?.name ?? 'Collaborator',
+      initials: initials(signal.user?.name ?? 'Collaborator'),
+      color: '#111827',
+      state: signal.editingObjectId ? 'editing' : 'viewing',
+      ...(signal.cursor ? { position: signal.cursor } : {}),
+      ...(signal.editingObjectId ? { targetObjectId: signal.editingObjectId } : {}),
+    }));
   const workers: CanvasCollaborator[] = jobs
     .filter((job) => job.state === 'leased' || job.state === 'running')
     .map((job) => {
@@ -213,6 +229,19 @@ function mapLiveData(input: {
     runners,
     jobs: canvasJobs,
     teamRuns,
+    teams: input.teams.map((team) => ({
+      id: team._id,
+      name: team.name,
+      roleProfileIds: team.roleProfileIds,
+    })) satisfies CanvasTeam[],
+    history: input.history.map((point) => ({
+      id: point._id,
+      summary: point.summary,
+      source: point.source,
+      actorKind: point.actorKind,
+      createdAt: new Date(point.createdAt).toISOString(),
+      canRestore: point.canRestore,
+    })),
   };
 }
 
@@ -231,6 +260,8 @@ const emptyData = (workspaceId: string): CanvasWorkspaceData => ({
   runners: [],
   jobs: [],
   teamRuns: [],
+  teams: [],
+  history: [],
 });
 
 export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: string }) {
@@ -250,7 +281,13 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
   const undoChangeSet = useMutation(api.undo.changeSet);
   const presenceHeartbeat = useMutation(api.presence.heartbeat);
   const leavePresence = useMutation(api.presence.leave);
-  const selectedObjectIds = useCanvasInteractionStore((state) => state.selectedNodeIds);
+  const createRoleProfile = useMutation(api.roleProfiles.create);
+  const updateRoleProfile = useMutation(api.roleProfiles.update);
+  const removeRoleProfile = useMutation(api.roleProfiles.remove);
+  const saveTeam = useMutation(api.teams.save);
+  const removeTeam = useMutation(api.teams.remove);
+  const renameRunner = useMutation(api.runners.rename);
+  const revokeRunner = useMutation(api.runners.revoke);
   const setMode = useCanvasInteractionStore((state) => state.setMode);
   const [userReady, setUserReady] = useState(false);
   const [actionState, setActionState] = useState<ActionState>(null);
@@ -298,6 +335,8 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
     api.presence.list,
     enabled ? { workspaceId: targetWorkspaceId } : 'skip',
   );
+  const teams = useQuery(api.teams.list, enabled ? { workspaceId: targetWorkspaceId } : 'skip');
+  const history = useQuery(api.undo.list, enabled ? { workspaceId: targetWorkspaceId } : 'skip');
   const latestChangeSet = useQuery(
     api.undo.latest,
     enabled ? { workspaceId: targetWorkspaceId } : 'skip',
@@ -310,7 +349,9 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
     roles !== undefined &&
     runners !== undefined &&
     runRows !== undefined &&
-    presence !== undefined;
+    presence !== undefined &&
+    teams !== undefined &&
+    history !== undefined;
 
   useEffect(() => {
     if (!context) return;
@@ -319,19 +360,39 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
 
   useEffect(() => {
     if (!enabled) return;
-    const heartbeat = () =>
-      presenceHeartbeat({
+    let lastCursorAt = 0;
+    let lastViewportAt = 0;
+    const publish = (force: boolean) => {
+      const interaction = useCanvasInteractionStore.getState();
+      const now = force ? Number.POSITIVE_INFINITY : Date.now();
+      const next = nextPresencePayload(now, lastCursorAt, lastViewportAt, {
+        ...(interaction.presenceCursor ? { cursor: interaction.presenceCursor } : {}),
+        ...(interaction.presenceViewport ? { viewport: interaction.presenceViewport } : {}),
+        selectedObjectIds: interaction.selectedNodeIds,
+        ...(interaction.editingObjectId ? { editingObjectId: interaction.editingObjectId } : {}),
+      });
+      lastCursorAt = force ? Date.now() : next.lastCursorAt;
+      lastViewportAt = force ? Date.now() : next.lastViewportAt;
+      return presenceHeartbeat({
         workspaceId: targetWorkspaceId,
         sessionId,
-        selectedObjectIds: selectedObjectIds.map((objectId) => objectId as Id<'canvasObjects'>),
+        selectedObjectIds: next.payload.selectedObjectIds.map(
+          (objectId) => objectId as Id<'canvasObjects'>,
+        ),
+        ...(next.payload.cursor ? { cursor: next.payload.cursor } : {}),
+        ...(next.payload.viewport ? { viewport: next.payload.viewport } : {}),
+        ...(next.payload.editingObjectId
+          ? { editingObjectId: next.payload.editingObjectId as Id<'canvasObjects'> }
+          : {}),
       }).catch(() => undefined);
-    void heartbeat();
-    const interval = window.setInterval(() => void heartbeat(), 10_000);
+    };
+    void publish(true);
+    const interval = window.setInterval(() => void publish(false), CURSOR_INTERVAL_MS);
     return () => {
       window.clearInterval(interval);
       void leavePresence({ workspaceId: targetWorkspaceId, sessionId }).catch(() => undefined);
     };
-  }, [enabled, leavePresence, presenceHeartbeat, selectedObjectIds, sessionId, targetWorkspaceId]);
+  }, [enabled, leavePresence, presenceHeartbeat, sessionId, targetWorkspaceId]);
 
   const perform = useCallback(async (operation: () => Promise<unknown>) => {
     setActionState(null);
@@ -473,21 +534,86 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
       retryJob: (jobId) => perform(() => retryJob({ jobId: jobId as Id<'jobs'>, source: 'ui' })),
       undoRun: (runId) =>
         perform(() => undoRun({ teamRunId: runId as Id<'teamRuns'>, source: 'ui' })),
+      createRoleProfile: (input) =>
+        perform(() =>
+          createRoleProfile({
+            workspaceId: targetWorkspaceId,
+            name: input.name,
+            handle: input.handle,
+            responsibility: input.responsibility,
+            instructions: input.instructions,
+            engine: input.engine,
+            color: input.color,
+            capabilities: ['read_workspace', 'write_owned_section', 'comment', 'report_progress'],
+            expectedArtifactTypes: ['sticky', 'text', 'shape'],
+            staticDependencyRoleProfileIds: [],
+            ...(input.ownedSectionId
+              ? { ownedSectionId: input.ownedSectionId as Id<'canvasObjects'> }
+              : {}),
+          }),
+        ),
+      updateRoleProfile: (input) =>
+        perform(() =>
+          updateRoleProfile({
+            roleProfileId: input.roleProfileId as Id<'roleProfiles'>,
+            name: input.name,
+            handle: input.handle,
+            responsibility: input.responsibility,
+            instructions: input.instructions,
+            engine: input.engine,
+            color: input.color,
+            ownedSectionId: input.ownedSectionId as Id<'canvasObjects'>,
+            capabilities: [...input.capabilities],
+            expectedArtifactTypes: ['sticky', 'text', 'shape'],
+            staticDependencyRoleProfileIds: input.dependencyRoleProfileIds.map(
+              (roleId) => roleId as Id<'roleProfiles'>,
+            ),
+          }),
+        ),
+      removeRoleProfile: (roleProfileId) =>
+        perform(() => removeRoleProfile({ roleProfileId: roleProfileId as Id<'roleProfiles'> })),
+      saveTeam: (input) =>
+        perform(() =>
+          saveTeam({
+            workspaceId: targetWorkspaceId,
+            name: input.name,
+            roleProfileIds: input.roleProfileIds.map((roleId) => roleId as Id<'roleProfiles'>),
+            ...(input.teamId ? { teamId: input.teamId as Id<'teams'> } : {}),
+          }),
+        ),
+      removeTeam: (teamId) => perform(() => removeTeam({ teamId: teamId as Id<'teams'> })),
+      renameRunner: (input) =>
+        perform(() =>
+          renameRunner({ runnerId: input.runnerId as Id<'runners'>, name: input.name }),
+        ),
+      revokeRunner: (runnerId) =>
+        perform(() => revokeRunner({ runnerId: runnerId as Id<'runners'> })),
+      restoreHistoryPoint: (changeSetId) =>
+        perform(() =>
+          undoChangeSet({ changeSetId: changeSetId as Id<'changeSets'>, source: 'ui' }),
+        ),
     };
   }, [
     addComment,
     assembleTeam,
+    createRoleProfile,
     executeCommands,
     latestChangeSet,
     loaded,
     perform,
+    removeRoleProfile,
+    removeTeam,
+    renameRunner,
     resolveComment,
     retryJob,
+    revokeRunner,
+    saveTeam,
     startTeam,
     stopRun,
     targetWorkspaceId,
     undoChangeSet,
     undoRun,
+    updateRoleProfile,
     updateWorkspace,
   ]);
 
@@ -500,7 +626,9 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
       !roles ||
       !runners ||
       !runRows ||
-      !presence
+      !presence ||
+      !teams ||
+      !history
     ) {
       const empty = emptyData(rawWorkspaceId);
       if (!authLoading && !isAuthenticated) {
@@ -520,6 +648,9 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
       runners: runners as readonly Doc<'runners'>[],
       runRows: runRows as readonly RunRow[],
       presence: presence as readonly PresenceSignal[],
+      teams: teams as readonly Doc<'teams'>[],
+      history: history as readonly HistoryRow[],
+      sessionId,
       actionState,
     });
   }, [
@@ -528,6 +659,7 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
     authLoading,
     comments,
     context,
+    history,
     isAuthenticated,
     loaded,
     presence,
@@ -535,6 +667,8 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
     roles,
     runRows,
     runners,
+    sessionId,
+    teams,
   ]);
 
   const webMcpService = useMemo(() => createConvexWebMcpService(convex), [convex]);

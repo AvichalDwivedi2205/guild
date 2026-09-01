@@ -61,6 +61,14 @@ function toFlowEdge(edge: CanvasEdge): GuildFlowEdge {
   };
 }
 
+type PresenceViewport = {
+  x: number;
+  y: number;
+  zoom: number;
+  width: number;
+  height: number;
+};
+
 type CanvasInteractionStore = {
   workspaceId: string | null;
   nodes: GuildFlowNode[];
@@ -70,6 +78,9 @@ type CanvasInteractionStore = {
   connectorRelationship: ProjectRelationship;
   selectedNodeIds: readonly string[];
   interactingNodeIds: ReadonlySet<string>;
+  presenceCursor: { x: number; y: number } | null;
+  presenceViewport: PresenceViewport | null;
+  editingObjectId: string | null;
   actions: CanvasWorkspaceActions;
   hydrate: (
     workspaceId: string,
@@ -85,6 +96,9 @@ type CanvasInteractionStore = {
   beginInteraction: (objectId: string) => void;
   finishInteraction: (objectId: string) => void;
   selectOnly: (objectId: string | null) => void;
+  setPresenceCursor: (cursor: { x: number; y: number } | null) => void;
+  setPresenceViewport: (viewport: PresenceViewport | null) => void;
+  setEditingObjectId: (objectId: string | null) => void;
 };
 
 export const useCanvasInteractionStore = create<CanvasInteractionStore>((set, get) => ({
@@ -96,6 +110,9 @@ export const useCanvasInteractionStore = create<CanvasInteractionStore>((set, ge
   connectorRelationship: 'informs',
   selectedNodeIds: [],
   interactingNodeIds: new Set(),
+  presenceCursor: null,
+  presenceViewport: null,
+  editingObjectId: null,
   actions: {},
   hydrate: (workspaceId, objects, edges, actions) => {
     const current = get();
@@ -118,6 +135,9 @@ export const useCanvasInteractionStore = create<CanvasInteractionStore>((set, ge
       edges: edges.map(toFlowEdge),
       selectedNodeIds: selectedNodeIds.filter((id) => availableIds.has(id)),
       interactingNodeIds,
+      ...(changedWorkspace
+        ? { presenceCursor: null, presenceViewport: null, editingObjectId: null }
+        : {}),
       actions,
     });
   },
@@ -149,4 +169,7 @@ export const useCanvasInteractionStore = create<CanvasInteractionStore>((set, ge
       nodes: get().nodes.map((node) => ({ ...node, selected: node.id === objectId })),
     });
   },
+  setPresenceCursor: (presenceCursor) => set({ presenceCursor }),
+  setPresenceViewport: (presenceViewport) => set({ presenceViewport }),
+  setEditingObjectId: (editingObjectId) => set({ editingObjectId }),
 }));

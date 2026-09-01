@@ -32,7 +32,7 @@ import {
   Wifi,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { CanvasObject, CanvasObjectType } from '@/domain/canvas';
 import { CanvasCreationToolbar, ToolbarModeIcon } from '@/components/canvas/canvas-toolbar';
@@ -371,8 +371,30 @@ function CanvasViewport({
   const finishInteraction = useCanvasInteractionStore((state) => state.finishInteraction);
   const selectOnly = useCanvasInteractionStore((state) => state.selectOnly);
   const selectedNodeIds = useCanvasInteractionStore((state) => state.selectedNodeIds);
+  const interactingNodeIds = useCanvasInteractionStore((state) => state.interactingNodeIds);
   const connectorRelationship = useCanvasInteractionStore((state) => state.connectorRelationship);
+  const { screenToFlowPosition } = useReactFlow();
+  const flowRegionRef = useRef<HTMLElement | null>(null);
   const [panel, setPanel] = useState<CanvasPanel | null>(null);
+
+  const publishViewport = useCallback((viewport: { x: number; y: number; zoom: number }) => {
+    const bounds = flowRegionRef.current?.getBoundingClientRect();
+    useCanvasInteractionStore.getState().setPresenceViewport({
+      ...viewport,
+      width: bounds?.width ?? 0,
+      height: bounds?.height ?? 0,
+    });
+  }, []);
+
+  useEffect(() => {
+    const editing =
+      panel === 'inspector' && selectedNodeIds[0]
+        ? selectedNodeIds[0]
+        : interactingNodeIds.size === 1
+          ? ([...interactingNodeIds][0] ?? null)
+          : null;
+    useCanvasInteractionStore.getState().setEditingObjectId(editing);
+  }, [interactingNodeIds, panel, selectedNodeIds]);
 
   const connect = useCallback(
     (connection: Connection) => {
@@ -436,7 +458,11 @@ function CanvasViewport({
   return (
     <div className={styles.workspaceCanvas} data-tool={tool}>
       <TopToolbar data={data} actions={actions} panel={panel} setPanel={setPanel} />
-      <main className={styles.flowRegion} aria-label={`${data.workspaceTitle} infinite canvas`}>
+      <main
+        ref={flowRegionRef}
+        className={styles.flowRegion}
+        aria-label={`${data.workspaceTitle} infinite canvas`}
+      >
         <ReactFlow<GuildFlowNode, (typeof edges)[number]>
           nodes={nodes}
           edges={edges}
@@ -449,6 +475,11 @@ function CanvasViewport({
           onNodeDragStop={dragStop}
           onNodeClick={() => setPanel('inspector')}
           onPaneClick={() => selectOnly(null)}
+          onPointerMove={(event) => {
+            const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+            useCanvasInteractionStore.getState().setPresenceCursor(position);
+          }}
+          onMove={(_event, viewport) => publishViewport(viewport)}
           nodesDraggable={tool === 'select'}
           nodesConnectable={tool === 'connect'}
           elementsSelectable={tool !== 'pan'}

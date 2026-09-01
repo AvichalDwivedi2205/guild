@@ -11,9 +11,12 @@ export function WorkspaceList() {
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
   const syncCurrentUser = useMutation(api.users.syncCurrent);
   const createWorkspace = useMutation(api.workspaces.create);
+  const ensureJudgeWorkspace = useMutation(api.seed.ensureJudgeWorkspace);
+  const assembleTeam = useMutation(api.teams.assembleRecommended);
   const workspaces = useQuery(api.workspaces.list, isAuthenticated ? { limit: 50 } : 'skip');
   const [title, setTitle] = useState('');
   const [creating, setCreating] = useState(false);
+  const [seeding, setSeeding] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -68,6 +71,28 @@ export function WorkspaceList() {
           <button className="button button-dark" disabled={!title.trim() || creating} type="submit">
             {creating ? <LoaderCircle className="spin" size={16} /> : <Plus size={16} />}
             {creating ? 'Creating…' : 'Create'}
+          </button>
+          <button
+            className="button"
+            type="button"
+            disabled={seeding}
+            onClick={() => {
+              setSeeding(true);
+              setError(null);
+              void ensureJudgeWorkspace()
+                .then(async (result) => {
+                  if (result.created) {
+                    await assembleTeam({
+                      workspaceId: result.workspaceId,
+                      projectDescription: 'Guild judge evaluation workspace',
+                    });
+                  }
+                })
+                .catch(() => setError('Could not seed the judge workspace.'))
+                .finally(() => setSeeding(false));
+            }}
+          >
+            {seeding ? 'Seeding…' : 'Seed judge workspace'}
           </button>
         </div>
       </form>

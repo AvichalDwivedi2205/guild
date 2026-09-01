@@ -97,6 +97,21 @@ export type CanvasTeamRun = {
   canUndo: boolean;
 };
 
+export type CanvasTeam = {
+  id: string;
+  name: string;
+  roleProfileIds: readonly string[];
+};
+
+export type CanvasHistoryPoint = {
+  id: string;
+  summary: string;
+  source: string;
+  actorKind: string;
+  createdAt: string;
+  canRestore: boolean;
+};
+
 export type CanvasWorkspaceData = {
   workspaceId: string;
   workspaceTitle: string;
@@ -112,6 +127,8 @@ export type CanvasWorkspaceData = {
   runners: readonly CanvasRunner[];
   jobs: readonly CanvasJob[];
   teamRuns: readonly CanvasTeamRun[];
+  teams: readonly CanvasTeam[];
+  history: readonly CanvasHistoryPoint[];
 };
 
 export type CanvasWorkspaceActions = {
@@ -162,4 +179,35 @@ export type CanvasWorkspaceActions = {
   stopRun?: (runId: string) => void | Promise<void>;
   retryJob?: (jobId: string) => void | Promise<void>;
   undoRun?: (runId: string) => void | Promise<void>;
+  createRoleProfile?: (input: {
+    name: string;
+    handle: string;
+    responsibility: string;
+    instructions: string;
+    engine: LocalEngine;
+    color: string;
+    ownedSectionId?: string;
+  }) => void | Promise<void>;
+  updateRoleProfile?: (input: {
+    roleProfileId: string;
+    name: string;
+    handle: string;
+    responsibility: string;
+    instructions: string;
+    engine: LocalEngine;
+    color: string;
+    ownedSectionId: string;
+    capabilities: readonly string[];
+    dependencyRoleProfileIds: readonly string[];
+  }) => void | Promise<void>;
+  removeRoleProfile?: (roleProfileId: string) => void | Promise<void>;
+  saveTeam?: (input: {
+    teamId?: string;
+    name: string;
+    roleProfileIds: readonly string[];
+  }) => void | Promise<void>;
+  removeTeam?: (teamId: string) => void | Promise<void>;
+  renameRunner?: (input: { runnerId: string; name: string }) => void | Promise<void>;
+  revokeRunner?: (runnerId: string) => void | Promise<void>;
+  restoreHistoryPoint?: (changeSetId: string) => void | Promise<void>;
 };

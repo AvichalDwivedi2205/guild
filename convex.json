@@ -24,9 +24,9 @@
     "prod": {
       "environmentType": "production",
       "configure": {
-        "redirectUris": ["https://${buildEnv.VERCEL_PROJECT_PRODUCTION_URL}/callback"],
-        "appHomepageUrl": "https://${buildEnv.VERCEL_PROJECT_PRODUCTION_URL}",
-        "corsOrigins": ["https://${buildEnv.VERCEL_PROJECT_PRODUCTION_URL}"]
+        "redirectUris": ["https://guild-rose-two.vercel.app/callback"],
+        "appHomepageUrl": "https://guild-rose-two.vercel.app",
+        "corsOrigins": ["https://guild-rose-two.vercel.app"]
       }
     }
   }

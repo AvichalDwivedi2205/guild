@@ -75,6 +75,8 @@ function workspaceData(): CanvasWorkspaceData {
         canUndo: false,
       },
     ],
+    teams: [],
+    history: [],
   };
 }
 

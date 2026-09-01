@@ -14,6 +14,28 @@ function objectRevision(object: Doc<'canvasObjects'>, segment: Segment): number 
   return object.hierarchyRevision;
 }
 
+export const list = query({
+  args: { workspaceId: v.id('workspaces'), limit: v.optional(v.number()) },
+  returns: v.array(v.any()),
+  handler: async (ctx, args) => {
+    await requireWorkspaceMember(ctx, args.workspaceId);
+    const changeSets = await ctx.db
+      .query('changeSets')
+      .withIndex('by_workspaceId', (index) => index.eq('workspaceId', args.workspaceId))
+      .order('desc')
+      .take(Math.max(1, Math.min(args.limit ?? 40, 80)));
+    return changeSets.map((changeSet) => ({
+      _id: changeSet._id,
+      summary: changeSet.summary,
+      source: changeSet.source,
+      actorKind: changeSet.actorKind,
+      state: changeSet.state,
+      createdAt: changeSet.createdAt,
+      canRestore: changeSet.state === 'applied',
+    }));
+  },
+});
+
 export const latest = query({
   args: { workspaceId: v.id('workspaces') },
   returns: v.union(v.null(), v.any()),

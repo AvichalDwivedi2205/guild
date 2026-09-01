@@ -87,8 +87,78 @@ function canvasCommand(
   }
 }
 
-export function createConvexWebMcpService(client: ConvexReactClient): GuildWebMcpService {
+async function recordWebMcp(
+  client: ConvexReactClient,
+  workspace: string | undefined,
+  toolName: string,
+  startedAt: number,
+  outcome: 'ok' | 'error',
+  changeSetId?: string,
+) {
+  if (!workspace) return;
+  await client
+    .mutation(api.activity.recordWebMcp, {
+      workspaceId: workspaceId(workspace),
+      toolName,
+      outcome,
+      durationMs: Date.now() - startedAt,
+      ...(changeSetId ? { changeSetId: changeSetId as Id<'changeSets'> } : {}),
+    })
+    .catch(() => undefined);
+}
+
+function withWebMcpAudit(
+  client: ConvexReactClient,
+  service: GuildWebMcpService,
+): GuildWebMcpService {
+  const wrap =
+    <TInput extends { workspaceId?: string }, TResult>(
+      toolName: string,
+      fn: (input: TInput) => Promise<TResult>,
+    ) =>
+    async (input: TInput): Promise<TResult> => {
+      const startedAt = Date.now();
+      try {
+        const result = await fn(input);
+        const changeSetId =
+          result && typeof result === 'object' && 'changeSetId' in result
+            ? String((result as { changeSetId?: string }).changeSetId ?? '')
+            : '';
+        await recordWebMcp(
+          client,
+          input.workspaceId,
+          toolName,
+          startedAt,
+          'ok',
+          changeSetId || undefined,
+        );
+        return result;
+      } catch (error) {
+        await recordWebMcp(client, input.workspaceId, toolName, startedAt, 'error');
+        throw error;
+      }
+    };
+
   return {
+    listWorkspaces: service.listWorkspaces,
+    getWorkspaceContext: wrap('get_workspace_context', service.getWorkspaceContext),
+    searchCanvas: wrap('search_canvas', service.searchCanvas),
+    applyCanvasChanges: wrap('apply_canvas_changes', service.applyCanvasChanges),
+    addComment: wrap('add_comment', service.addComment),
+    runAiTeam: wrap('run_ai_team', service.runAiTeam),
+    getRunStatus: wrap('get_run_status', service.getRunStatus),
+    getRunnerStatus: wrap('get_runner_status', service.getRunnerStatus),
+    stopRun: wrap('stop_run', service.stopRun),
+    retryJob: wrap('retry_job', service.retryJob),
+    undoRun: wrap('undo_run', service.undoRun),
+    listImplementationTasks: wrap('list_implementation_tasks', service.listImplementationTasks),
+    claimTask: wrap('claim_task', service.claimTask),
+    reportTaskResult: wrap('report_task_result', service.reportTaskResult),
+  };
+}
+
+export function createConvexWebMcpService(client: ConvexReactClient): GuildWebMcpService {
+  return withWebMcpAudit(client, {
     async listWorkspaces(input) {
       const workspaces = await client.query(api.workspaces.list, { limit: input.limit });
       return { workspaces };
@@ -295,5 +365,5 @@ export function createConvexWebMcpService(client: ConvexReactClient): GuildWebMc
       });
       return { taskId: input.taskId, changeSetId: result.changeSetId };
     },
-  };
+  });
 }
