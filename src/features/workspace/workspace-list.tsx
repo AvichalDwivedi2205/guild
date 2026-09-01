@@ -6,6 +6,8 @@ import { ArrowRight, LoaderCircle, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState, type FormEvent } from 'react';
 
+import { WORKSPACE_AUTH_TIMEOUT_MS } from '@/features/workspace/convex-authkit';
+
 import { api } from '../../../convex/_generated/api';
 
 export function WorkspaceList() {
@@ -20,11 +22,19 @@ export function WorkspaceList() {
   const [creating, setCreating] = useState(false);
   const [seeding, setSeeding] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [timedOut, setTimedOut] = useState(false);
+  const waiting = workosLoading || authLoading || (isAuthenticated && workspaces === undefined);
 
   useEffect(() => {
     if (!isAuthenticated) return;
     void syncCurrentUser().catch(() => setError('Could not initialize Guild Cloud membership.'));
   }, [isAuthenticated, syncCurrentUser]);
+
+  useEffect(() => {
+    if (!waiting) return;
+    const timeout = window.setTimeout(() => setTimedOut(true), WORKSPACE_AUTH_TIMEOUT_MS);
+    return () => window.clearTimeout(timeout);
+  }, [waiting]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -42,7 +52,7 @@ export function WorkspaceList() {
     }
   }
 
-  if (workosLoading || authLoading || (isAuthenticated && workspaces === undefined)) {
+  if (waiting && !timedOut) {
     return (
       <div className="workspace-list-state" aria-live="polite">
         <LoaderCircle className="spin" size={18} aria-hidden="true" /> Loading live workspaces…
@@ -50,7 +60,7 @@ export function WorkspaceList() {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || (timedOut && waiting)) {
     return (
       <div className="workspace-list-state" role="alert">
         {user

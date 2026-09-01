@@ -34,6 +34,16 @@ Status vocabulary:
 - Remaining proof: refresh production `/workspaces` while still signed in, create a workspace,
   seed the judge workspace, then pair a real Runner.
 
+## Snapshot — 2026-09-01 (auth hang)
+
+- After the AuthKit hydration deploy, `/workspaces` stayed on “Loading live workspaces…”.
+  `useConvexAuth().isLoading` is true while Convex has not confirmed a JWT. Including the
+  WorkOS token-hook loading flag in that state kept Convex in `isConvexAuthenticated === null`,
+  so the list never left the spinner. `expectAuth` was also holding queries until a token
+  arrived.
+- Fix: use the official AuthKit→Convex loading rule (AuthKit user only), time out hung token
+  fetches, drop `expectAuth`, and surface the connection error after 12s instead of spinning.
+
 ## Snapshot — 2026-09-01 (evening)
 
 - Branch: `main`
