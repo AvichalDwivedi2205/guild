@@ -12,6 +12,20 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-02 (connected canvas and Runner lifecycle tests)
+
+- Added connected Convex tests for independent style/semantics segment writes from the same base
+  revision, stale-revision rejection, idempotent replay, restorable Change Set history, and WebMCP
+  canvas/invocation attribution to one visible Change Set.
+- Added connected Runner tests for pending/approved pairing exchange, workspace grants, polling,
+  leases, Work Claims, assignment capabilities, Worker canvas writes, progress deduplication,
+  completion, stale-authority rejection, Run undo, revocation, failed-Job retry with incremented
+  attempt/fencing tokens, stop/cancellation, and dependency-gated downstream Job unlocking.
+- Evidence: `bun run check` passed formatting, zero-warning ESLint, strict TypeScript, 32 test files /
+  94 tests, including five connected canvas/Runner lifecycle tests, plus Runner typecheck. Runner
+  tests passed 10 files / 26 tests; Runner and Next.js production builds passed; landing Playwright
+  passed four desktop/mobile tests.
+
 ## Snapshot — 2026-09-02 (connected Convex Run tests)
 
 - Added the official `convex-test` Edge Runtime harness and three authenticated integration tests
@@ -284,8 +298,8 @@ The latest GitHub Actions quality-gate run also passed. A Vercel “Ready” bui
 a working production application until the new Production environment variables are picked up by a
 redeploy.
 
-Latest local proof: `bun run check` passed formatting, ESLint, strict TypeScript, 30 test files /
-89 tests, and Runner typecheck. `bun run runner:test` passed (10 files / 26 tests) and
+Latest local proof: `bun run check` passed formatting, ESLint, strict TypeScript, 32 test files /
+94 tests, and Runner typecheck. `bun run runner:test` passed (10 files / 26 tests) and
 `bun run runner:build` passed. `bunx convex codegen` pushed development functions.
 `bunx convex deploy --yes` deployed production functions to `befitting-bird-666`.
 `vercel --prod --yes` deployed Ready production to the stable alias. `curl` of `/` returned HTTP
@@ -347,13 +361,13 @@ suite passes in desktop and mobile Chromium; authenticated application coverage 
       Runner compatibility, capability/fencing/lease rejection, revision conflicts, WebMCP schemas,
       CLI argument construction, environment allowlisting, and output limits. Remaining edge cases
       belong in connected integration coverage rather than duplicate pure-function tests.
-- [ ] Expand the new Convex/auth integration suite from Team Run fan-out, explicit assignment,
-      membership denial, and `@Role` routing to simultaneous segment updates, pairing/revocation,
-      job claims/leases, stale attempts, dependency unlocking, stop/retry/undo, and WebMCP
-      attribution.
+- [x] Connected Convex/auth integration coverage now includes Team Run fan-out, explicit
+      assignment, membership denial, `@Role` routing, independent segment updates, stale revision
+      conflicts, pairing/revocation, Job claims/leases, stale attempts, dependency unlocking,
+      stop/retry/undo, Worker capability writes, and WebMCP attribution.
 - [ ] Add component tests for renderer families, inspector, all state surfaces, comments, Runner,
       Team Runs, Job badges, conflict messages, and undo reporting.
-- [ ] Replace the two-test landing-only Playwright suite with all 24 required browser flows,
+- [ ] Replace the four-test landing-only Playwright suite with all 24 required browser flows,
       including production smoke.
 - [ ] Re-run clean install, all quality gates, production build, Runner build, Convex validation,
       security tests, and browser verification; record exact results here.
