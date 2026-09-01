@@ -116,34 +116,34 @@ callback.
 “Implemented” below means the connected behavior is present; the final acceptance gate still
 requires the broader production and E2E evidence listed later.
 
-| #   | Capability                                 | State       | Remaining acceptance evidence or gap                                   |
-| --- | ------------------------------------------ | ----------- | ---------------------------------------------------------------------- |
-| 1   | Infinite shared project canvas             | Implemented | Production smoke and large-workspace interaction                       |
-| 2   | Multiplayer human collaboration            | Partial     | Two real browser-context E2E for live cursors and viewports            |
-| 3   | Local AI Workers as teammates              | Partial     | Pair and run real signed-in Codex and Claude clients                   |
-| 4   | Multiple Workers simultaneously            | Partial     | Real concurrent Codex/Claude Jobs and separate-region proof            |
-| 5   | WebMCP and local Runner paths              | Partial     | Production browser-agent and real Runner verification                  |
-| 6   | Worker Role Profiles                       | Partial     | Authenticated create/edit/delete browser coverage                      |
-| 7   | Assignment-scoped autonomous canvas access | Implemented | Production adversarial/capability E2E                                  |
-| 8   | Sections and project spaces                | Implemented | Representative browser flow                                            |
-| 9   | Requirements and PRD representation        | Partial     | Rich body editing and representative browser flow                      |
-| 10  | Journeys and flows                         | Partial     | Rich body editing and representative browser flow                      |
-| 11  | Lightweight wireframe design               | Implemented | Renderer-family browser coverage                                       |
-| 12  | System architecture                        | Implemented | Representative semantic-connector E2E                                  |
-| 13  | AI architecture                            | Implemented | Representative semantic-connector E2E                                  |
-| 14  | Implementation planning and tasks          | Implemented | Authenticated integration/E2E coverage                                 |
-| 15  | Semantic traceability                      | Implemented | End-to-end relationship editing coverage                               |
-| 16  | Reversible execution                       | Partial     | History-point restore is Change-Set revert; full conflict E2E remains  |
-| 17  | Comments and mentions                      | Implemented | Authenticated `@Role`, `@team`, and unowned-comment E2E                |
-| 18  | Worker activity visibility                 | Partial     | Real Worker progress/result production flow                            |
-| 19  | Live Worker target cursors                 | Partial     | Real concurrent target-cursor browser proof                            |
-| 20  | Activity feed                              | Implemented | Attribution integration tests                                          |
-| 21  | Worker progress and result comments        | Partial     | Real Runner completion flow                                            |
-| 22  | Decision memory                            | Partial     | Explicit history/decision retrieval UX and E2E                         |
-| 23  | Persistent project context                 | Implemented | Production persistence/reconnect E2E                                   |
-| 24  | Project overview                           | Implemented | Authenticated component/E2E coverage                                   |
-| 25  | Team management                            | Partial     | Authenticated role/team/Runner management browser coverage             |
-| 26  | Assemble Team                              | Implemented | Authenticated deterministic browser E2E                                |
+| #   | Capability                                 | State       | Remaining acceptance evidence or gap                                  |
+| --- | ------------------------------------------ | ----------- | --------------------------------------------------------------------- |
+| 1   | Infinite shared project canvas             | Implemented | Production smoke and large-workspace interaction                      |
+| 2   | Multiplayer human collaboration            | Partial     | Two real browser-context E2E for live cursors and viewports           |
+| 3   | Local AI Workers as teammates              | Partial     | Pair and run real signed-in Codex and Claude clients                  |
+| 4   | Multiple Workers simultaneously            | Partial     | Real concurrent Codex/Claude Jobs and separate-region proof           |
+| 5   | WebMCP and local Runner paths              | Partial     | Production browser-agent and real Runner verification                 |
+| 6   | Worker Role Profiles                       | Partial     | Authenticated create/edit/delete browser coverage                     |
+| 7   | Assignment-scoped autonomous canvas access | Implemented | Production adversarial/capability E2E                                 |
+| 8   | Sections and project spaces                | Implemented | Representative browser flow                                           |
+| 9   | Requirements and PRD representation        | Partial     | Rich body editing and representative browser flow                     |
+| 10  | Journeys and flows                         | Partial     | Rich body editing and representative browser flow                     |
+| 11  | Lightweight wireframe design               | Implemented | Renderer-family browser coverage                                      |
+| 12  | System architecture                        | Implemented | Representative semantic-connector E2E                                 |
+| 13  | AI architecture                            | Implemented | Representative semantic-connector E2E                                 |
+| 14  | Implementation planning and tasks          | Implemented | Authenticated integration/E2E coverage                                |
+| 15  | Semantic traceability                      | Implemented | End-to-end relationship editing coverage                              |
+| 16  | Reversible execution                       | Partial     | History-point restore is Change-Set revert; full conflict E2E remains |
+| 17  | Comments and mentions                      | Implemented | Authenticated `@Role`, `@team`, and unowned-comment E2E               |
+| 18  | Worker activity visibility                 | Partial     | Real Worker progress/result production flow                           |
+| 19  | Live Worker target cursors                 | Partial     | Real concurrent target-cursor browser proof                           |
+| 20  | Activity feed                              | Implemented | Attribution integration tests                                         |
+| 21  | Worker progress and result comments        | Partial     | Real Runner completion flow                                           |
+| 22  | Decision memory                            | Partial     | Explicit history/decision retrieval UX and E2E                        |
+| 23  | Persistent project context                 | Implemented | Production persistence/reconnect E2E                                  |
+| 24  | Project overview                           | Implemented | Authenticated component/E2E coverage                                  |
+| 25  | Team management                            | Partial     | Authenticated role/team/Runner management browser coverage            |
+| 26  | Assemble Team                              | Implemented | Authenticated deterministic browser E2E                               |
 
 ## Verification actually completed
 
