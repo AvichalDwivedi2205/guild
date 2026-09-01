@@ -85,6 +85,30 @@ describe('Convex Runner integration', () => {
     expect(polled.assignments).toHaveLength(1);
     const assignment = polled.assignments[0]!;
     expect(assignment).toMatchObject({ jobId: run.jobId, attempt: 1, fencingToken: 1 });
+    const renewed = await t.mutation(api.runners.poll, {
+      runnerToken,
+      configuredConcurrency: 2,
+      freeCapacity: 0,
+      engines: readyEngines,
+      activeAssignments: [
+        {
+          jobId: assignment.jobId,
+          attempt: assignment.attempt,
+          fencingToken: assignment.fencingToken,
+        },
+      ],
+      progress: [],
+    });
+    expect(renewed.leaseRenewals).toEqual([
+      expect.objectContaining({
+        jobId: assignment.jobId,
+        attempt: assignment.attempt,
+        fencingToken: assignment.fencingToken,
+      }),
+    ]);
+    expect(renewed.leaseRenewals[0]!.leaseExpiresAt).toBeGreaterThanOrEqual(
+      assignment.leaseExpiresAt,
+    );
     const workerAuthorization = {
       runnerToken,
       capabilityToken: assignment.assignmentToken,
@@ -268,6 +292,57 @@ describe('Convex Runner integration', () => {
         reason: 'Assignment cancelled or superseded',
       }),
     ]);
+  });
+
+  it('never leases two Jobs whose Work Claims overlap the same canvas target', async () => {
+    const { t, asOwner, workspaceId, roleProfileId, run, runnerToken } =
+      await setupRunnerAssignment();
+    const role = await t.run(async (ctx) => ctx.db.get(roleProfileId));
+    if (!role) throw new Error('role_not_found');
+    const overlappingRun = await asOwner.mutation(api.runs.assign, {
+      workspaceId,
+      roleProfileId,
+      targetObjectId: role.ownedSectionId,
+      brief: 'Attempt another assignment against the same reserved target.',
+      idempotencyKey: 'runner:assignment:overlap:0001',
+      source: 'ui',
+    });
+
+    const initial = await t.mutation(api.runners.poll, {
+      runnerToken,
+      configuredConcurrency: 2,
+      freeCapacity: 2,
+      engines: readyEngines,
+      activeAssignments: [],
+      progress: [],
+    });
+    expect(initial.assignments).toHaveLength(1);
+    expect(initial.assignments[0]).toMatchObject({ jobId: run.jobId });
+    const deferred = await t.run(async (ctx) => ctx.db.get(overlappingRun.jobId));
+    expect(deferred).toMatchObject({ state: 'queued' });
+    expect(deferred?.runnerId).toBeUndefined();
+
+    const first = initial.assignments[0]!;
+    await t.mutation(api.runners.complete, {
+      workerAuthorization: {
+        runnerToken,
+        capabilityToken: first.assignmentToken,
+        jobId: first.jobId,
+        attempt: first.attempt,
+        fencingToken: first.fencingToken,
+      },
+      state: 'completed',
+    });
+    const afterRelease = await t.mutation(api.runners.poll, {
+      runnerToken,
+      configuredConcurrency: 2,
+      freeCapacity: 2,
+      engines: readyEngines,
+      activeAssignments: [],
+      progress: [],
+    });
+    expect(afterRelease.assignments).toHaveLength(1);
+    expect(afterRelease.assignments[0]).toMatchObject({ jobId: overlappingRun.jobId });
   });
 
   it('unlocks and claims a downstream Job only after its dependency completes', async () => {

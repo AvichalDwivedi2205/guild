@@ -16,6 +16,118 @@ const identity = {
 };
 
 describe('Convex canvas command integration', () => {
+  it('persists an authenticated workspace, objects, edge, comment, activity, and authorization', async () => {
+    const t = convexTest(schema, modules);
+    const asOwner = t.withIdentity(identity);
+    const workspaceId = await asOwner.mutation(api.workspaces.create, {
+      title: 'Persistent product workspace',
+      boardMode: 'diagram',
+    });
+    expect(await asOwner.query(api.workspaces.list, {})).toEqual([
+      expect.objectContaining({
+        _id: workspaceId,
+        title: 'Persistent product workspace',
+        boardMode: 'diagram',
+        role: 'owner',
+      }),
+    ]);
+
+    const objects = await asOwner.mutation(api.canvas.executeCommands, {
+      workspaceId,
+      source: 'ui',
+      idempotencyKey: 'canvas:persistence:objects:0001',
+      summary: 'Create requirement and service',
+      commands: [
+        {
+          type: 'create_object',
+          objectType: 'sticky',
+          title: 'Order history is available',
+          content: { text: 'The reply must cite the source order.' },
+          position: { x: 96, y: 120 },
+          size: { width: 240, height: 160 },
+          semantics: { semanticType: 'requirement', priority: 'P0' },
+        },
+        {
+          type: 'create_object',
+          objectType: 'shape',
+          title: 'Draft reply service',
+          position: { x: 480, y: 120 },
+          size: { width: 260, height: 160 },
+          semantics: { semanticType: 'service', projectArea: 'implementation' },
+        },
+      ],
+    });
+    const requirementId = objects.changed[0]!.targetId;
+    const serviceId = objects.changed[1]!.targetId;
+    const edge = await asOwner.mutation(api.canvas.executeCommands, {
+      workspaceId,
+      source: 'ui',
+      idempotencyKey: 'canvas:persistence:edge:0001',
+      summary: 'Connect requirement to implementation',
+      commands: [
+        {
+          type: 'create_edge',
+          sourceObjectId: requirementId as never,
+          targetObjectId: serviceId as never,
+          relationship: 'implements',
+          label: 'implemented by',
+          routing: 'elbow',
+        },
+      ],
+    });
+    const comment = await asOwner.mutation(api.comments.add, {
+      workspaceId,
+      targetType: 'workspace',
+      body: 'Keep order identifiers opaque in the UI.',
+      source: 'ui',
+      idempotencyKey: 'comment:persistence:ordinary:0001',
+    });
+    expect(comment.jobIds).toEqual([]);
+    await asOwner.mutation(api.comments.resolve, { commentId: comment.commentId });
+
+    const [context, comments, activity] = await Promise.all([
+      asOwner.query(api.canvas.getWorkspaceContext, { workspaceId }),
+      asOwner.query(api.comments.list, { workspaceId }),
+      asOwner.query(api.activity.list, { workspaceId, limit: 50 }),
+    ]);
+    expect(context.objects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ _id: requirementId, type: 'sticky' }),
+        expect.objectContaining({ _id: serviceId, type: 'shape' }),
+      ]),
+    );
+    expect(context.edges).toEqual([
+      expect.objectContaining({
+        _id: edge.changed[0]!.targetId,
+        sourceObjectId: requirementId,
+        targetObjectId: serviceId,
+        relationship: 'implements',
+      }),
+    ]);
+    expect(comments).toEqual([
+      expect.objectContaining({
+        _id: comment.commentId,
+        state: 'resolved',
+        jobIds: [],
+      }),
+    ]);
+    expect(activity).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ eventType: 'canvas_commands_applied' }),
+        expect.objectContaining({ eventType: 'comment_added' }),
+      ]),
+    );
+
+    const asOutsider = t.withIdentity({
+      ...identity,
+      subject: 'workos_canvas_outsider',
+      tokenIdentifier: 'https://api.workos.com/user_management/client_test|workos_canvas_outsider',
+    });
+    await expect(
+      asOutsider.query(api.canvas.getWorkspaceContext, { workspaceId }),
+    ).rejects.toThrow();
+  });
+
   it('allows independent segment updates, rejects stale revisions, and replays idempotently', async () => {
     const t = convexTest(schema, modules);
     const asOwner = t.withIdentity(identity);

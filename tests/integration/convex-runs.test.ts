@@ -225,4 +225,37 @@ describe('Convex Run integration', () => {
       state: 'queued',
     });
   });
+
+  it('@team routes the deterministic Role set and preserves team dependencies', async () => {
+    const { t, asOwner, workspaceId, architectId, builderId } = await setupWorkspace();
+
+    const routed = await asOwner.mutation(api.comments.add, {
+      workspaceId,
+      targetType: 'workspace',
+      body: '@team Design and implement the launch workflow.',
+      source: 'ui',
+      idempotencyKey: 'comment:team-launch:0001',
+    });
+    const stored = await t.run(async (ctx) => {
+      const comment = await ctx.db.get(routed.commentId);
+      const jobs = await Promise.all(routed.jobIds.map((jobId) => ctx.db.get(jobId)));
+      const run = routed.teamRunId ? await ctx.db.get(routed.teamRunId) : null;
+      return { comment, jobs, run };
+    });
+
+    expect(routed.jobIds).toHaveLength(2);
+    expect(stored.comment).toMatchObject({
+      state: 'queued',
+      mentionedRoleProfileIds: expect.arrayContaining([architectId, builderId]),
+    });
+    expect(stored.run).toMatchObject({ trigger: 'comment_team', state: 'active' });
+    expect(stored.jobs.find((job) => job?.roleProfileId === architectId)).toMatchObject({
+      state: 'queued',
+      dependencyJobIds: [],
+    });
+    expect(stored.jobs.find((job) => job?.roleProfileId === builderId)).toMatchObject({
+      state: 'blocked_by_dependency',
+      dependencyJobIds: [expect.any(String)],
+    });
+  });
 });
