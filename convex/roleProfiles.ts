@@ -52,6 +52,15 @@ export const create = mutation({
       )
       .unique();
     if (existing) throw new Error('role_handle_taken');
+    if (!args.name.trim() || !args.responsibility.trim() || !args.instructions.trim()) {
+      throw new Error('invalid_role_profile');
+    }
+    for (const dependencyId of args.staticDependencyRoleProfileIds) {
+      const dependency = await ctx.db.get(dependencyId);
+      if (!dependency || dependency.workspaceId !== args.workspaceId) {
+        throw new Error('dependency_role_profile_not_found');
+      }
+    }
     let ownedSectionId = args.ownedSectionId;
     if (ownedSectionId) {
       const section = await ctx.db.get(ownedSectionId);
@@ -62,6 +71,9 @@ export const create = mutation({
         section.type !== 'section'
       ) {
         throw new Error('owned_section_not_found');
+      }
+      if (section.semantics.ownerRoleProfileId) {
+        throw new Error('owned_section_already_assigned');
       }
     } else {
       const now = Date.now();
@@ -103,9 +115,6 @@ export const create = mutation({
     ) {
       throw new Error('owned_section_not_found');
     }
-    if (!args.name.trim() || !args.responsibility.trim() || !args.instructions.trim()) {
-      throw new Error('invalid_role_profile');
-    }
     const now = Date.now();
     const roleProfileId = await ctx.db.insert('roleProfiles', {
       workspaceId: args.workspaceId,
@@ -127,6 +136,7 @@ export const create = mutation({
         ...section.semantics,
         ownerRoleProfileId: roleProfileId,
       },
+      semanticsRevision: section.semanticsRevision + 1,
       updatedAt: now,
     });
     return roleProfileId;
@@ -148,6 +158,9 @@ export const update = mutation({
       )
       .unique();
     if (duplicate && duplicate._id !== role._id) throw new Error('role_handle_taken');
+    if (!args.name.trim() || !args.responsibility.trim() || !args.instructions.trim()) {
+      throw new Error('invalid_role_profile');
+    }
     const section = await ctx.db.get(args.ownedSectionId);
     if (
       !section ||
@@ -166,6 +179,34 @@ export const update = mutation({
         throw new Error('dependency_role_profile_not_found');
       }
     }
+    if (section.semantics.ownerRoleProfileId && section.semantics.ownerRoleProfileId !== role._id) {
+      throw new Error('owned_section_already_assigned');
+    }
+    const now = Date.now();
+    if (role.ownedSectionId !== args.ownedSectionId) {
+      const previousSection = await ctx.db.get(role.ownedSectionId);
+      if (
+        previousSection &&
+        previousSection.workspaceId === role.workspaceId &&
+        previousSection.type === 'section' &&
+        previousSection.semantics.ownerRoleProfileId === role._id
+      ) {
+        const { ownerRoleProfileId: _ownerRoleProfileId, ...semantics } = previousSection.semantics;
+        void _ownerRoleProfileId;
+        await ctx.db.patch(previousSection._id, {
+          semantics,
+          semanticsRevision: previousSection.semanticsRevision + 1,
+          updatedAt: now,
+        });
+      }
+    }
+    if (section.semantics.ownerRoleProfileId !== role._id) {
+      await ctx.db.patch(section._id, {
+        semantics: { ...section.semantics, ownerRoleProfileId: role._id },
+        semanticsRevision: section.semanticsRevision + 1,
+        updatedAt: now,
+      });
+    }
     await ctx.db.patch(role._id, {
       handle,
       name: args.name.trim().slice(0, 120),
@@ -177,7 +218,7 @@ export const update = mutation({
       expectedArtifactTypes: [...new Set(args.expectedArtifactTypes)],
       staticDependencyRoleProfileIds: [...new Set(args.staticDependencyRoleProfileIds)],
       color: args.color.trim().slice(0, 40) || role.color,
-      updatedAt: Date.now(),
+      updatedAt: now,
     });
     return null;
   },
@@ -206,6 +247,34 @@ export const remove = mutation({
       .withIndex('by_workspaceId', (query) => query.eq('workspaceId', role.workspaceId))
       .take(25);
     const now = Date.now();
+    const ownedSection = await ctx.db.get(role.ownedSectionId);
+    if (
+      ownedSection &&
+      ownedSection.workspaceId === role.workspaceId &&
+      ownedSection.type === 'section' &&
+      ownedSection.semantics.ownerRoleProfileId === role._id
+    ) {
+      const { ownerRoleProfileId: _ownerRoleProfileId, ...semantics } = ownedSection.semantics;
+      void _ownerRoleProfileId;
+      await ctx.db.patch(ownedSection._id, {
+        semantics,
+        semanticsRevision: ownedSection.semanticsRevision + 1,
+        updatedAt: now,
+      });
+    }
+    const roleProfiles = await ctx.db
+      .query('roleProfiles')
+      .withIndex('by_workspaceId', (query) => query.eq('workspaceId', role.workspaceId))
+      .take(25);
+    for (const dependentRole of roleProfiles) {
+      if (!dependentRole.staticDependencyRoleProfileIds.includes(role._id)) continue;
+      await ctx.db.patch(dependentRole._id, {
+        staticDependencyRoleProfileIds: dependentRole.staticDependencyRoleProfileIds.filter(
+          (dependencyId) => dependencyId !== role._id,
+        ),
+        updatedAt: now,
+      });
+    }
     for (const team of teams) {
       if (!team.roleProfileIds.includes(role._id)) continue;
       const roleProfileIds = team.roleProfileIds.filter((id) => id !== role._id);

@@ -607,9 +607,11 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
             instructions: input.instructions,
             engine: input.engine,
             color: input.color,
-            capabilities: ['read_workspace', 'write_owned_section', 'comment', 'report_progress'],
+            capabilities: [...input.capabilities],
             expectedArtifactTypes: ['sticky', 'text', 'shape'],
-            staticDependencyRoleProfileIds: [],
+            staticDependencyRoleProfileIds: input.dependencyRoleProfileIds.map(
+              (roleId) => roleId as Id<'roleProfiles'>,
+            ),
             ...(input.ownedSectionId
               ? { ownedSectionId: input.ownedSectionId as Id<'canvasObjects'> }
               : {}),

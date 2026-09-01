@@ -161,4 +161,70 @@ describe('CanvasRightPanel', () => {
     });
     expect(onEditingObjectChange).toHaveBeenLastCalledWith(null);
   });
+
+  it('offers manual Role Profile creation when the workspace has no team', () => {
+    render(
+      <CanvasRightPanel
+        panel="team"
+        setPanel={vi.fn()}
+        data={workspaceData()}
+        actions={{ createRoleProfile: vi.fn(), assembleTeam: vi.fn() }}
+      />,
+    );
+
+    expect(screen.getByRole('heading', { name: 'Or add one Role Profile' })).toBeVisible();
+    expect(screen.getByLabelText('Capabilities (comma separated)')).toHaveValue(
+      'read_workspace, write_owned_section, comment, report_progress',
+    );
+    expect(screen.getByText('No other Role Profiles are available.')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Add Role Profile' })).toBeEnabled();
+  });
+
+  it('saves the named team with only the selected Role Profiles', async () => {
+    const saveTeam = vi.fn();
+    const data = workspaceData();
+    data.roleProfiles = [
+      {
+        id: 'role-architect',
+        name: 'Architect',
+        handle: 'architect',
+        responsibility: 'Own system design',
+        instructions: 'Design the system.',
+        engine: 'codex',
+        color: '#7c3aed',
+        ownedSectionId: 'section-architect',
+        capabilities: ['read_workspace', 'write_owned_section'],
+        dependencyRoleProfileIds: [],
+        state: 'idle',
+        currentJobId: null,
+      },
+      {
+        id: 'role-builder',
+        name: 'Builder',
+        handle: 'builder',
+        responsibility: 'Own implementation',
+        instructions: 'Build the system.',
+        engine: 'claude',
+        color: '#0ea5e9',
+        ownedSectionId: 'section-builder',
+        capabilities: ['read_workspace', 'write_owned_section'],
+        dependencyRoleProfileIds: ['role-architect'],
+        state: 'idle',
+        currentJobId: null,
+      },
+    ];
+
+    render(<CanvasRightPanel panel="team" setPanel={vi.fn()} data={data} actions={{ saveTeam }} />);
+
+    const runComposer = screen.getByText('Team Run brief').closest('form');
+    expect(runComposer).not.toBeNull();
+    fireEvent.click(within(runComposer!).getByRole('checkbox', { name: /Builder/ }));
+    fireEvent.change(screen.getByLabelText('Team name'), { target: { value: 'Launch crew' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save selected roles as team' }));
+
+    expect(saveTeam).toHaveBeenCalledWith({
+      name: 'Launch crew',
+      roleProfileIds: ['role-architect'],
+    });
+  });
 });

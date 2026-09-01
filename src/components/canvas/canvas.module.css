@@ -1031,6 +1031,66 @@
   gap: 6px;
 }
 
+.roleDependencies {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 10px;
+  padding: 9px;
+  border: 1px solid var(--canvas-line);
+  border-radius: 8px;
+}
+
+.roleDependencies legend {
+  padding: 0 4px;
+  color: var(--canvas-muted);
+  font-size: 9px;
+  font-weight: 680;
+}
+
+.roleDependencies label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 9px;
+}
+
+.roleDependencies > span {
+  color: var(--canvas-muted);
+  font-size: 9px;
+}
+
+.saveTeamForm {
+  display: grid;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.saveTeamForm input {
+  min-height: 36px;
+  padding: 8px 9px;
+  border: 1px solid var(--canvas-line);
+  border-radius: 8px;
+  color: var(--canvas-ink);
+  background: var(--canvas-quiet);
+  font-size: 10px;
+}
+
+.saveTeamForm button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--button-ink);
+  background: var(--button);
+  font-size: 9px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.saveTeamForm button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .roleChecklist > label {
   display: grid;
   grid-template-columns: auto 28px 1fr;

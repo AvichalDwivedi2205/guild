@@ -441,7 +441,11 @@ function RoleEditor({
   actions: CanvasWorkspaceActions;
   role?: CanvasRoleProfile;
 }) {
-  const sections = data.objects.filter((object) => object.type === 'section');
+  const sections = data.objects.filter(
+    (object) =>
+      object.type === 'section' &&
+      (!object.semantics.ownerRoleProfileId || object.semantics.ownerRoleProfileId === role?.id),
+  );
   const [draft, setDraft] = useState({
     name: role?.name ?? '',
     handle: role?.handle ?? '',
@@ -450,6 +454,10 @@ function RoleEditor({
     engine: (role?.engine ?? 'codex') as LocalEngine,
     color: role?.color ?? '#7c3aed',
     ownedSectionId: role?.ownedSectionId ?? '',
+    capabilities:
+      role?.capabilities.join(', ') ??
+      'read_workspace, write_owned_section, comment, report_progress',
+    dependencyRoleProfileIds: role?.dependencyRoleProfileIds ?? [],
   });
   const [saving, setSaving] = useState(false);
 
@@ -462,12 +470,20 @@ function RoleEditor({
           roleProfileId: role.id,
           ...draft,
           ownedSectionId: draft.ownedSectionId || role.ownedSectionId || '',
-          capabilities: role.capabilities,
-          dependencyRoleProfileIds: role.dependencyRoleProfileIds,
+          capabilities: draft.capabilities
+            .split(',')
+            .map((capability) => capability.trim())
+            .filter(Boolean),
+          dependencyRoleProfileIds: draft.dependencyRoleProfileIds,
         });
       } else {
         await actions.createRoleProfile?.({
           ...draft,
+          capabilities: draft.capabilities
+            .split(',')
+            .map((capability) => capability.trim())
+            .filter(Boolean),
+          dependencyRoleProfileIds: draft.dependencyRoleProfileIds,
           ...(draft.ownedSectionId ? { ownedSectionId: draft.ownedSectionId } : {}),
         });
         setDraft({
@@ -478,6 +494,8 @@ function RoleEditor({
           engine: 'codex',
           color: '#7c3aed',
           ownedSectionId: '',
+          capabilities: 'read_workspace, write_owned_section, comment, report_progress',
+          dependencyRoleProfileIds: [],
         });
       }
     } finally {
@@ -538,6 +556,40 @@ function RoleEditor({
           ))}
         </select>
       </Field>
+      <Field label="Capabilities (comma separated)">
+        <input
+          value={draft.capabilities}
+          onChange={(event) => setDraft({ ...draft, capabilities: event.target.value })}
+          placeholder="read_workspace, write_owned_section"
+          required
+        />
+      </Field>
+      <fieldset className={styles.roleDependencies}>
+        <legend>Static dependencies</legend>
+        {data.roleProfiles.filter((candidate) => candidate.id !== role?.id).length ? (
+          data.roleProfiles
+            .filter((candidate) => candidate.id !== role?.id)
+            .map((candidate) => (
+              <label key={candidate.id}>
+                <input
+                  type="checkbox"
+                  checked={draft.dependencyRoleProfileIds.includes(candidate.id)}
+                  onChange={(event) =>
+                    setDraft({
+                      ...draft,
+                      dependencyRoleProfileIds: event.target.checked
+                        ? [...draft.dependencyRoleProfileIds, candidate.id]
+                        : draft.dependencyRoleProfileIds.filter((id) => id !== candidate.id),
+                    })
+                  }
+                />
+                <span>{candidate.name}</span>
+              </label>
+            ))
+        ) : (
+          <span>No other Role Profiles are available.</span>
+        )}
+      </fieldset>
       <button type="submit" disabled={saving || (!role && !actions.createRoleProfile)}>
         {saving ? 'Saving…' : role ? 'Save Role Profile' : 'Add Role Profile'}
       </button>
@@ -656,6 +708,7 @@ function TeamPanel({
   const [selectedRoleIds, setSelectedRoleIds] = useState<readonly string[] | null>(null);
   const [starting, setStarting] = useState(false);
   const [assembling, setAssembling] = useState(false);
+  const [teamName, setTeamName] = useState('');
   const availableRoleIds = new Set(data.roleProfiles.map((role) => role.id));
   const effectiveSelectedRoleIds = selectedRoleIds
     ? selectedRoleIds.filter((id) => availableRoleIds.has(id))
@@ -708,6 +761,10 @@ function TeamPanel({
             <Users size={15} /> {assembling ? 'Assembling…' : 'Assemble Team'}
           </button>
         </form>
+        <section className={styles.panelSection}>
+          <h4>Or add one Role Profile</h4>
+          <RoleEditor data={data} actions={actions} />
+        </section>
       </div>
     );
   }
@@ -880,17 +937,33 @@ function TeamPanel({
           ))
         )}
         {actions.saveTeam ? (
-          <button
-            type="button"
-            onClick={() =>
-              void actions.saveTeam?.({
-                name: 'Workspace team',
-                roleProfileIds: data.roleProfiles.map((role) => role.id),
-              })
-            }
+          <form
+            className={styles.saveTeamForm}
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (!teamName.trim() || effectiveSelectedRoleIds.length === 0) return;
+              void Promise.resolve(
+                actions.saveTeam?.({
+                  name: teamName.trim(),
+                  roleProfileIds: effectiveSelectedRoleIds,
+                }),
+              ).then(() => setTeamName(''));
+            }}
           >
-            Save current Role Profiles as team
-          </button>
+            <input
+              value={teamName}
+              maxLength={120}
+              placeholder="Team name"
+              aria-label="Team name"
+              onChange={(event) => setTeamName(event.target.value)}
+            />
+            <button
+              type="submit"
+              disabled={!teamName.trim() || effectiveSelectedRoleIds.length === 0}
+            >
+              Save selected roles as team
+            </button>
+          </form>
         ) : null}
       </section>
     </div>

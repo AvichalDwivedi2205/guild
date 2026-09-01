@@ -190,6 +190,8 @@ export type CanvasWorkspaceActions = {
     engine: LocalEngine;
     color: string;
     ownedSectionId?: string;
+    capabilities: readonly string[];
+    dependencyRoleProfileIds: readonly string[];
   }) => void | Promise<void>;
   updateRoleProfile?: (input: {
     roleProfileId: string;
