@@ -12,6 +12,24 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-02 (lazy object content editing)
+
+- Added selected-object body loading through `canvas.getObjectBody`; large bodies stay out of the
+  subscribed workspace summary and load only when one object is selected.
+- Added type-aware Inspector editing for text-like objects, tables, tasks, images, links, and
+  drawing points. Title and body save atomically after 600 ms or on blur, show saving/saved/error
+  feedback, serialize in-flight edits, and preserve failed drafts for retry.
+- Content Change Entries now store a versioned title/body snapshot. Both ordinary Change Set undo
+  and Team Run undo restore title plus lazy body, while legacy raw-body history remains readable.
+  Logical-key object upserts now record every geometry, content, style, and semantics revision they
+  mutate, so their Change Sets are complete.
+- Evidence: `bun run check` passed formatting, zero-warning ESLint, strict TypeScript, 28 test files /
+  83 tests, and Runner typecheck. Runner tests passed 10 files / 26 tests; Runner and Next.js
+  production builds passed; landing Playwright passed four desktop/mobile tests. Convex development
+  functions were pushed successfully. The Convex development command temporarily set the shared
+  AuthKit homepage to localhost; it was restored through the authenticated WorkOS API, whose PUT
+  response confirmed `https://guild-rose-two.vercel.app`.
+
 ## Snapshot — 2026-09-02 (visual system and team configuration)
 
 - Rebuilt the public landing page, workspace list, app shell, and canvas chrome from `UI.md`'s
@@ -197,8 +215,8 @@ requires the broader production and E2E evidence listed later.
 | 6   | Worker Role Profiles                       | Partial     | Authenticated create/edit/delete browser coverage                     |
 | 7   | Assignment-scoped autonomous canvas access | Implemented | Production adversarial/capability E2E                                 |
 | 8   | Sections and project spaces                | Implemented | Representative browser flow                                           |
-| 9   | Requirements and PRD representation        | Partial     | Rich body editing and representative browser flow                     |
-| 10  | Journeys and flows                         | Partial     | Rich body editing and representative browser flow                     |
+| 9   | Requirements and PRD representation        | Implemented | Representative authenticated browser flow                             |
+| 10  | Journeys and flows                         | Implemented | Representative authenticated browser flow                             |
 | 11  | Lightweight wireframe design               | Implemented | Renderer-family browser coverage                                      |
 | 12  | System architecture                        | Implemented | Representative semantic-connector E2E                                 |
 | 13  | AI architecture                            | Implemented | Representative semantic-connector E2E                                 |
@@ -236,8 +254,8 @@ The latest GitHub Actions quality-gate run also passed. A Vercel “Ready” bui
 a working production application until the new Production environment variables are picked up by a
 redeploy.
 
-Latest local proof: `bun run check` passed formatting, ESLint, strict TypeScript, 25 test files /
-76 tests, and Runner typecheck. `bun run runner:test` passed (10 files / 26 tests) and
+Latest local proof: `bun run check` passed formatting, ESLint, strict TypeScript, 28 test files /
+83 tests, and Runner typecheck. `bun run runner:test` passed (10 files / 26 tests) and
 `bun run runner:build` passed. `bunx convex codegen` pushed development functions.
 `bunx convex deploy --yes` deployed production functions to `befitting-bird-666`.
 `vercel --prod --yes` deployed Ready production to the stable alias. `curl` of `/` returned HTTP
@@ -279,8 +297,9 @@ suite passes in desktop and mobile Chromium; authenticated application coverage 
 - [x] Human cursor publishes dirty changes near 5 Hz and viewport near 2 Hz, with remote
       selections, focused editing targets, explicit clears, bounded heartbeats, and session
       cleanup. Two real browser-context verification is still required.
-- [ ] Add connected content/body editing for renderer families, including debounced persistence,
+- [x] Added connected content/body editing for renderer families, including debounced persistence,
       lazy body loading, autosave/conflict feedback, links/media, and drawing data where applicable.
+      Representative authenticated browser coverage is still required.
 - [ ] Add explicit assignment flows. History-point browsing/restore now uses conflict-aware Change
       Set revert; a dedicated `restore_history_point` command is still missing.
 - [x] Role/team/Runner management UI now creates, edits, removes roles and teams, and can rename,
