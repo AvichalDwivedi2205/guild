@@ -1,0 +1,11 @@
+.next
+node_modules
+coverage
+playwright-report
+test-results
+dist
+bun.lock
+PRODUCT.md
+Plan.md
+CONTEXT.md
+Product_Future.md
