@@ -2,7 +2,7 @@
 
 import '@testing-library/jest-dom/vitest';
 
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CanvasRightPanel } from '@/components/canvas/canvas-panels';
@@ -137,5 +137,28 @@ describe('CanvasRightPanel', () => {
     expect(
       screen.getByText(/Queued Worker Jobs wait durably until an authorized compatible Runner/),
     ).toBeVisible();
+  });
+
+  it('publishes editing presence only while an inspector control has focus', () => {
+    const onEditingObjectChange = vi.fn();
+    useCanvasInteractionStore.setState({ selectedNodeIds: ['task-1'] });
+    render(
+      <CanvasRightPanel
+        panel="inspector"
+        setPanel={vi.fn()}
+        data={workspaceData()}
+        actions={{}}
+        onEditingObjectChange={onEditingObjectChange}
+      />,
+    );
+
+    const input = screen.getByPlaceholderText('e.g. requirement');
+    fireEvent.focus(input);
+    expect(onEditingObjectChange).toHaveBeenLastCalledWith('task-1');
+
+    fireEvent.blur(input, {
+      relatedTarget: screen.getByRole('button', { name: 'Close Inspector' }),
+    });
+    expect(onEditingObjectChange).toHaveBeenLastCalledWith(null);
   });
 });

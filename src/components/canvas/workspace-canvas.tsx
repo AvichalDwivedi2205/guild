@@ -34,6 +34,7 @@ import {
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { ThemeToggle } from '@/components/theme-toggle';
 import type { CanvasObject, CanvasObjectType } from '@/domain/canvas';
 import { absoluteObjectRectangle } from '@/domain/geometry';
 import { CanvasCreationToolbar, ToolbarModeIcon } from '@/components/canvas/canvas-toolbar';
@@ -173,6 +174,7 @@ function TopToolbar({
           ))}
           {data.collaborators.length > 4 ? <span>+{data.collaborators.length - 4}</span> : null}
         </div>
+        <ThemeToggle compact />
         <button
           className={styles.runnerButton}
           type="button"

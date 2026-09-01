@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#f3f0e8',
+  themeColor: '#100f0e',
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
@@ -30,7 +30,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     initialAuth = undefined;
   }
   return (
-    <html lang="en">
+    <html lang="en" data-theme="dark" suppressHydrationWarning>
       <body>
         {initialAuth ? (
           <AppProviders initialAuth={initialAuth}>{children}</AppProviders>
