@@ -12,6 +12,28 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-01 (late evening)
+
+- Branch: `main`
+- Production URL: <https://guild-rose-two.vercel.app>
+- WorkOS session on `/workspaces` was proven (server `withAuth()` rendered the signed-in email).
+  Convex client auth was not: `useConvexAuth()` stayed `isAuthenticated: false` and the workspace
+  list showed “Guild Cloud authentication did not connect.”
+- Client wiring now follows the official Next.js + AuthKit add-to-app pattern
+  (`ConvexProviderWithAuth` + `useAuthFromAuthKit` using `useAccessToken()`), hydrates
+  `AuthKitProvider` from server `withAuth()` without sending the access token, enables AuthKit
+  `eagerAuth` so the JWT is available on the first document request, and waits for the
+  access-token hook before treating Convex as ready. Convex rejected a no-`aud` provider for the
+  shared `https://api.workos.com/` issuer, so `convex/auth.config.ts` stays on the official
+  two-provider sample.
+- Local `bun run check`: 24 files / 65 tests passed. `bun run build` succeeded; every App Router
+  route is dynamic because the root layout reads the WorkOS session. Convex production
+  `befitting-bird-666` accepted the official AuthKit `auth.config.ts` after rejecting a no-`aud`
+  provider on the shared WorkOS issuer. Staging WorkOS has no custom JWT template; do not add one
+  on the shared Lumia environment.
+- Remaining proof: refresh production `/workspaces` while still signed in, create a workspace,
+  seed the judge workspace, then pair a real Runner.
+
 ## Snapshot — 2026-09-01 (evening)
 
 - Branch: `main`

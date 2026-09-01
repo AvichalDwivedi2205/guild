@@ -1,7 +1,8 @@
+import { withAuth } from '@workos-inc/authkit-nextjs';
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 
-import { AppProviders } from '@/components/providers';
+import { AppProviders, type AuthKitInitialAuth } from '@/components/providers';
 
 import './globals.css';
 
@@ -19,11 +20,23 @@ export const viewport: Viewport = {
   themeColor: '#f3f0e8',
 };
 
-export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+  let initialAuth: AuthKitInitialAuth | undefined;
+  try {
+    const { accessToken, ...session } = await withAuth();
+    void accessToken;
+    initialAuth = session;
+  } catch {
+    initialAuth = undefined;
+  }
   return (
     <html lang="en">
       <body>
-        <AppProviders>{children}</AppProviders>
+        {initialAuth ? (
+          <AppProviders initialAuth={initialAuth}>{children}</AppProviders>
+        ) : (
+          <AppProviders>{children}</AppProviders>
+        )}
       </body>
     </html>
   );

@@ -1,5 +1,6 @@
 'use client';
 
+import { useAuth } from '@workos-inc/authkit-nextjs/components';
 import { useConvexAuth, useMutation, useQuery } from 'convex/react';
 import { ArrowRight, LoaderCircle, Plus } from 'lucide-react';
 import Link from 'next/link';
@@ -8,6 +9,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { api } from '../../../convex/_generated/api';
 
 export function WorkspaceList() {
+  const { user, loading: workosLoading } = useAuth();
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
   const syncCurrentUser = useMutation(api.users.syncCurrent);
   const createWorkspace = useMutation(api.workspaces.create);
@@ -40,7 +42,7 @@ export function WorkspaceList() {
     }
   }
 
-  if (authLoading || (isAuthenticated && workspaces === undefined)) {
+  if (workosLoading || authLoading || (isAuthenticated && workspaces === undefined)) {
     return (
       <div className="workspace-list-state" aria-live="polite">
         <LoaderCircle className="spin" size={18} aria-hidden="true" /> Loading live workspaces…
@@ -51,7 +53,9 @@ export function WorkspaceList() {
   if (!isAuthenticated) {
     return (
       <div className="workspace-list-state" role="alert">
-        Guild Cloud authentication did not connect. Refresh this page to retry.
+        {user
+          ? 'Guild Cloud could not validate this WorkOS session. Refresh this page to retry.'
+          : 'Guild Cloud authentication did not connect. Refresh this page to retry.'}
       </div>
     );
   }
