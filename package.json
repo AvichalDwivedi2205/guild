@@ -1,0 +1,69 @@
+{
+  "name": "guild",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "packageManager": "bun@1.3.9",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "runner:build": "bun run --cwd packages/runner build",
+    "runner:typecheck": "bun run --cwd packages/runner typecheck",
+    "runner:test": "bun run --cwd packages/runner test",
+    "check": "bun run format:check && bun run lint && bun run typecheck && bun run test && bun run runner:typecheck"
+  },
+  "dependencies": {
+    "@convex-dev/presence": "^0.4.0",
+    "@convex-dev/rate-limiter": "^0.3.2",
+    "@convex-dev/workos": "^0.0.3",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@workos-inc/authkit-nextjs": "^4.3.1",
+    "@workos-inc/node": "^10.13.0",
+    "@xyflow/react": "^12.11.6",
+    "convex": "^1.45.0",
+    "convex-helpers": "^0.1.123",
+    "jose": "^6.1.3",
+    "lucide-react": "^0.544.0",
+    "next": "16.3.4",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "tailwind-merge": "^3.3.1",
+    "zod": "^4.1.12",
+    "zustand": "^5.0.8"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@playwright/test": "^1.55.0",
+    "@tailwindcss/postcss": "^4.1.13",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@types/node": "^24.5.2",
+    "@types/react": "^19.1.16",
+    "@types/react-dom": "^19.1.9",
+    "@typescript-eslint/eslint-plugin": "^8.44.1",
+    "@typescript-eslint/parser": "^8.44.1",
+    "eslint": "^9.35.0",
+    "eslint-config-next": "16.3.4",
+    "eslint-config-prettier": "^10.1.8",
+    "jsdom": "^27.0.0",
+    "prettier": "^3.6.2",
+    "tailwindcss": "^4.1.13",
+    "typescript": "^5.9.2",
+    "vitest": "^4.1.11"
+  }
+}
