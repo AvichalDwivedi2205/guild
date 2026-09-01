@@ -27,7 +27,8 @@ CLI or Claude Code client on their Mac, with assignment-scoped Guild tools and f
   reconnecting states
 
 The canonical product contract is [PRODUCT.md](./PRODUCT.md); the delivery sequence is
-[Plan.md](./Plan.md).
+[Plan.md](./Plan.md). Current completion evidence and remaining work are tracked in
+[IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md).
 
 ## Architecture
 

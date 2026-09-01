@@ -7,3 +7,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Guild implementation handoff
+
+Before implementation, deployment, or handoff work, read `Initial_Prompt.md` and
+`IMPLEMENTATION_STATUS.md` after the four canonical product documents. Update
+`IMPLEMENTATION_STATUS.md` after every meaningful batch, and keep claims tied to code, tests, or
+deployed evidence. Never copy environment-variable values or secrets into tracked files.
