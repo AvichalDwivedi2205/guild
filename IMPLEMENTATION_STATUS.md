@@ -12,6 +12,19 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-02 (connected persistence and component state coverage)
+
+- Expanded connected Convex coverage through authenticated workspace listing, object and semantic
+  edge persistence, ordinary comment activity/resolution, outsider denial, `@team` routing,
+  Runner lease renewal, and overlapping Work Claim exclusion followed by safe claim release.
+- Added component coverage for all six renderer families, toolbar modes/connectors, Inspector
+  content/assignment behavior, comments, Runner management/readiness, Team Run creation, Job state
+  badges and controls, restorable history reporting, and loading/empty/offline/reconnecting/error/
+  conflict canvas states including retry and conflict-aware undo wiring.
+- Evidence: `bun run check` passed formatting, zero-warning ESLint, strict TypeScript, 34 test files /
+  114 tests, plus Runner typecheck. Runner tests passed 10 files / 26 tests; Runner and Next.js
+  production builds passed; landing Playwright passed four desktop/mobile tests.
+
 ## Snapshot — 2026-09-02 (production redeploy and local client readiness)
 
 - Deployed the current Convex functions and schema to production `befitting-bird-666`; deployment
@@ -312,8 +325,8 @@ The latest GitHub Actions quality-gate run also passed. A Vercel “Ready” bui
 a working production application until the new Production environment variables are picked up by a
 redeploy.
 
-Latest local proof: `bun run check` passed formatting, ESLint, strict TypeScript, 32 test files /
-94 tests, and Runner typecheck. `bun run runner:test` passed (10 files / 26 tests) and
+Latest local proof: `bun run check` passed formatting, ESLint, strict TypeScript, 34 test files /
+114 tests, and Runner typecheck. `bun run runner:test` passed (10 files / 26 tests) and
 `bun run runner:build` passed. `bunx convex codegen` pushed development functions.
 `bunx convex deploy --yes` deployed production functions to `befitting-bird-666`.
 `vercel --prod --yes` deployed Ready production to the stable alias. `curl` of `/` returned HTTP
@@ -381,8 +394,9 @@ suite passes in desktop and mobile Chromium. The latest production deployment is
       assignment, membership denial, `@Role` routing, independent segment updates, stale revision
       conflicts, pairing/revocation, Job claims/leases, stale attempts, dependency unlocking,
       stop/retry/undo, Worker capability writes, and WebMCP attribution.
-- [ ] Add component tests for renderer families, inspector, all state surfaces, comments, Runner,
-      Team Runs, Job badges, conflict messages, and undo reporting.
+- [x] Component coverage now exercises renderer families, mode/connector toolbar, Inspector,
+      loading/empty/offline/reconnecting/error/conflict states, comments, Runner, Team Runs, Job
+      badges/actions, conflict messages, and history/undo result reporting.
 - [ ] Replace the four-test landing-only Playwright suite with all 24 required browser flows,
       including production smoke.
 - [ ] Re-run clean install, all quality gates, production build, Runner build, Convex validation,
