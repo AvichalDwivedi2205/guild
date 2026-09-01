@@ -1449,6 +1449,30 @@
   pointer-events: none;
 }
 
+.collaboratorSelection {
+  position: absolute;
+  z-index: 900;
+  border: 1.5px solid;
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+.collaboratorSelection[data-editing='true'] {
+  border-style: dashed;
+}
+
+.collaboratorSelection > span {
+  position: absolute;
+  top: -19px;
+  left: -1px;
+  padding: 3px 6px;
+  border-radius: 5px 5px 5px 0;
+  color: #161512;
+  font-size: 8px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
 .collaboratorCursor > span {
   margin: 15px 0 0 -2px;
   padding: 4px 6px;

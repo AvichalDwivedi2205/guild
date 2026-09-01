@@ -208,18 +208,21 @@ export default defineSchema({
     workspaceId: v.id('workspaces'),
     userId: v.id('users'),
     sessionId: v.string(),
-    cursor: v.optional(v.object({ x: v.number(), y: v.number() })),
+    cursor: v.optional(v.union(v.null(), v.object({ x: v.number(), y: v.number() }))),
     viewport: v.optional(
-      v.object({
-        x: v.number(),
-        y: v.number(),
-        zoom: v.number(),
-        width: v.number(),
-        height: v.number(),
-      }),
+      v.union(
+        v.null(),
+        v.object({
+          x: v.number(),
+          y: v.number(),
+          zoom: v.number(),
+          width: v.number(),
+          height: v.number(),
+        }),
+      ),
     ),
     selectedObjectIds: v.array(v.id('canvasObjects')),
-    editingObjectId: v.optional(v.id('canvasObjects')),
+    editingObjectId: v.optional(v.union(v.null(), v.id('canvasObjects'))),
     lastSeenAt: v.number(),
     expiresAt: v.number(),
   })

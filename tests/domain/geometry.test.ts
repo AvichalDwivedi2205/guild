@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  absoluteObjectRectangle,
   allocateReservedRegions,
   findPlacement,
   rectanglesIntersect,
@@ -48,5 +49,31 @@ describe('Reserved Region geometry', () => {
     });
 
     expect(placement).toEqual({ ok: false, code: 'reservation_full' });
+  });
+
+  it('resolves nested object geometry into canvas coordinates', () => {
+    const objects = [
+      { id: 'section', position: { x: 500, y: 300 }, size: { width: 400, height: 300 } },
+      {
+        id: 'stack',
+        parentId: 'section',
+        position: { x: 40, y: 50 },
+        size: { width: 260, height: 180 },
+      },
+      {
+        id: 'task',
+        parentId: 'stack',
+        position: { x: 12, y: 16 },
+        size: { width: 120, height: 72 },
+      },
+    ];
+
+    expect(absoluteObjectRectangle('task', objects)).toEqual({
+      x: 552,
+      y: 366,
+      width: 120,
+      height: 72,
+    });
+    expect(absoluteObjectRectangle('missing', objects)).toBeNull();
   });
 });

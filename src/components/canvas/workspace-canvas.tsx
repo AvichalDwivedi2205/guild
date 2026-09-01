@@ -32,9 +32,10 @@ import {
   Wifi,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { CanvasObject, CanvasObjectType } from '@/domain/canvas';
+import { absoluteObjectRectangle } from '@/domain/geometry';
 import { CanvasCreationToolbar, ToolbarModeIcon } from '@/components/canvas/canvas-toolbar';
 import { canvasEdgeTypes } from '@/components/canvas/connector-edge';
 import { canvasNodeTypes } from '@/components/canvas/node-renderers';
@@ -299,44 +300,69 @@ function StatusNotice({
   );
 }
 
-function CollaboratorCursors({
+function CollaboratorPresence({
   collaborators,
   objects,
 }: {
   collaborators: readonly CanvasCollaborator[];
   objects: readonly CanvasObject[];
 }) {
-  const objectById = useMemo(
-    () => new Map(objects.map((object) => [object.id, object])),
-    [objects],
-  );
   return (
     <ViewportPortal>
       {collaborators.map((collaborator) => {
         const target = collaborator.targetObjectId
-          ? objectById.get(collaborator.targetObjectId)
-          : undefined;
+          ? absoluteObjectRectangle(collaborator.targetObjectId, objects)
+          : null;
         const position =
-          collaborator.position ??
-          (target ? { x: target.position.x + 20, y: target.position.y - 18 } : undefined);
-        if (!position) return null;
+          collaborator.position ?? (target ? { x: target.x + 20, y: target.y - 18 } : undefined);
+        const selectedIds = new Set(collaborator.selectedObjectIds ?? []);
+        if (collaborator.targetObjectId) selectedIds.add(collaborator.targetObjectId);
         return (
-          <div
-            className={styles.collaboratorCursor}
-            data-kind={collaborator.kind}
-            key={collaborator.id}
-            style={{
-              transform: `translate(${position.x}px, ${position.y}px)`,
-              color: collaborator.color,
-            }}
-          >
-            <MousePointer2 size={20} fill="currentColor" />
-            <span style={{ background: collaborator.color }}>
-              {collaborator.name}
-              {collaborator.kind === 'worker' && collaborator.engine
-                ? ` · ${collaborator.engine === 'claude' ? 'Claude Code' : 'Codex'}`
-                : ''}
-            </span>
+          <div key={collaborator.id} aria-hidden="true">
+            {[...selectedIds].map((objectId, index) => {
+              const rectangle = absoluteObjectRectangle(objectId, objects);
+              if (!rectangle) return null;
+              return (
+                <div
+                  className={styles.collaboratorSelection}
+                  data-kind={collaborator.kind}
+                  data-editing={collaborator.targetObjectId === objectId || undefined}
+                  key={objectId}
+                  style={{
+                    transform: `translate(${rectangle.x}px, ${rectangle.y}px)`,
+                    width: rectangle.width,
+                    height: rectangle.height,
+                    borderColor: collaborator.color,
+                    boxShadow: `0 0 0 1px ${collaborator.color}`,
+                  }}
+                >
+                  {index === 0 ? (
+                    <span style={{ background: collaborator.color }}>
+                      {collaborator.name}
+                      {collaborator.state === 'editing' ? ' · editing' : ''}
+                    </span>
+                  ) : null}
+                </div>
+              );
+            })}
+            {position ? (
+              <div
+                className={styles.collaboratorCursor}
+                data-kind={collaborator.kind}
+                style={{
+                  transform: `translate(${position.x}px, ${position.y}px)`,
+                  color: collaborator.color,
+                }}
+              >
+                <MousePointer2 size={20} fill="currentColor" />
+                <span style={{ background: collaborator.color }}>
+                  {collaborator.name}
+                  {collaborator.kind === 'worker' && collaborator.engine
+                    ? ` · ${collaborator.engine === 'claude' ? 'Claude Code' : 'Codex CLI'}`
+                    : ''}
+                </span>
+              </div>
+            ) : null}
           </div>
         );
       })}
@@ -373,9 +399,10 @@ function CanvasViewport({
   const selectedNodeIds = useCanvasInteractionStore((state) => state.selectedNodeIds);
   const interactingNodeIds = useCanvasInteractionStore((state) => state.interactingNodeIds);
   const connectorRelationship = useCanvasInteractionStore((state) => state.connectorRelationship);
-  const { screenToFlowPosition } = useReactFlow();
+  const { getViewport, screenToFlowPosition } = useReactFlow();
   const flowRegionRef = useRef<HTMLElement | null>(null);
   const [panel, setPanel] = useState<CanvasPanel | null>(null);
+  const [inspectorEditingObjectId, setInspectorEditingObjectId] = useState<string | null>(null);
 
   const publishViewport = useCallback((viewport: { x: number; y: number; zoom: number }) => {
     const bounds = flowRegionRef.current?.getBoundingClientRect();
@@ -387,14 +414,25 @@ function CanvasViewport({
   }, []);
 
   useEffect(() => {
+    const interactingObjectId =
+      interactingNodeIds.size === 1 ? ([...interactingNodeIds][0] ?? null) : null;
     const editing =
-      panel === 'inspector' && selectedNodeIds[0]
-        ? selectedNodeIds[0]
-        : interactingNodeIds.size === 1
-          ? ([...interactingNodeIds][0] ?? null)
-          : null;
+      interactingObjectId ??
+      (panel === 'inspector' &&
+      inspectorEditingObjectId &&
+      selectedNodeIds.includes(inspectorEditingObjectId)
+        ? inspectorEditingObjectId
+        : null);
     useCanvasInteractionStore.getState().setEditingObjectId(editing);
-  }, [interactingNodeIds, panel, selectedNodeIds]);
+  }, [inspectorEditingObjectId, interactingNodeIds, panel, selectedNodeIds]);
+
+  useEffect(() => {
+    const region = flowRegionRef.current;
+    if (!region) return;
+    const observer = new ResizeObserver(() => publishViewport(getViewport()));
+    observer.observe(region);
+    return () => observer.disconnect();
+  }, [getViewport, publishViewport]);
 
   const connect = useCallback(
     (connection: Connection) => {
@@ -479,6 +517,8 @@ function CanvasViewport({
             const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
             useCanvasInteractionStore.getState().setPresenceCursor(position);
           }}
+          onPointerLeave={() => useCanvasInteractionStore.getState().setPresenceCursor(null)}
+          onInit={(instance) => publishViewport(instance.getViewport())}
           onMove={(_event, viewport) => publishViewport(viewport)}
           nodesDraggable={tool === 'select'}
           nodesConnectable={tool === 'connect'}
@@ -497,7 +537,7 @@ function CanvasViewport({
           proOptions={{ hideAttribution: false }}
         >
           <Background variant={BackgroundVariant.Dots} gap={22} size={1.2} color="#c9c5bb" />
-          <CollaboratorCursors collaborators={data.collaborators} objects={data.objects} />
+          <CollaboratorPresence collaborators={data.collaborators} objects={data.objects} />
           <Panel position="bottom-left" className={styles.shortcutHint}>
             <span>
               <kbd>V</kbd> select
@@ -522,7 +562,13 @@ function CanvasViewport({
           />
         </ReactFlow>
         <CanvasCreationToolbar actions={actions} />
-        <CanvasRightPanel panel={panel} setPanel={setPanel} data={data} actions={actions} />
+        <CanvasRightPanel
+          panel={panel}
+          setPanel={setPanel}
+          data={data}
+          actions={actions}
+          onEditingObjectChange={setInspectorEditingObjectId}
+        />
         <StatusNotice data={data} actions={actions} />
         {data.status === 'loading' ? <LoadingOverlay /> : null}
         {data.status === 'ready' && data.objects.length === 0 ? (

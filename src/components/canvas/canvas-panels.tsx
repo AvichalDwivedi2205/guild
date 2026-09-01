@@ -1099,11 +1099,13 @@ export function CanvasRightPanel({
   setPanel,
   data,
   actions,
+  onEditingObjectChange,
 }: {
   panel: CanvasPanel | null;
   setPanel: (panel: CanvasPanel | null) => void;
   data: CanvasWorkspaceData;
   actions: CanvasWorkspaceActions;
+  onEditingObjectChange?: (objectId: string | null) => void;
 }) {
   const selectedNodeIds = useCanvasInteractionStore((state) => state.selectedNodeIds);
   const selectedObjectId = selectedNodeIds[0] ?? null;
@@ -1136,7 +1138,31 @@ export function CanvasRightPanel({
         ))}
       </nav>
       {panel ? (
-        <aside className={styles.rightPanel} aria-label={currentDefinition?.label}>
+        <aside
+          className={styles.rightPanel}
+          aria-label={currentDefinition?.label}
+          onFocusCapture={(event) => {
+            if (
+              panel === 'inspector' &&
+              selectedObjectId &&
+              (event.target instanceof HTMLInputElement ||
+                event.target instanceof HTMLTextAreaElement ||
+                event.target instanceof HTMLSelectElement ||
+                (event.target instanceof HTMLElement && event.target.isContentEditable))
+            ) {
+              onEditingObjectChange?.(selectedObjectId);
+            }
+          }}
+          onBlurCapture={(event) => {
+            const next = event.relatedTarget;
+            const remainsInEditor =
+              next instanceof HTMLInputElement ||
+              next instanceof HTMLTextAreaElement ||
+              next instanceof HTMLSelectElement ||
+              (next instanceof HTMLElement && next.isContentEditable);
+            if (!remainsInEditor) onEditingObjectChange?.(null);
+          }}
+        >
           <header className={styles.panelHeader}>
             <div>
               {currentDefinition?.icon}

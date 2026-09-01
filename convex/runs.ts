@@ -73,6 +73,69 @@ export const list = query({
   },
 });
 
+export const listWorkerPresence = query({
+  args: { workspaceId: v.id('workspaces') },
+  returns: v.array(
+    v.object({
+      jobId: v.id('jobs'),
+      attempt: v.number(),
+      targetObjectId: v.optional(v.id('canvasObjects')),
+      progressMessage: v.string(),
+      sequence: v.number(),
+      updatedAt: v.number(),
+    }),
+  ),
+  handler: async (ctx, args) => {
+    await requireWorkspaceMember(ctx, args.workspaceId);
+    const [leasedJobs, runningJobs, recentSteps] = await Promise.all([
+      ctx.db
+        .query('jobs')
+        .withIndex('by_workspaceId_and_state', (index) =>
+          index.eq('workspaceId', args.workspaceId).eq('state', 'leased'),
+        )
+        .take(100),
+      ctx.db
+        .query('jobs')
+        .withIndex('by_workspaceId_and_state', (index) =>
+          index.eq('workspaceId', args.workspaceId).eq('state', 'running'),
+        )
+        .take(100),
+      ctx.db
+        .query('workerSteps')
+        .withIndex('by_workspaceId_and_updatedAt', (index) =>
+          index.eq('workspaceId', args.workspaceId),
+        )
+        .order('desc')
+        .take(200),
+    ]);
+    const activeAttemptByJob = new Map(
+      [...leasedJobs, ...runningJobs].map((job) => [job._id, job.attempt]),
+    );
+    const seenJobs = new Set<string>();
+
+    return recentSteps.flatMap((step) => {
+      if (
+        seenJobs.has(step.jobId) ||
+        activeAttemptByJob.get(step.jobId) !== step.attempt ||
+        step.exitState
+      ) {
+        return [];
+      }
+      seenJobs.add(step.jobId);
+      return [
+        {
+          jobId: step.jobId,
+          attempt: step.attempt,
+          ...(step.targetObjectId ? { targetObjectId: step.targetObjectId } : {}),
+          progressMessage: step.progressMessage,
+          sequence: step.sequence,
+          updatedAt: step.updatedAt,
+        },
+      ];
+    });
+  },
+});
+
 export const startTeam = mutation({
   args: {
     workspaceId: v.id('workspaces'),

@@ -19,7 +19,10 @@ export type CanvasCollaborator = {
   color: string;
   state: 'viewing' | 'editing' | 'idle' | 'working' | 'waiting';
   position?: { x: number; y: number };
+  viewport?: { x: number; y: number; zoom: number; width: number; height: number };
+  selectedObjectIds?: readonly string[];
   targetObjectId?: string;
+  progressMessage?: string;
   engine?: LocalEngine;
 };
 

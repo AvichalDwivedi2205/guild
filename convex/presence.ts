@@ -4,23 +4,41 @@ import { mutation, query } from './_generated/server';
 import { requireWorkspaceMember } from './lib/auth';
 
 const signalArgs = {
-  cursor: v.optional(v.object({ x: v.number(), y: v.number() })),
+  cursor: v.optional(v.union(v.null(), v.object({ x: v.number(), y: v.number() }))),
   viewport: v.optional(
-    v.object({
-      x: v.number(),
-      y: v.number(),
-      zoom: v.number(),
-      width: v.number(),
-      height: v.number(),
-    }),
+    v.union(
+      v.null(),
+      v.object({
+        x: v.number(),
+        y: v.number(),
+        zoom: v.number(),
+        width: v.number(),
+        height: v.number(),
+      }),
+    ),
   ),
   selectedObjectIds: v.array(v.id('canvasObjects')),
-  editingObjectId: v.optional(v.id('canvasObjects')),
+  editingObjectId: v.optional(v.union(v.null(), v.id('canvasObjects'))),
 };
+
+const signalValidator = v.object({
+  _id: v.id('liveSignals'),
+  _creationTime: v.number(),
+  workspaceId: v.id('workspaces'),
+  userId: v.id('users'),
+  sessionId: v.string(),
+  cursor: signalArgs.cursor,
+  viewport: signalArgs.viewport,
+  selectedObjectIds: signalArgs.selectedObjectIds,
+  editingObjectId: signalArgs.editingObjectId,
+  lastSeenAt: v.number(),
+  expiresAt: v.number(),
+  user: v.union(v.null(), v.object({ name: v.string() })),
+});
 
 export const list = query({
   args: { workspaceId: v.id('workspaces') },
-  returns: v.array(v.any()),
+  returns: v.array(signalValidator),
   handler: async (ctx, args) => {
     await requireWorkspaceMember(ctx, args.workspaceId);
     const now = Date.now();
@@ -31,10 +49,10 @@ export const list = query({
       )
       .take(100);
     return await Promise.all(
-      signals.map(async (signal) => ({
-        ...signal,
-        user: await ctx.db.get(signal.userId),
-      })),
+      signals.map(async (signal) => {
+        const user = await ctx.db.get(signal.userId);
+        return { ...signal, user: user ? { name: user.name } : null };
+      }),
     );
   },
 });
@@ -69,10 +87,10 @@ export const heartbeat = mutation({
     if (existing && existing.userId !== user._id) throw new Error('presence_session_conflict');
     const now = Date.now();
     const values = {
-      ...(args.cursor ? { cursor: args.cursor } : {}),
-      ...(args.viewport ? { viewport: args.viewport } : {}),
+      ...(args.cursor !== undefined ? { cursor: args.cursor } : {}),
+      ...(args.viewport !== undefined ? { viewport: args.viewport } : {}),
       selectedObjectIds: [...new Set(args.selectedObjectIds)],
-      ...(args.editingObjectId ? { editingObjectId: args.editingObjectId } : {}),
+      ...(args.editingObjectId !== undefined ? { editingObjectId: args.editingObjectId } : {}),
       lastSeenAt: now,
       expiresAt: now + 30_000,
     };

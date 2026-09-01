@@ -102,3 +102,33 @@ export function rectangleContains(container: Rectangle, child: Rectangle): boole
     child.y + child.height <= container.y + container.height
   );
 }
+
+export function absoluteObjectRectangle(
+  objectId: string,
+  objects: readonly {
+    id: string;
+    parentId?: string | undefined;
+    position: { x: number; y: number };
+    size: { width: number; height: number };
+  }[],
+): Rectangle | null {
+  const objectById = new Map(objects.map((object) => [object.id, object]));
+  const object = objectById.get(objectId);
+  if (!object) return null;
+
+  let x = object.position.x;
+  let y = object.position.y;
+  let parentId = object.parentId;
+  const visited = new Set([object.id]);
+  while (parentId) {
+    if (visited.has(parentId)) return null;
+    visited.add(parentId);
+    const parent = objectById.get(parentId);
+    if (!parent) return null;
+    x += parent.position.x;
+    y += parent.position.y;
+    parentId = parent.parentId;
+  }
+
+  return { x, y, width: object.size.width, height: object.size.height };
+}

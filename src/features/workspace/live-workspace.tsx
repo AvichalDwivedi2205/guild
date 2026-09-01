@@ -1,7 +1,7 @@
 'use client';
 
 import { useConvex, useConvexAuth, useMutation, useQuery } from 'convex/react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { api } from '../../../convex/_generated/api';
 import type { Doc, Id } from '../../../convex/_generated/dataModel';
@@ -23,7 +23,11 @@ import type {
 import { createConvexWebMcpService } from '@/features/webmcp/convex-service';
 import { WebMcpTools } from '@/features/webmcp/webmcp-tools';
 import { mapCanvasContext, type ConvexCanvasContext } from '@/features/workspace/canvas-mapper';
-import { CURSOR_INTERVAL_MS, nextPresencePayload } from '@/features/workspace/presence-publisher';
+import {
+  PUBLISHER_TICK_MS,
+  createPresencePublisherState,
+  planPresencePublication,
+} from '@/features/workspace/presence-publisher';
 
 type RunRow = {
   run: Doc<'teamRuns'>;
@@ -31,7 +35,15 @@ type RunRow = {
   waitingForRunner: boolean;
 };
 
-type PresenceSignal = Doc<'liveSignals'> & { user: Doc<'users'> | null };
+type PresenceSignal = Doc<'liveSignals'> & { user: { name: string } | null };
+type WorkerPresenceRow = {
+  jobId: Id<'jobs'>;
+  attempt: number;
+  targetObjectId?: Id<'canvasObjects'>;
+  progressMessage: string;
+  sequence: number;
+  updatedAt: number;
+};
 type HistoryRow = {
   _id: string;
   summary: string;
@@ -56,6 +68,13 @@ function initials(name: string): string {
       .map((part) => part[0]?.toUpperCase())
       .join('') || 'G'
   );
+}
+
+function presenceColor(key: string): string {
+  const palette = ['#6955d9', '#16806b', '#d45f3c', '#b04178', '#2e6eb5', '#9a6a18'];
+  let hash = 0;
+  for (const character of key) hash = (hash * 31 + character.charCodeAt(0)) >>> 0;
+  return palette[hash % palette.length] ?? '#6955d9';
 }
 
 function actor(
@@ -87,15 +106,18 @@ function mapLiveData(input: {
   roles: readonly Doc<'roleProfiles'>[];
   runners: readonly Doc<'runners'>[];
   runRows: readonly RunRow[];
+  workerSteps: readonly WorkerPresenceRow[];
   presence: readonly PresenceSignal[];
   teams: readonly Doc<'teams'>[];
   history: readonly HistoryRow[];
   sessionId: string;
   actionState: ActionState;
+  presenceError: string | null;
 }): CanvasWorkspaceData {
   const mapped = mapCanvasContext(input.context);
   const roleById = new Map(input.roles.map((role) => [role._id as string, role]));
   const jobs = input.runRows.flatMap((row) => row.jobs);
+  const workerStepByJob = new Map(input.workerSteps.map((step) => [step.jobId as string, step]));
   const jobByRole = new Map(
     jobs
       .filter((job) => !['completed', 'failed', 'cancelled'].includes(job.state))
@@ -156,19 +178,22 @@ function mapLiveData(input: {
   const humans: CanvasCollaborator[] = input.presence
     .filter((signal) => signal.sessionId !== input.sessionId)
     .map((signal) => ({
-      id: signal.userId,
+      id: signal.sessionId,
       kind: 'human',
       name: signal.user?.name ?? 'Collaborator',
       initials: initials(signal.user?.name ?? 'Collaborator'),
-      color: '#111827',
+      color: presenceColor(signal.sessionId),
       state: signal.editingObjectId ? 'editing' : 'viewing',
       ...(signal.cursor ? { position: signal.cursor } : {}),
+      ...(signal.viewport ? { viewport: signal.viewport } : {}),
+      selectedObjectIds: signal.selectedObjectIds,
       ...(signal.editingObjectId ? { targetObjectId: signal.editingObjectId } : {}),
     }));
   const workers: CanvasCollaborator[] = jobs
     .filter((job) => job.state === 'leased' || job.state === 'running')
     .map((job) => {
       const role = roleById.get(job.roleProfileId);
+      const step = workerStepByJob.get(job._id);
       return {
         id: `worker:${job._id}`,
         kind: 'worker' as const,
@@ -176,7 +201,10 @@ function mapLiveData(input: {
         initials: initials(role?.name ?? 'Worker'),
         color: role?.color ?? '#7c3aed',
         state: job.state === 'running' ? ('working' as const) : ('waiting' as const),
-        targetObjectId: job.targetSectionId,
+        targetObjectId: step?.targetObjectId ?? job.targetSectionId,
+        ...(step?.progressMessage || job.progressMessage
+          ? { progressMessage: step?.progressMessage ?? job.progressMessage }
+          : {}),
         engine: job.engine,
       };
     });
@@ -217,8 +245,10 @@ function mapLiveData(input: {
   return {
     workspaceId: mapped.workspaceId,
     workspaceTitle: mapped.workspaceTitle,
-    status: input.actionState?.kind ?? 'ready',
-    errorMessage: input.actionState?.kind === 'error' ? input.actionState.message : null,
+    status: input.actionState?.kind ?? (input.presenceError ? 'reconnecting' : 'ready'),
+    errorMessage:
+      (input.actionState?.kind === 'error' ? input.actionState.message : null) ??
+      input.presenceError,
     conflictMessage: input.actionState?.kind === 'conflict' ? input.actionState.message : null,
     objects: mapped.objects,
     edges: mapped.edges,
@@ -291,6 +321,7 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
   const setMode = useCanvasInteractionStore((state) => state.setMode);
   const [userReady, setUserReady] = useState(false);
   const [actionState, setActionState] = useState<ActionState>(null);
+  const [presenceError, setPresenceError] = useState<string | null>(null);
   const [sessionId] = useState(() => `canvas:${crypto.randomUUID()}`);
   const enabled = isAuthenticated && userReady;
 
@@ -331,6 +362,10 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
     api.runs.list,
     enabled ? { workspaceId: targetWorkspaceId, limit: 50 } : 'skip',
   );
+  const workerSteps = useQuery(
+    api.runs.listWorkerPresence,
+    enabled ? { workspaceId: targetWorkspaceId } : 'skip',
+  );
   const presence = useQuery(
     api.presence.list,
     enabled ? { workspaceId: targetWorkspaceId } : 'skip',
@@ -349,6 +384,7 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
     roles !== undefined &&
     runners !== undefined &&
     runRows !== undefined &&
+    workerSteps !== undefined &&
     presence !== undefined &&
     teams !== undefined &&
     history !== undefined;
@@ -358,39 +394,66 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
     setMode(context.workspace.boardMode);
   }, [context, setMode]);
 
+  const presenceFailureCount = useRef(0);
+
   useEffect(() => {
     if (!enabled) return;
-    let lastCursorAt = 0;
-    let lastViewportAt = 0;
-    const publish = (force: boolean) => {
+    let active = true;
+    let inFlight = false;
+    let publisherState = createPresencePublisherState();
+    const publish = async (force = false) => {
+      if (inFlight) return;
       const interaction = useCanvasInteractionStore.getState();
-      const now = force ? Number.POSITIVE_INFINITY : Date.now();
-      const next = nextPresencePayload(now, lastCursorAt, lastViewportAt, {
-        ...(interaction.presenceCursor ? { cursor: interaction.presenceCursor } : {}),
-        ...(interaction.presenceViewport ? { viewport: interaction.presenceViewport } : {}),
-        selectedObjectIds: interaction.selectedNodeIds,
-        ...(interaction.editingObjectId ? { editingObjectId: interaction.editingObjectId } : {}),
-      });
-      lastCursorAt = force ? Date.now() : next.lastCursorAt;
-      lastViewportAt = force ? Date.now() : next.lastViewportAt;
-      return presenceHeartbeat({
-        workspaceId: targetWorkspaceId,
-        sessionId,
-        selectedObjectIds: next.payload.selectedObjectIds.map(
-          (objectId) => objectId as Id<'canvasObjects'>,
-        ),
-        ...(next.payload.cursor ? { cursor: next.payload.cursor } : {}),
-        ...(next.payload.viewport ? { viewport: next.payload.viewport } : {}),
-        ...(next.payload.editingObjectId
-          ? { editingObjectId: next.payload.editingObjectId as Id<'canvasObjects'> }
-          : {}),
-      }).catch(() => undefined);
+      const next = planPresencePublication(
+        Date.now(),
+        publisherState,
+        {
+          cursor: interaction.presenceCursor,
+          viewport: interaction.presenceViewport,
+          selectedObjectIds: interaction.selectedNodeIds,
+          editingObjectId: interaction.editingObjectId,
+        },
+        force,
+      );
+      if (!next) return;
+      inFlight = true;
+      try {
+        await presenceHeartbeat({
+          workspaceId: targetWorkspaceId,
+          sessionId,
+          selectedObjectIds: next.payload.selectedObjectIds.map(
+            (objectId) => objectId as Id<'canvasObjects'>,
+          ),
+          ...(next.payload.cursor !== undefined ? { cursor: next.payload.cursor } : {}),
+          ...(next.payload.viewport !== undefined ? { viewport: next.payload.viewport } : {}),
+          ...(next.payload.editingObjectId !== undefined
+            ? {
+                editingObjectId: next.payload.editingObjectId as Id<'canvasObjects'> | null,
+              }
+            : {}),
+        });
+        if (!active) return;
+        publisherState = next.nextState;
+        presenceFailureCount.current = 0;
+        setPresenceError(null);
+      } catch {
+        if (!active) return;
+        presenceFailureCount.current += 1;
+        if (presenceFailureCount.current >= 2) {
+          setPresenceError('Live collaboration is reconnecting; canvas data remains available.');
+        }
+      } finally {
+        inFlight = false;
+      }
     };
     void publish(true);
-    const interval = window.setInterval(() => void publish(false), CURSOR_INTERVAL_MS);
+    const interval = window.setInterval(() => void publish(), PUBLISHER_TICK_MS);
     return () => {
+      active = false;
       window.clearInterval(interval);
-      void leavePresence({ workspaceId: targetWorkspaceId, sessionId }).catch(() => undefined);
+      void leavePresence({ workspaceId: targetWorkspaceId, sessionId }).catch(() => {
+        // Expiry is the authoritative cleanup fallback when navigation interrupts this mutation.
+      });
     };
   }, [enabled, leavePresence, presenceHeartbeat, sessionId, targetWorkspaceId]);
 
@@ -626,6 +689,7 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
       !roles ||
       !runners ||
       !runRows ||
+      !workerSteps ||
       !presence ||
       !teams ||
       !history
@@ -647,11 +711,13 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
       roles: roles as readonly Doc<'roleProfiles'>[],
       runners: runners as readonly Doc<'runners'>[],
       runRows: runRows as readonly RunRow[],
+      workerSteps: workerSteps as readonly WorkerPresenceRow[],
       presence: presence as readonly PresenceSignal[],
       teams: teams as readonly Doc<'teams'>[],
       history: history as readonly HistoryRow[],
       sessionId,
       actionState,
+      presenceError,
     });
   }, [
     actionState,
@@ -663,12 +729,14 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
     isAuthenticated,
     loaded,
     presence,
+    presenceError,
     rawWorkspaceId,
     roles,
     runRows,
     runners,
     sessionId,
     teams,
+    workerSteps,
   ]);
 
   const webMcpService = useMemo(() => createConvexWebMcpService(convex), [convex]);
