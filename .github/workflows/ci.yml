@@ -1,0 +1,29 @@
+name: Guild quality gates
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      WORKOS_CLIENT_ID: client_ci_guild
+      WORKOS_COOKIE_PASSWORD: guild-ci-cookie-password-at-least-32-characters
+      NEXT_PUBLIC_WORKOS_REDIRECT_URI: http://127.0.0.1:3100/callback
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.9
+      - run: bun install --frozen-lockfile
+      - run: bun run check
+      - run: bun run runner:build
+      - run: bun run build
+      - run: bunx playwright install --with-deps chromium
+      - run: bun run test:e2e
