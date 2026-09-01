@@ -12,6 +12,26 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-02 (presence correctness audit)
+
+- Audited Cursor's six-commit batch against `Initial_Prompt.md`, the canonical product documents,
+  and `UI.md`. `UI.md` is approved as the visual reference, not as a behavior contract: its
+  multi-board hierarchy, templates, generic engines, public MCP join flow, non-canonical edge
+  labels, and synthetic cursor animation must not enter the product.
+- Replaced the unconditional 5-writes-per-second presence loop with dirty-state publication:
+  changed cursors are capped at 5 Hz, changed viewports at 2 Hz, selection/editing changes publish
+  immediately, and an unchanged session writes only its 10-second expiry heartbeat.
+- Presence now explicitly clears cursor, viewport, and editing fields; selection overlays render
+  for remote human sessions; nested-object overlays resolve into absolute canvas coordinates; and
+  inspector editing presence requires focus in an actual editing control.
+- Human sessions use session-unique collaborator IDs and deterministic colors. Worker presence now
+  reads the latest active `workerSteps.targetObjectId`, falling back to the Job's target section
+  before the first progress step. No synthetic Worker pointer packets are generated.
+- Evidence for this batch: Convex codegen/function push succeeded; targeted Vitest coverage passed
+  16 tests across publisher, geometry, panel, and store suites; strict TypeScript and targeted
+  zero-warning ESLint passed. Browser and production proof remain pending until the UI batch is
+  complete.
+
 ## Snapshot — 2026-09-01 (late evening)
 
 - Branch: `main`
@@ -120,9 +140,9 @@ callback.
 - Canvas UI and direct WebMCP changes use `canvas.executeCommands`, with idempotency keys, segment
   revisions, Change Sets, activity attribution, server-side geometry checks, and conflict-aware
   undo.
-- Convex presence records human selection, optional cursor/viewport/editing state, and live
-  subscriptions. The current browser client only sends selected object IDs on a 10-second
-  heartbeat; the required cursor and viewport update rates are not yet wired.
+- Convex presence records and live-subscribes human selection, cursor, viewport, and editing state.
+  The client publishes only dirty state at the required 5 Hz cursor and 2 Hz viewport caps, plus a
+  10-second idle expiry heartbeat, and explicitly clears transient fields.
 - Comments, resolution, `@Role`, `@team`, activity, deterministic recommended-team assembly,
   Team Run fan-out, dependencies, `waiting_for_runner`, stop, retry, and run undo exist.
 - Worker presence is derived from active Jobs and their target section/object rather than a fake
@@ -151,7 +171,7 @@ requires the broader production and E2E evidence listed later.
 | #   | Capability                                 | State       | Remaining acceptance evidence or gap                                  |
 | --- | ------------------------------------------ | ----------- | --------------------------------------------------------------------- |
 | 1   | Infinite shared project canvas             | Implemented | Production smoke and large-workspace interaction                      |
-| 2   | Multiplayer human collaboration            | Partial     | Two real browser-context E2E for live cursors and viewports           |
+| 2   | Multiplayer human collaboration            | Partial     | Two real browser-context E2E for cursor, selection, edit, viewport    |
 | 3   | Local AI Workers as teammates              | Partial     | Pair and run real signed-in Codex and Claude clients                  |
 | 4   | Multiple Workers simultaneously            | Partial     | Real concurrent Codex/Claude Jobs and separate-region proof           |
 | 5   | WebMCP and local Runner paths              | Partial     | Production browser-agent and real Runner verification                 |
@@ -168,7 +188,7 @@ requires the broader production and E2E evidence listed later.
 | 16  | Reversible execution                       | Partial     | History-point restore is Change-Set revert; full conflict E2E remains |
 | 17  | Comments and mentions                      | Implemented | Authenticated `@Role`, `@team`, and unowned-comment E2E               |
 | 18  | Worker activity visibility                 | Partial     | Real Worker progress/result production flow                           |
-| 19  | Live Worker target cursors                 | Partial     | Real concurrent target-cursor browser proof                           |
+| 19  | Live Worker target cursors                 | Partial     | Latest Worker-step mapping exists; real concurrent browser proof      |
 | 20  | Activity feed                              | Implemented | Attribution integration tests                                         |
 | 21  | Worker progress and result comments        | Partial     | Real Runner completion flow                                           |
 | 22  | Decision memory                            | Partial     | Explicit history/decision retrieval UX and E2E                        |
@@ -236,8 +256,9 @@ After this batch, `bun run check` passed: formatting, ESLint, strict TypeScript,
 
 ### P1 — close product gaps
 
-- [x] Human cursor publishes near 5 Hz and viewport near 2 Hz, including editing targets and
-      session cleanup. Two real browser-context verification is still required.
+- [x] Human cursor publishes dirty changes near 5 Hz and viewport near 2 Hz, with remote
+      selections, focused editing targets, explicit clears, bounded heartbeats, and session
+      cleanup. Two real browser-context verification is still required.
 - [ ] Add connected content/body editing for renderer families, including debounced persistence,
       lazy body loading, autosave/conflict feedback, links/media, and drawing data where applicable.
 - [ ] Add explicit assignment flows. History-point browsing/restore now uses conflict-aware Change
