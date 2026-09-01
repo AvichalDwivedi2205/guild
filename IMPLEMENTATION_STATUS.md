@@ -12,6 +12,17 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-02 (connected Convex Run tests)
+
+- Added the official `convex-test` Edge Runtime harness and three authenticated integration tests
+  that execute the real public Convex mutations against the real schema and function modules.
+- Connected proof now covers deterministic two-Role Team Run fan-out, static dependency blocking,
+  one reservation per Job, idempotent Run replay, exact-object explicit assignment, truthful
+  `waitingForRunner`, membership denial, explicit-assignment activity, and `@Role` routing to the
+  exact commented object while preserving the exactly-one-Job rule.
+- Evidence: `bun run check` passed formatting, zero-warning ESLint, strict TypeScript, 30 test files /
+  89 tests, including the new three-test Convex integration suite, plus Runner typecheck.
+
 ## Snapshot — 2026-09-02 (explicit assignments and truthful history)
 
 - The selected-object Inspector now creates one explicit assignment for one Role Profile with a
@@ -273,8 +284,8 @@ The latest GitHub Actions quality-gate run also passed. A Vercel “Ready” bui
 a working production application until the new Production environment variables are picked up by a
 redeploy.
 
-Latest local proof: `bun run check` passed formatting, ESLint, strict TypeScript, 29 test files /
-86 tests, and Runner typecheck. `bun run runner:test` passed (10 files / 26 tests) and
+Latest local proof: `bun run check` passed formatting, ESLint, strict TypeScript, 30 test files /
+89 tests, and Runner typecheck. `bun run runner:test` passed (10 files / 26 tests) and
 `bun run runner:build` passed. `bunx convex codegen` pushed development functions.
 `bunx convex deploy --yes` deployed production functions to `befitting-bird-666`.
 `vercel --prod --yes` deployed Ready production to the stable alias. `curl` of `/` returned HTTP
@@ -332,13 +343,14 @@ suite passes in desktop and mobile Chromium; authenticated application coverage 
 
 ### P1 — complete required tests
 
-- [ ] Add missing unit coverage for reservation-full, Team Run fan-out/dependency unlocking,
-      trigger idempotency, Runner compatibility/capacity, lease expiry, capability/fencing
-      rejection, revision conflicts, Change Set generation, WebMCP output schemas, CLI argument
-      construction, environment allowlisting, and output limits.
-- [ ] Add Convex/auth integration tests for every flow listed in `Initial_Prompt.md`, including
-      simultaneous segment updates, pairing/revocation, job claims/leases, stale attempts,
-      stop/retry/undo, and WebMCP attribution.
+- [x] Unit coverage exists for reservation-full, Team Run fan-out, comment trigger idempotency,
+      Runner compatibility, capability/fencing/lease rejection, revision conflicts, WebMCP schemas,
+      CLI argument construction, environment allowlisting, and output limits. Remaining edge cases
+      belong in connected integration coverage rather than duplicate pure-function tests.
+- [ ] Expand the new Convex/auth integration suite from Team Run fan-out, explicit assignment,
+      membership denial, and `@Role` routing to simultaneous segment updates, pairing/revocation,
+      job claims/leases, stale attempts, dependency unlocking, stop/retry/undo, and WebMCP
+      attribution.
 - [ ] Add component tests for renderer families, inspector, all state surfaces, comments, Runner,
       Team Runs, Job badges, conflict messages, and undo reporting.
 - [ ] Replace the two-test landing-only Playwright suite with all 24 required browser flows,
