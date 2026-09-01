@@ -3,6 +3,7 @@ import { v } from 'convex/values';
 import type { Doc, Id } from './_generated/dataModel';
 import { mutation, query } from './_generated/server';
 import { requireWorkspaceMember } from './lib/auth';
+import { parseContentSnapshot } from './lib/content';
 
 type Segment = Doc<'changeEntries'>['segment'];
 
@@ -157,6 +158,8 @@ export const changeSet = mutation({
             updatedAt: now,
           });
         } else if (entry.segment === 'content') {
+          const snapshot = parseContentSnapshot(entry.beforeValue);
+          const previousBody = snapshot?.body ?? entry.beforeValue;
           const body = await ctx.db
             .query('canvasObjectBodies')
             .withIndex('by_workspaceId_and_objectId', (index) =>
@@ -165,12 +168,24 @@ export const changeSet = mutation({
             .unique();
           if (body) {
             await ctx.db.patch(body._id, {
-              body: entry.beforeValue,
+              body: previousBody,
+              revision,
+              updatedAt: now,
+            });
+          } else if (snapshot) {
+            await ctx.db.insert('canvasObjectBodies', {
+              workspaceId: original.workspaceId,
+              objectId: object._id,
+              body: previousBody,
               revision,
               updatedAt: now,
             });
           }
-          await ctx.db.patch(object._id, { contentRevision: revision, updatedAt: now });
+          await ctx.db.patch(object._id, {
+            ...(snapshot ? { title: snapshot.title } : {}),
+            contentRevision: revision,
+            updatedAt: now,
+          });
         } else if (entry.segment === 'style') {
           await ctx.db.patch(object._id, {
             style: entry.beforeValue,

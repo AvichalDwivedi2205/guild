@@ -54,6 +54,7 @@ type HistoryRow = {
   canRestore: boolean;
 };
 type ActionState = { kind: 'error' | 'conflict'; message: string } | null;
+type SelectedObjectBody = { body: unknown; revision: number; updatedAt: number } | null | undefined;
 
 function newKey(prefix: string): string {
   return `${prefix}:${crypto.randomUUID()}`;
@@ -113,8 +114,24 @@ function mapLiveData(input: {
   sessionId: string;
   actionState: ActionState;
   presenceError: string | null;
+  selectedObjectId?: string;
+  selectedObjectBody: SelectedObjectBody;
+  selectedObjectBodyStatus: CanvasWorkspaceData['selectedObjectBodyStatus'];
 }): CanvasWorkspaceData {
   const mapped = mapCanvasContext(input.context);
+  const objects = mapped.objects.map((object) => {
+    if (object.id !== input.selectedObjectId || input.selectedObjectBody === undefined) {
+      return object;
+    }
+    return {
+      ...object,
+      content: input.selectedObjectBody?.body ?? null,
+      revisions: {
+        ...object.revisions,
+        content: input.selectedObjectBody?.revision ?? object.revisions.content,
+      },
+    };
+  });
   const roleById = new Map(input.roles.map((role) => [role._id as string, role]));
   const jobs = input.runRows.flatMap((row) => row.jobs);
   const workerStepByJob = new Map(input.workerSteps.map((step) => [step.jobId as string, step]));
@@ -250,7 +267,7 @@ function mapLiveData(input: {
       (input.actionState?.kind === 'error' ? input.actionState.message : null) ??
       input.presenceError,
     conflictMessage: input.actionState?.kind === 'conflict' ? input.actionState.message : null,
-    objects: mapped.objects,
+    objects,
     edges: mapped.edges,
     collaborators: [...humans, ...workers],
     comments,
@@ -272,6 +289,7 @@ function mapLiveData(input: {
       createdAt: new Date(point.createdAt).toISOString(),
       canRestore: point.canRestore,
     })),
+    selectedObjectBodyStatus: input.selectedObjectBodyStatus,
   };
 }
 
@@ -292,6 +310,7 @@ const emptyData = (workspaceId: string): CanvasWorkspaceData => ({
   teamRuns: [],
   teams: [],
   history: [],
+  selectedObjectBodyStatus: 'idle',
 });
 
 export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: string }) {
@@ -319,6 +338,8 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
   const renameRunner = useMutation(api.runners.rename);
   const revokeRunner = useMutation(api.runners.revoke);
   const setMode = useCanvasInteractionStore((state) => state.setMode);
+  const selectedNodeIds = useCanvasInteractionStore((state) => state.selectedNodeIds);
+  const selectedObjectId = selectedNodeIds.length === 1 ? selectedNodeIds[0] : undefined;
   const [userReady, setUserReady] = useState(false);
   const [actionState, setActionState] = useState<ActionState>(null);
   const [presenceError, setPresenceError] = useState<string | null>(null);
@@ -341,6 +362,15 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
   const context = useQuery(
     api.canvas.getWorkspaceContext,
     enabled ? { workspaceId: targetWorkspaceId } : 'skip',
+  );
+  const selectedObjectBody = useQuery(
+    api.canvas.getObjectBody,
+    enabled && selectedObjectId
+      ? {
+          workspaceId: targetWorkspaceId,
+          objectId: selectedObjectId as Id<'canvasObjects'>,
+        }
+      : 'skip',
   );
   const comments = useQuery(
     api.comments.list,
@@ -457,23 +487,30 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
     };
   }, [enabled, leavePresence, presenceHeartbeat, sessionId, targetWorkspaceId]);
 
-  const perform = useCallback(async (operation: () => Promise<unknown>) => {
-    setActionState(null);
-    try {
-      await operation();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Guild Cloud operation failed.';
-      const conflict = /revision_conflict|outside_reserved_region|reservation_collision/.test(
-        message,
-      );
-      setActionState({
-        kind: conflict ? 'conflict' : 'error',
-        message: conflict
-          ? 'Canvas changed elsewhere. Live state is preserved; retry against newest revision.'
-          : 'Guild Cloud rejected this operation. Live canvas was not changed.',
-      });
-    }
+  const reportOperationError = useCallback((error: unknown) => {
+    const message = error instanceof Error ? error.message : 'Guild Cloud operation failed.';
+    const conflict = /revision_conflict|outside_reserved_region|reservation_collision/.test(
+      message,
+    );
+    setActionState({
+      kind: conflict ? 'conflict' : 'error',
+      message: conflict
+        ? 'Canvas changed elsewhere. Live state is preserved; retry against newest revision.'
+        : 'Guild Cloud rejected this operation. Live canvas was not changed.',
+    });
   }, []);
+
+  const perform = useCallback(
+    async (operation: () => Promise<unknown>) => {
+      setActionState(null);
+      try {
+        await operation();
+      } catch (error) {
+        reportOperationError(error);
+      }
+    },
+    [reportOperationError],
+  );
 
   const actions = useMemo<CanvasWorkspaceActions>(() => {
     if (!loaded) return {};
@@ -551,6 +588,35 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
             value: input.style,
           },
         ]),
+      updateContent: async (input) => {
+        setActionState(null);
+        try {
+          const result = await executeCommands({
+            workspaceId: targetWorkspaceId,
+            source: 'ui',
+            idempotencyKey: newKey('content'),
+            summary: 'Updated object content',
+            commands: [
+              {
+                type: 'update_object',
+                objectId: input.objectId as Id<'canvasObjects'>,
+                segment: 'content',
+                expectedRevision: input.expectedContentRevision,
+                title: input.title,
+                value: input.content,
+              },
+            ],
+          });
+          const revision =
+            result.changed.find(
+              (change) => change.targetId === input.objectId && change.segment === 'content',
+            )?.revision ?? input.expectedContentRevision + 1;
+          return { ok: true, revision };
+        } catch (error) {
+          reportOperationError(error);
+          return { ok: false, revision: input.expectedContentRevision };
+        }
+      },
       deleteObject: (input) =>
         mutateCanvas('Deleted canvas object', [
           {
@@ -669,6 +735,7 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
     removeRoleProfile,
     removeTeam,
     renameRunner,
+    reportOperationError,
     resolveComment,
     retryJob,
     revokeRunner,
@@ -720,6 +787,13 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
       sessionId,
       actionState,
       presenceError,
+      ...(selectedObjectId ? { selectedObjectId } : {}),
+      selectedObjectBody: selectedObjectBody as SelectedObjectBody,
+      selectedObjectBodyStatus: selectedObjectId
+        ? selectedObjectBody === undefined
+          ? 'loading'
+          : 'ready'
+        : 'idle',
     });
   }, [
     actionState,
@@ -737,6 +811,8 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
     runRows,
     runners,
     sessionId,
+    selectedObjectBody,
+    selectedObjectId,
     teams,
     workerSteps,
   ]);

@@ -21,6 +21,7 @@ import {
   type Rectangle,
 } from './lib/geometry';
 import { requireWorkspaceMember } from './lib/auth';
+import { createContentSnapshot } from './lib/content';
 import { boundedText, limits } from './lib/policies';
 import {
   canvasObjectTypeValidator,
@@ -58,6 +59,7 @@ const updateObjectCommandValidator = v.object({
     v.literal('hierarchy'),
   ),
   expectedRevision: v.number(),
+  title: v.optional(v.string()),
   value: v.any(),
 });
 
@@ -183,6 +185,13 @@ function validateSize(size: { width: number; height: number }): void {
   }
 }
 
+function assertCanvasContent(value: unknown): void {
+  const serialized = JSON.stringify(value);
+  if (serialized !== undefined && serialized.length > 200_000) {
+    throw new Error('canvas_content_too_large');
+  }
+}
+
 function objectRectangle(object: Doc<'canvasObjects'>): Rectangle {
   return { x: object.x, y: object.y, width: object.width, height: object.height };
 }
@@ -258,6 +267,7 @@ type CanvasCommand =
       objectId: Id<'canvasObjects'>;
       segment: 'content' | 'style' | 'semantics' | 'hierarchy';
       expectedRevision: number;
+      title?: string;
       value: unknown;
     }
   | {
@@ -310,6 +320,7 @@ async function executeCanvasCommand(
 
   if (command.type === 'create_object') {
     validateSize(command.size);
+    if (command.content !== undefined) assertCanvasContent(command.content);
     if (principal.kind === 'worker') {
       if (!principal.worker.job.expectedArtifactTypes.includes(command.objectType)) {
         throw new Error('artifact_type_not_allowed');
@@ -356,8 +367,16 @@ async function executeCanvasCommand(
       if (existing && !existing.isDeleted) {
         assertWorkerCanModifyObject(principal, existing);
         const nextRevision = existing.contentRevision + 1;
+        const nextTitle =
+          command.title !== undefined ? boundedText(command.title.trim(), 240) : existing.title;
+        const body = await ctx.db
+          .query('canvasObjectBodies')
+          .withIndex('by_workspaceId_and_objectId', (index) =>
+            index.eq('workspaceId', workspaceId).eq('objectId', existing._id),
+          )
+          .unique();
         await ctx.db.patch(existing._id, {
-          ...(command.title !== undefined ? { title: command.title } : {}),
+          ...(nextTitle !== undefined ? { title: nextTitle } : {}),
           x: position.x,
           y: position.y,
           width: command.size.width,
@@ -371,12 +390,6 @@ async function executeCanvasCommand(
           updatedAt: now,
         });
         if (command.content !== undefined) {
-          const body = await ctx.db
-            .query('canvasObjectBodies')
-            .withIndex('by_workspaceId_and_objectId', (index) =>
-              index.eq('workspaceId', workspaceId).eq('objectId', existing._id),
-            )
-            .unique();
           if (body) {
             await ctx.db.patch(body._id, {
               body: command.content,
@@ -393,19 +406,60 @@ async function executeCanvasCommand(
             });
           }
         }
-        return [
+        const changes: ChangedRevision[] = [];
+        changes.push(
           await appendChange(ctx, {
             workspaceId,
             changeSetId,
             targetKind: 'object',
             targetId: existing._id,
-            segment: 'content',
-            beforeValue: { title: existing.title ?? null },
-            afterValue: { title: command.title ?? existing.title ?? null },
-            postRevision: nextRevision,
+            segment: 'geometry',
+            beforeValue: objectRectangle(existing),
+            afterValue: { ...position, ...command.size },
+            postRevision: existing.geometryRevision + 1,
             sequence,
           }),
-        ];
+        );
+        changes.push(
+          await appendChange(ctx, {
+            workspaceId,
+            changeSetId,
+            targetKind: 'body',
+            targetId: existing._id,
+            segment: 'content',
+            beforeValue: createContentSnapshot(existing.title, body?.body ?? null),
+            afterValue: createContentSnapshot(nextTitle, command.content ?? body?.body ?? null),
+            postRevision: nextRevision,
+            sequence: sequence + 1,
+          }),
+        );
+        changes.push(
+          await appendChange(ctx, {
+            workspaceId,
+            changeSetId,
+            targetKind: 'object',
+            targetId: existing._id,
+            segment: 'style',
+            beforeValue: existing.style,
+            afterValue: command.style ?? existing.style,
+            postRevision: existing.styleRevision + 1,
+            sequence: sequence + 2,
+          }),
+        );
+        changes.push(
+          await appendChange(ctx, {
+            workspaceId,
+            changeSetId,
+            targetKind: 'object',
+            targetId: existing._id,
+            segment: 'semantics',
+            beforeValue: existing.semantics,
+            afterValue: command.semantics ?? existing.semantics,
+            postRevision: existing.semanticsRevision + 1,
+            sequence: sequence + 3,
+          }),
+        );
+        return changes;
       }
     }
 
@@ -413,7 +467,7 @@ async function executeCanvasCommand(
       workspaceId,
       type: command.objectType,
       ...(command.variant ? { variant: command.variant } : {}),
-      ...(command.title !== undefined ? { title: command.title } : {}),
+      ...(command.title !== undefined ? { title: boundedText(command.title.trim(), 240) } : {}),
       x: position.x,
       y: position.y,
       width: command.size.width,
@@ -498,16 +552,23 @@ async function executeCanvasCommand(
     const object = await requireObject(ctx, workspaceId, command.objectId);
     assertWorkerCanModifyObject(principal, object);
     assertRevision(objectSegmentRevision(object, command.segment), command.expectedRevision);
+    if (command.title !== undefined && command.segment !== 'content') {
+      throw new Error('title_requires_content_segment');
+    }
     const nextRevision = command.expectedRevision + 1;
     let beforeValue: unknown;
+    let afterValue = command.value;
     if (command.segment === 'content') {
+      assertCanvasContent(command.value);
       const body = await ctx.db
         .query('canvasObjectBodies')
         .withIndex('by_workspaceId_and_objectId', (index) =>
           index.eq('workspaceId', workspaceId).eq('objectId', object._id),
         )
         .unique();
-      beforeValue = body?.body ?? null;
+      const nextTitle =
+        command.title !== undefined ? boundedText(command.title.trim(), 240) : object.title;
+      beforeValue = createContentSnapshot(object.title, body?.body ?? null);
       if (body) {
         await ctx.db.patch(body._id, {
           body: command.value,
@@ -523,7 +584,12 @@ async function executeCanvasCommand(
           updatedAt: now,
         });
       }
-      await ctx.db.patch(object._id, { contentRevision: nextRevision, updatedAt: now });
+      await ctx.db.patch(object._id, {
+        ...(nextTitle !== undefined ? { title: nextTitle } : {}),
+        contentRevision: nextRevision,
+        updatedAt: now,
+      });
+      afterValue = createContentSnapshot(nextTitle, command.value);
     } else if (command.segment === 'style') {
       beforeValue = object.style;
       await ctx.db.patch(object._id, {
@@ -581,7 +647,7 @@ async function executeCanvasCommand(
         targetId: object._id,
         segment: command.segment,
         beforeValue,
-        afterValue: command.value,
+        afterValue,
         postRevision: nextRevision,
         sequence,
       }),
@@ -745,16 +811,17 @@ export const executeCommands = mutation({
       return commandResult(started.changeSetId, started.changed, true);
     }
     const changed: ChangedRevision[] = [];
-    for (const [sequence, command] of args.commands.entries()) {
-      changed.push(
-        ...(await executeCanvasCommand(ctx, {
-          workspaceId: args.workspaceId,
-          principal,
-          changeSetId: started.changeSetId,
-          command,
-          sequence,
-        })),
-      );
+    let sequence = 0;
+    for (const command of args.commands) {
+      const commandChanges = await executeCanvasCommand(ctx, {
+        workspaceId: args.workspaceId,
+        principal,
+        changeSetId: started.changeSetId,
+        command,
+        sequence,
+      });
+      changed.push(...commandChanges);
+      sequence += commandChanges.length;
     }
     await appendActivity(ctx, {
       workspaceId: args.workspaceId,

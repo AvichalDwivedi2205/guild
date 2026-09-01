@@ -77,6 +77,7 @@ function workspaceData(): CanvasWorkspaceData {
     ],
     teams: [],
     history: [],
+    selectedObjectBodyStatus: 'ready',
   };
 }
 

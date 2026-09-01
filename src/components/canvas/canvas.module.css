@@ -631,6 +631,77 @@
   gap: 8px;
 }
 
+.contentEditor {
+  display: grid;
+  gap: 9px;
+}
+
+.contentEditor label {
+  display: grid;
+  gap: 5px;
+}
+
+.contentEditor label > span,
+.contentStatus {
+  color: var(--canvas-muted);
+  font-size: 10px;
+  font-weight: 680;
+}
+
+.contentEditor input,
+.contentEditor textarea {
+  width: 100%;
+  min-height: 36px;
+  padding: 8px 9px;
+  border: 1px solid var(--canvas-line);
+  border-radius: 8px;
+  color: var(--canvas-ink);
+  background: var(--canvas-quiet);
+  font: inherit;
+  font-size: 11px;
+}
+
+.contentEditor textarea {
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.contentEditor input:focus,
+.contentEditor textarea:focus {
+  border-color: var(--canvas-accent);
+  outline: 2px solid color-mix(in srgb, var(--canvas-accent) 18%, transparent);
+}
+
+.contentSaveRow {
+  display: flex;
+  min-height: 24px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.contentSaveRow span,
+.contentSaveRow button {
+  color: var(--canvas-muted);
+  font-size: 9px;
+}
+
+.contentSaveRow span[data-state='saved'] {
+  color: #277044;
+}
+
+.contentSaveRow span[data-state='error'] {
+  color: #a53827;
+}
+
+.contentSaveRow button {
+  border: 0;
+  color: var(--canvas-accent);
+  background: transparent;
+  font-weight: 760;
+  cursor: pointer;
+}
+
 .colorField {
   display: flex;
   height: 38px;

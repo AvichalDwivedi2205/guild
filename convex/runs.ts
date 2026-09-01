@@ -3,6 +3,7 @@ import { v } from 'convex/values';
 import type { Doc, Id } from './_generated/dataModel';
 import { mutation, query, type QueryCtx } from './_generated/server';
 import { requireWorkspaceMember } from './lib/auth';
+import { parseContentSnapshot } from './lib/content';
 import { reconcileTeamRun, releaseJobAuthority } from './lib/jobLifecycle';
 import { createTeamRun } from './lib/runLifecycle';
 import { limits } from './lib/policies';
@@ -405,6 +406,8 @@ export const undo = mutation({
             updatedAt: now,
           });
         } else if (entry.segment === 'content') {
+          const snapshot = parseContentSnapshot(entry.beforeValue);
+          const previousBody = snapshot?.body ?? entry.beforeValue;
           const body = await ctx.db
             .query('canvasObjectBodies')
             .withIndex('by_workspaceId_and_objectId', (index) =>
@@ -413,11 +416,23 @@ export const undo = mutation({
             .unique();
           if (body)
             await ctx.db.patch(body._id, {
-              body: entry.beforeValue,
+              body: previousBody,
               revision: nextRevision,
               updatedAt: now,
             });
-          await ctx.db.patch(object._id, { contentRevision: nextRevision, updatedAt: now });
+          else if (snapshot)
+            await ctx.db.insert('canvasObjectBodies', {
+              workspaceId: run.workspaceId,
+              objectId: object._id,
+              body: previousBody,
+              revision: nextRevision,
+              updatedAt: now,
+            });
+          await ctx.db.patch(object._id, {
+            ...(snapshot ? { title: snapshot.title } : {}),
+            contentRevision: nextRevision,
+            updatedAt: now,
+          });
         } else if (entry.segment === 'style') {
           await ctx.db.patch(object._id, {
             style: entry.beforeValue,

@@ -11,6 +11,8 @@ import type { JobState, LocalEngine } from '@/domain/jobs';
 export type CanvasConnectionState =
   'loading' | 'ready' | 'offline' | 'reconnecting' | 'error' | 'conflict';
 
+export type ObjectBodyStatus = 'idle' | 'loading' | 'ready';
+
 export type CanvasCollaborator = {
   id: string;
   kind: 'human' | 'worker';
@@ -132,6 +134,7 @@ export type CanvasWorkspaceData = {
   teamRuns: readonly CanvasTeamRun[];
   teams: readonly CanvasTeam[];
   history: readonly CanvasHistoryPoint[];
+  selectedObjectBodyStatus: ObjectBodyStatus;
 };
 
 export type CanvasWorkspaceActions = {
@@ -167,6 +170,12 @@ export type CanvasWorkspaceActions = {
     style: Record<string, unknown>;
     expectedStyleRevision: number;
   }) => void | Promise<void>;
+  updateContent?: (input: {
+    objectId: string;
+    title: string;
+    content: unknown;
+    expectedContentRevision: number;
+  }) => Promise<{ ok: boolean; revision: number }>;
   deleteObject?: (input: {
     objectId: string;
     expectedHierarchyRevision: number;

@@ -21,6 +21,7 @@ import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
 
 import { projectAreas, type CanvasObject, type ProjectSemantics } from '@/domain/canvas';
 import { useCanvasInteractionStore } from '@/features/canvas/store';
+import { ObjectContentEditor } from '@/components/canvas/object-content-editor';
 import type { LocalEngine } from '@/domain/jobs';
 import type {
   CanvasJob,
@@ -144,6 +145,14 @@ function InspectorPanel({
         <h3>{object.title || 'Untitled object'}</h3>
         <code>{object.id}</code>
       </div>
+      <section className={styles.panelSection}>
+        <h4>Content</h4>
+        <ObjectContentEditor
+          object={object}
+          bodyStatus={data.selectedObjectBodyStatus}
+          updateContent={actions.updateContent}
+        />
+      </section>
       <section className={styles.panelSection}>
         <h4>Style</h4>
         <Field label="Fill">

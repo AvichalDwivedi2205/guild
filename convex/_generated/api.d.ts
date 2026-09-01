@@ -13,6 +13,7 @@ import type * as canvas from '../canvas.js';
 import type * as comments from '../comments.js';
 import type * as lib_auth from '../lib/auth.js';
 import type * as lib_commands from '../lib/commands.js';
+import type * as lib_content from '../lib/content.js';
 import type * as lib_crypto from '../lib/crypto.js';
 import type * as lib_geometry from '../lib/geometry.js';
 import type * as lib_jobLifecycle from '../lib/jobLifecycle.js';
@@ -40,6 +41,7 @@ declare const fullApi: ApiFromModules<{
   comments: typeof comments;
   'lib/auth': typeof lib_auth;
   'lib/commands': typeof lib_commands;
+  'lib/content': typeof lib_content;
   'lib/crypto': typeof lib_crypto;
   'lib/geometry': typeof lib_geometry;
   'lib/jobLifecycle': typeof lib_jobLifecycle;
