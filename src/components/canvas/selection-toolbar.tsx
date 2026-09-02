@@ -1,12 +1,13 @@
 'use client';
 
-import { Check, MessageSquare, MoreHorizontal, Palette, Sparkles } from 'lucide-react';
+import { MessageSquare, MoreHorizontal, Palette, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 
 import type { CanvasObject } from '@/domain/canvas';
 import { contextActions } from '@/features/canvas/action-registry';
 import type { CanvasWorkspaceActions, CanvasWorkspaceData } from '@/features/canvas/types';
 
+import { ApproveButton } from './approve-button';
 import { AskAgentComposer } from './ask-agent-composer';
 import styles from './canvas.module.css';
 
@@ -41,15 +42,7 @@ export function SelectionToolbar({
         </button>
       ) : null}
       {available.includes('approve') ? (
-        <button
-          type="button"
-          disabled
-          aria-label="Approve"
-          title="Approval arrives with design review"
-        >
-          <Check size={15} />
-          Approve
-        </button>
+        <ApproveButton workspaceId={data.workspaceId as never} object={object} />
       ) : null}
       {available.includes('color') ? (
         <span className={styles.selectionToolbarHint}>

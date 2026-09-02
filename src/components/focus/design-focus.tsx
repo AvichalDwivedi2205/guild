@@ -6,6 +6,7 @@ import { useEffect, useId, useState } from 'react';
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { PreviewFrame } from '@/components/focus/preview-frame';
+import { RevisionCompare } from '@/components/focus/revision-compare';
 import { VisualOverlay } from '@/components/focus/visual-overlay';
 import { focusHref, type FocusState } from '@/features/focus/state';
 
@@ -30,6 +31,7 @@ export function DesignFocus({
   });
   const [mode, setMode] = useState<'interact' | 'comment'>('interact');
   const [viewportKey, setViewportKey] = useState<'desktop' | 'mobile'>('desktop');
+  const [compareOpen, setCompareOpen] = useState(false);
   const sessionKey = `${focus.designSetKey}:${focus.screenKey ?? ''}:${focus.version ?? ''}`;
   const mountId = useId();
   const sessionNonce = `${mountId}:${sessionKey}`;
@@ -141,6 +143,13 @@ export function DesignFocus({
         <button type="button" onClick={() => setMode('comment')} aria-pressed={mode === 'comment'}>
           Comment
         </button>
+        <button
+          type="button"
+          onClick={() => setCompareOpen((open) => !open)}
+          aria-pressed={compareOpen}
+        >
+          Compare
+        </button>
         <button type="button" onClick={onExit}>
           Exit Focus
         </button>
@@ -155,6 +164,13 @@ export function DesignFocus({
           designRevisionId={revision.id}
           screenKey={screen.key}
         />
+        {compareOpen ? (
+          <RevisionCompare
+            leftLabel={`v${Math.max(1, revision.version - 1)}`}
+            rightLabel={`v${revision.version}`}
+            changedScreens={[]}
+          />
+        ) : null}
         {mode === 'comment' && screenRevision ? (
           <VisualOverlay
             workspaceId={workspaceId}
