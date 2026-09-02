@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-import { identifierSchema, idempotencyKeySchema, stableKeySchema } from './canvas.js';
-import { progressPhaseSchema } from './progress.js';
+import { identifierSchema, idempotencyKeySchema, stableKeySchema } from './canvas';
+import { progressPhaseSchema } from './progress';
 
 export const externalWorkstreamStates = ['reported', 'blocked', 'completed', 'cancelled'] as const;
 export const externalWorkstreamStateSchema = z.enum(externalWorkstreamStates);

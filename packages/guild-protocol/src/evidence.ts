@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { identifierSchema, idempotencyKeySchema, stableKeySchema } from './canvas.js';
+import { identifierSchema, idempotencyKeySchema, stableKeySchema } from './canvas';
 
 export const evidenceKinds = [
   'changed_files',
