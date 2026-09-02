@@ -25,18 +25,18 @@ copy secret values into tracked files. No OpenAI or Anthropic API key belongs in
 production callback is documented in IMPLEMENTATION_STATUS.md; use the stable Vercel alias, not a
 timestamped deployment URL.
 
-Start with the highest-priority unchecked item in IMPLEMENTATION_STATUS.md. Unless current evidence
-changes the order, first:
-- verify required environment variable names are present without displaying their values;
-- finish WorkOS + Convex development configuration and official Convex code generation;
-- create/configure the separate Convex production deployment;
-- point Vercel Production at the production Convex URL and deploy;
-- prove production sign-in, callback, workspace creation, authorization denial, sign-out, and a
-  clean browser console;
-- seed the idempotent judge workspace/team;
-- pair a real macOS Runner and prove concurrent signed-in Codex + Claude Jobs;
-- verify production WebMCP tools and their visible canvas effects;
-- then close the product and test gaps listed in the ledger.
+Start with the highest-priority unchecked item in IMPLEMENTATION_STATUS.md. Current production
+auth, workspace creation, judge-team assembly, Runner pairing, concurrent real Codex + Claude
+Sonnet writes, cancellation, retry, Convex deployment, Vercel deployment, and the clean signed
+browser console are proven. Claude testing must stay pinned to `sonnet`; do not use the user's
+`fable` preference. Unless current evidence changes the order, next:
+- obtain a browser/controller with native `document.modelContext` support and invoke all fourteen
+  production WebMCP tools, verifying their visible canvas effects;
+- complete conflict-aware Run undo and Runner revoke/re-pair after action-time user confirmation;
+- verify two real browser contexts, unauthorized membership denial, and sign-out;
+- expand automated Playwright coverage beyond the four landing tests to the remaining required
+  authenticated flows;
+- finish accessibility/reconnect checks, narrated demo, and submission material.
 
 Preserve the locked current-scope blocks in PRODUCT.md and Plan.md byte-for-byte. Do not implement
 Product_Future.md. Keep all changes real, connected, attributable, authorized, reversible, and

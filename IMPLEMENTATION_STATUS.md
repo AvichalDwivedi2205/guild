@@ -32,8 +32,14 @@ Status vocabulary:
   generic `apply_canvas_changes` schema that caused nested invalid commands. Engine failures now
   retain redacted structured error detail instead of showing only an exit code.
 - Focused evidence: 14 Runner adapter, MCP bridge, parser, and process-supervision tests passed;
-  Runner TypeScript build passed. Native WebMCP production invocation is not yet accepted because
-  both available controlled browsers report `document.modelContext` as undefined; the registered
+  Runner TypeScript build passed. Final local gates passed a frozen clean install, formatting,
+  zero-warning ESLint, strict TypeScript, 35 test files / 120 tests, Runner 10 files / 28 tests,
+  Runner and Next.js production builds, four desktop/mobile Playwright tests, and `bun audit` with
+  no vulnerabilities. Convex production deployment validation passed with no deleted indexes.
+  Vercel deployment `dpl_5Y4cLwWMMqsju6oXT7Q1LPAaREBN` reached `READY`, was aliased to
+  <https://guild-rose-two.vercel.app>, and emitted no build warning after the production Node 24
+  runtime was pinned. Native WebMCP production invocation is not yet accepted because both
+  available controlled browsers report `document.modelContext` as undefined; the registered
   fourteen-tool implementation and connected service tests remain green, but a supported browser
   runtime/controller is still required for honest native proof.
 
@@ -350,14 +356,14 @@ The latest GitHub Actions quality-gate run also passed. A Vercel “Ready” bui
 a working production application until the new Production environment variables are picked up by a
 redeploy.
 
-Latest local proof: `bun run check` passed formatting, ESLint, strict TypeScript, 34 test files /
-114 tests, and Runner typecheck. `bun run runner:test` passed (10 files / 26 tests) and
-`bun run runner:build` passed. `bunx convex codegen` pushed development functions.
-`bunx convex deploy --yes` deployed production functions to `befitting-bird-666`.
-`vercel --prod --yes` deployed Ready production to the stable alias. `curl` of `/` returned HTTP
-200 and `/sign-in` returned HTTP 307 to WorkOS AuthKit. The current four-test landing Playwright
-suite passes in desktop and mobile Chromium. The latest production deployment is
-`dpl_BNF9XRiAEjZGS59Htp6AwhExRLQX`; authenticated application coverage is still pending.
+Latest local proof: frozen install had no changes; `bun run check` passed formatting, ESLint,
+strict TypeScript, 35 test files / 120 tests, and Runner typecheck. `bun run runner:test` passed
+(10 files / 28 tests); Runner and Next.js production builds passed; `bun audit` found no
+vulnerabilities; and the four-test landing suite passed in desktop and mobile Chromium. Convex
+production deployed to `befitting-bird-666` with schema validation and no deleted indexes. Vercel
+deployment `dpl_5Y4cLwWMMqsju6oXT7Q1LPAaREBN` is Ready on the stable alias. The signed production
+workspace rendered its persisted human and Worker artifacts with no browser console warnings or
+errors; `/auth-check` now resolves to the authenticated not-found UI rather than a diagnostic page.
 
 ## Remaining work, in priority order
 
@@ -375,7 +381,8 @@ suite passes in desktop and mobile Chromium. The latest production deployment is
       AuthKit authorize redirect to the production callback.
 - [ ] Complete a real signed-in production browser pass: callback with a valid OAuth code,
       workspace creation, membership denial, sign-out, and a clean browser console at
-      <https://guild-rose-two.vercel.app>.
+      <https://guild-rose-two.vercel.app>. Callback, creation, persistence, and clean console are
+      proven; second-account membership denial and final sign-out remain.
 - [x] Idempotent `seed.ensureJudgeWorkspace` plus workspace-list “Seed judge workspace” action that
       assembles the recommended Team on first create. Needs a signed-in production click to prove.
 
