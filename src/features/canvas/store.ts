@@ -103,6 +103,7 @@ type CanvasInteractionStore = {
   interactingNodeIds: ReadonlySet<string>;
   presenceCursor: { x: number; y: number } | null;
   presenceViewport: PresenceViewport | null;
+  pendingViewport: { x: number; y: number; zoom: number } | null;
   editingObjectId: string | null;
   actions: CanvasWorkspaceActions;
   hydrate: (
@@ -121,6 +122,7 @@ type CanvasInteractionStore = {
   selectOnly: (objectId: string | null) => void;
   setPresenceCursor: (cursor: { x: number; y: number } | null) => void;
   setPresenceViewport: (viewport: PresenceViewport | null) => void;
+  setPendingViewport: (viewport: { x: number; y: number; zoom: number } | null) => void;
   setEditingObjectId: (objectId: string | null) => void;
 };
 
@@ -135,6 +137,7 @@ export const useCanvasInteractionStore = create<CanvasInteractionStore>((set, ge
   interactingNodeIds: new Set(),
   presenceCursor: null,
   presenceViewport: null,
+  pendingViewport: null,
   editingObjectId: null,
   actions: {},
   hydrate: (workspaceId, objects, edges, actions) => {
@@ -194,5 +197,6 @@ export const useCanvasInteractionStore = create<CanvasInteractionStore>((set, ge
   },
   setPresenceCursor: (presenceCursor) => set({ presenceCursor }),
   setPresenceViewport: (presenceViewport) => set({ presenceViewport }),
+  setPendingViewport: (pendingViewport) => set({ pendingViewport }),
   setEditingObjectId: (editingObjectId) => set({ editingObjectId }),
 }));

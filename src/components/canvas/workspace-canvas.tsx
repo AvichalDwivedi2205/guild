@@ -38,6 +38,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import type { CanvasObject } from '@/domain/canvas';
 import { NODE_PALETTE, resolvePaletteId } from '@/domain/palette';
 import { absoluteObjectRectangle } from '@/domain/geometry';
+import { primaryAction } from '@/features/canvas/action-registry';
 import { AgentDock } from '@/components/canvas/agent-dock';
 import { CanvasCreationToolbar, ToolbarModeIcon } from '@/components/canvas/canvas-toolbar';
 import { canvasEdgeTypes } from '@/components/canvas/connector-edge';
@@ -381,12 +382,24 @@ function minimapColor(node: GuildFlowNode) {
   return NODE_PALETTE[palette].light.fill;
 }
 
+function designSetKeyFrom(object: CanvasObject): string | undefined {
+  const value = object.semantics.customFields?.designSetKey;
+  return typeof value === 'string' ? value : undefined;
+}
+
+function screenKeyFrom(object: CanvasObject): string | undefined {
+  const value = object.semantics.customFields?.screenKey;
+  return typeof value === 'string' ? value : undefined;
+}
+
 function CanvasViewport({
   data,
   actions,
+  onOpenFocus,
 }: {
   data: CanvasWorkspaceData;
   actions: CanvasWorkspaceActions;
+  onOpenFocus?: (object: CanvasObject) => void;
 }) {
   const nodes = useCanvasInteractionStore((state) => state.nodes);
   const edges = useCanvasInteractionStore((state) => state.edges);
@@ -399,7 +412,7 @@ function CanvasViewport({
   const selectedNodeIds = useCanvasInteractionStore((state) => state.selectedNodeIds);
   const interactingNodeIds = useCanvasInteractionStore((state) => state.interactingNodeIds);
   const connectorRelationship = useCanvasInteractionStore((state) => state.connectorRelationship);
-  const { getViewport, screenToFlowPosition } = useReactFlow();
+  const { getViewport, setViewport, screenToFlowPosition } = useReactFlow();
   const flowRegionRef = useRef<HTMLElement | null>(null);
   const [panel, setPanel] = useState<CanvasPanel | null>(null);
   const [inspectorEditingObjectId, setInspectorEditingObjectId] = useState<string | null>(null);
@@ -433,6 +446,13 @@ function CanvasViewport({
     observer.observe(region);
     return () => observer.disconnect();
   }, [getViewport, publishViewport]);
+
+  useEffect(() => {
+    const pending = useCanvasInteractionStore.getState().pendingViewport;
+    if (!pending) return;
+    void setViewport(pending, { duration: 0 });
+    useCanvasInteractionStore.getState().setPendingViewport(null);
+  }, [setViewport]);
 
   const connect = useCallback(
     (connection: Connection) => {
@@ -516,6 +536,12 @@ function CanvasViewport({
           onNodeDragStart={(_event, node) => beginInteraction(node.id)}
           onNodeDragStop={dragStop}
           onNodeClick={() => undefined}
+          onNodeDoubleClick={(_event, node) => {
+            const action = primaryAction(node.data.object);
+            if (action === 'focus-design' || action === 'focus-evidence') {
+              onOpenFocus?.(node.data.object);
+            }
+          }}
           onPaneClick={() => selectOnly(null)}
           onPointerMove={(event) => {
             const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
@@ -611,9 +637,11 @@ function CanvasViewport({
 export function WorkspaceCanvas({
   data,
   actions,
+  onOpenFocus,
 }: {
   data: CanvasWorkspaceData;
   actions: CanvasWorkspaceActions;
+  onOpenFocus?: (object: CanvasObject) => void;
 }) {
   const hydrate = useCanvasInteractionStore((state) => state.hydrate);
   useEffect(() => {
@@ -622,7 +650,9 @@ export function WorkspaceCanvas({
 
   return (
     <ReactFlowProvider>
-      <CanvasViewport data={data} actions={actions} />
+      <CanvasViewport data={data} actions={actions} {...(onOpenFocus ? { onOpenFocus } : {})} />
     </ReactFlowProvider>
   );
 }
+
+export { designSetKeyFrom, screenKeyFrom };

@@ -12,6 +12,25 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-03 (Phase 5 Focus and Preview Bridge)
+
+- Deep-linkable Focus uses validated workspace search params (`focus`,
+  `designSet`, `screen`, `revision`). Exit restores the captured canvas
+  viewport and originating DOM focus.
+- Design Focus provides previous/next screen, desktop/mobile, Interact and
+  Comment, and Escape. The preview iframe is titled, sandboxed, and least
+  privilege.
+- `public/preview-bridge.js` is version 1 and reports only route, scroll,
+  viewport, revision, and screen identity. Parent-side validation rejects
+  wrong origin, source, nonce, version, size, or revision.
+- `preview-fixture/` is a tiny static site with two screen routes and the
+  same bridge script, ready to deploy as its own Vercel project.
+- Evidence Focus is a deep-link shell only; reported evidence listing lands
+  in Phase 9.
+- Evidence: `bun run test -- tests/domain/focus-state.test.ts`;
+  `bun run lint`; `bun run typecheck`. Native iframe handshake still needs
+  a hosted fixture and a signed-in browser.
+
 ## Snapshot — 2026-09-03 (Phase 4 assets and Runner capture)
 
 - Added `assets` and `assetUploadIntents` plus optional capture-task asset
@@ -26,8 +45,8 @@ Status vocabulary:
   cookie-free context, and bounded navigation/bytes. Missing Chrome reports
   `capture_browser_unavailable`.
 - Evidence: `bun run test -- tests/domain/image-header.test.ts
-  tests/domain/url-policy.test.ts tests/runner/capture.test.ts
-  tests/integration/convex-assets.test.ts` (5 passed); `bun run lint`;
+tests/domain/url-policy.test.ts tests/runner/capture.test.ts
+tests/integration/convex-assets.test.ts` (5 passed); `bun run lint`;
   `bun run typecheck`; `bun run runner:typecheck`.
 - Focus, visual comments, and screenshot compare remain later phases.
 

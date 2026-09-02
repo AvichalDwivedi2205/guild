@@ -1,11 +1,16 @@
 'use client';
 
 import { useConvex, useConvexAuth, useMutation, useQuery } from 'convex/react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { api } from '../../../convex/_generated/api';
 import type { Doc, Id } from '../../../convex/_generated/dataModel';
 import { WorkspaceCanvas } from '@/components/canvas/workspace-canvas';
+import { DesignFocus } from '@/components/focus/design-focus';
+import { EvidenceFocus } from '@/components/focus/evidence-focus';
+import { captureFocusSession, restoreFocusSession } from '@/features/focus/session';
+import { focusHref, parseFocusSearch } from '@/features/focus/state';
 import type { JobState, LocalEngine } from '@/domain/jobs';
 import { useCanvasInteractionStore } from '@/features/canvas/store';
 import type {
@@ -837,11 +842,61 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
   ]);
 
   const webMcpService = useMemo(() => createConvexWebMcpService(convex), [convex]);
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
+  const focus = parseFocusSearch(searchParams);
+  const exitFocus = useCallback(() => {
+    const viewport = restoreFocusSession();
+    if (viewport) useCanvasInteractionStore.getState().setPendingViewport(viewport);
+    router.replace(pathname);
+  }, [pathname, router]);
 
   return (
     <>
       <WebMcpTools service={webMcpService} />
-      <WorkspaceCanvas data={data} actions={actions} />
+      <WorkspaceCanvas
+        data={data}
+        actions={actions}
+        onOpenFocus={(object) => {
+          const viewport = useCanvasInteractionStore.getState().presenceViewport;
+          captureFocusSession(
+            viewport ? { x: viewport.x, y: viewport.y, zoom: viewport.zoom } : null,
+            document.activeElement,
+          );
+          const designSetKey =
+            typeof object.semantics.customFields?.designSetKey === 'string'
+              ? object.semantics.customFields.designSetKey
+              : undefined;
+          const screenKey =
+            typeof object.semantics.customFields?.screenKey === 'string'
+              ? object.semantics.customFields.screenKey
+              : undefined;
+          if (object.semantics.semanticType === 'implementationEvidence') {
+            router.replace(focusHref(pathname, { kind: 'evidence' }));
+            return;
+          }
+          if (designSetKey) {
+            router.replace(
+              focusHref(pathname, {
+                kind: 'design',
+                designSetKey,
+                ...(screenKey ? { screenKey } : {}),
+              }),
+            );
+          }
+        }}
+      />
+      {focus.kind === 'design' ? (
+        <DesignFocus
+          workspaceId={rawWorkspaceId as Id<'workspaces'>}
+          focus={focus}
+          pathname={pathname}
+          onNavigate={(href) => router.replace(href)}
+          onExit={exitFocus}
+        />
+      ) : null}
+      {focus.kind === 'evidence' ? <EvidenceFocus focus={focus} onExit={exitFocus} /> : null}
     </>
   );
 }
