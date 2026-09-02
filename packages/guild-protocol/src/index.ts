@@ -1,8 +1,8 @@
-export { guildProtocolVersion } from './version.js';
-export { guildLimits } from './limits.js';
-export { guildErrorCodes, guildErrorCodeSchema, type GuildErrorCode } from './errors.js';
-export { assertIdempotencyKey, assertStableLogicalKey } from './keys.js';
-export { canonicalizeJson, canonicalRequestHash } from './hash.js';
+export { guildProtocolVersion } from './version';
+export { guildLimits } from './limits';
+export { guildErrorCodes, guildErrorCodeSchema, type GuildErrorCode } from './errors';
+export { assertIdempotencyKey, assertStableLogicalKey } from './keys';
+export { canonicalizeJson, canonicalRequestHash } from './hash';
 export {
   boardModes,
   boardModeSchema,
@@ -27,8 +27,8 @@ export {
   type NodePaletteId,
   type ProjectArea,
   type ProjectRelationship,
-} from './canvas.js';
-export { progressPhaseSchema, progressPhases, type ProgressPhase } from './progress.js';
+} from './canvas';
+export { progressPhaseSchema, progressPhases, type ProgressPhase } from './progress';
 export {
   designScreenRequestSchema,
   designStageSchema,
@@ -41,12 +41,12 @@ export {
   type GetDesignRevisionStatusRequest,
   type GetDesignSetRequest,
   type PublishDesignPreviewRequest,
-} from './design.js';
+} from './design';
 export {
   visualAnchorKindSchema,
   visualFeedbackReferenceSchema,
   type VisualFeedbackReference,
-} from './feedback.js';
+} from './feedback';
 export {
   acknowledgeWorkstreamFeedbackRequestSchema,
   completeWorkstreamRequestSchema,
@@ -56,14 +56,14 @@ export {
   getWorkstreamFeedbackRequestSchema,
   registerWorkstreamRequestSchema,
   reportWorkstreamUpdateRequestSchema,
-} from './workstreams.js';
+} from './workstreams';
 export {
   sniffImageHeader,
   sniffableImageMimes,
   type ImageHeader,
   type SniffableImageMime,
-} from './image-header.js';
-export { assertPublicHttpUrl, type UrlPolicyOptions } from './url-policy.js';
+} from './image-header';
+export { assertPublicHttpUrl, type UrlPolicyOptions } from './url-policy';
 export {
   evidenceKindSchema,
   evidenceKinds,
@@ -71,4 +71,4 @@ export {
   evidenceVerificationStates,
   implementationEvidenceSchemas,
   reportedCheckSchema,
-} from './evidence.js';
+} from './evidence';
