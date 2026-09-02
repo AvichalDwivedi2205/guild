@@ -33,9 +33,14 @@ const createObjectChange = z.object({
   variant: z.string().trim().min(1).max(100).optional(),
   title: z.string().max(500).optional(),
   content: z.unknown().optional(),
-  positionHint: pointSchema.optional(),
+  positionHint: pointSchema.describe('Required object position in the declared coordinateSpace.'),
+  coordinateSpace: z
+    .enum(['canvas', 'parent'])
+    .describe('Use canvas for absolute placement or parent for coordinates relative to parentId.'),
   size: sizeSchema,
-  parentId: identifier.optional(),
+  parentId: identifier
+    .optional()
+    .describe('Optional container. Parent-space coordinates require this field.'),
   style: z.record(z.string(), z.unknown()).optional(),
   semantics: projectSemanticsSchema.optional(),
 });
@@ -46,6 +51,14 @@ const updateObjectChange = z.object({
   segment: z.enum(['content', 'style', 'semantics', 'hierarchy']),
   expectedRevision: z.number().int().nonnegative(),
   patch: z.record(z.string(), z.unknown()),
+  placement: z
+    .object({
+      position: pointSchema,
+      coordinateSpace: z.enum(['canvas', 'parent']),
+      expectedGeometryRevision: z.number().int().nonnegative(),
+    })
+    .optional()
+    .describe('Required when a hierarchy patch changes parentId.'),
 });
 
 const moveObjectChange = z.object({
@@ -53,6 +66,7 @@ const moveObjectChange = z.object({
   objectId: identifier,
   expectedRevision: z.number().int().nonnegative(),
   position: pointSchema,
+  coordinateSpace: z.enum(['canvas', 'parent']),
 });
 
 const resizeObjectChange = z.object({

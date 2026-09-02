@@ -12,6 +12,26 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-02 (WebMCP placement contract and PRD layout repair)
+
+- Diagnosed the invisible Guild PRD as a coordinate-contract failure: ten WebMCP-created objects
+  were parented to the 440×320 Product strategy section while their positions were supplied as
+  canvas-absolute values. React Flow correctly interpreted those persisted values as
+  parent-relative and clipped the children.
+- WebMCP `create_object` and `move_object` now require both an explicit position and
+  `coordinateSpace: canvas | parent`. The service converts canvas coordinates to parent-relative
+  coordinates, rejects non-container parents and out-of-parent rectangles, validates parented
+  resizes, and requires geometry when a hierarchy update changes `parentId`.
+- `get_workspace_context` now returns a placement guide containing the current top-level canvas
+  bounds, a 600 px padded top-level suggestion, 48 px child padding, and the coordinate contract.
+  Canvas hydration sorts containers before descendants, so later-created containers remain valid
+  React Flow parents.
+- Regression evidence: the pre-fix loop failed on the exact oversized/clipped child, ambiguous
+  parent creation, and child-before-parent hydration. After the fix, the focused suite passed 12
+  tests. Full local gates passed formatting, zero-warning ESLint, strict TypeScript, 37 test files /
+  129 tests, Runner typecheck, and the Next.js 16.3.4 production build. Production deployment and
+  live PRD reparenting are the remaining steps in this batch.
+
 ## Snapshot — 2026-09-02 (native production WebMCP and Guild PRD proof)
 
 - Signed into Guild through the WebMCP-capable in-app browser and discovered all fourteen

@@ -22,9 +22,12 @@ type Input<Name extends keyof GuildWebMcpInputSchemas> = z.infer<GuildWebMcpInpu
 
 export type GuildWebMcpService = {
   listWorkspaces: (input: Input<'list_workspaces'>) => Promise<{ workspaces: unknown[] }>;
-  getWorkspaceContext: (
-    input: Input<'get_workspace_context'>,
-  ) => Promise<{ workspaceId: string; objects: unknown[]; edges: unknown[] }>;
+  getWorkspaceContext: (input: Input<'get_workspace_context'>) => Promise<{
+    workspaceId: string;
+    objects: unknown[];
+    edges: unknown[];
+    placementGuide: unknown;
+  }>;
   searchCanvas: (input: Input<'search_canvas'>) => Promise<{ results: unknown[] }>;
   applyCanvasChanges: (
     input: Input<'apply_canvas_changes'>,

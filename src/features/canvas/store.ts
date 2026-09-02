@@ -61,6 +61,29 @@ function toFlowEdge(edge: CanvasEdge): GuildFlowEdge {
   };
 }
 
+function sortObjectsParentFirst(objects: readonly CanvasObject[]): CanvasObject[] {
+  const objectById = new Map(objects.map((object) => [object.id, object]));
+  const depthById = new Map<string, number>();
+
+  const depth = (object: CanvasObject, visiting = new Set<string>()): number => {
+    const cached = depthById.get(object.id);
+    if (cached !== undefined) return cached;
+    if (!object.parentId || !objectById.has(object.parentId)) return 0;
+    if (visiting.has(object.id)) return 0;
+    const nextVisiting = new Set(visiting);
+    nextVisiting.add(object.id);
+    const parent = objectById.get(object.parentId);
+    const value = parent ? depth(parent, nextVisiting) + 1 : 0;
+    depthById.set(object.id, value);
+    return value;
+  };
+
+  return objects
+    .map((object, index) => ({ object, index, depth: depth(object) }))
+    .sort((left, right) => left.depth - right.depth || left.index - right.index)
+    .map(({ object }) => object);
+}
+
 type PresenceViewport = {
   x: number;
   y: number;
@@ -121,7 +144,7 @@ export const useCanvasInteractionStore = create<CanvasInteractionStore>((set, ge
     const interactingNodeIds = changedWorkspace ? new Set<string>() : current.interactingNodeIds;
     const selected = new Set(selectedNodeIds);
     const localNodeById = new Map(current.nodes.map((node) => [node.id, node]));
-    const nextNodes = objects.map((object) => {
+    const nextNodes = sortObjectsParentFirst(objects).map((object) => {
       if (interactingNodeIds.has(object.id)) {
         const local = localNodeById.get(object.id);
         if (local) return local;

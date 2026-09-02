@@ -10,6 +10,7 @@ function makeService(): GuildWebMcpService {
       workspaceId,
       objects: [],
       edges: [],
+      placementGuide: {},
     })),
     searchCanvas: vi.fn(async () => ({ results: [] })),
     applyCanvasChanges: vi.fn(async () => ({ changeSetId: 'change_set_1', changedIds: [] })),
@@ -84,5 +85,38 @@ describe('Guild WebMCP registry', () => {
       contextTool?.execute({ workspaceId: 'workspace_1' }, { signal: controller.signal }),
     ).rejects.toThrow('controller stopped');
     expect(service.getWorkspaceContext).not.toHaveBeenCalled();
+  });
+
+  it('rejects parented creation without an explicit position and coordinate space', async () => {
+    const tools: ModelContextTool[] = [];
+    const service = makeService();
+    const modelContext: ModelContext = {
+      registerTool: vi.fn(async (tool) => {
+        tools.push(tool);
+      }),
+    };
+    const registration = registerGuildWebMcpTools(modelContext, service);
+    await registration.ready;
+    const applyTool = tools.find((tool) => tool.name === 'apply_canvas_changes');
+
+    await expect(
+      applyTool?.execute(
+        {
+          workspaceId: 'workspace_1',
+          idempotencyKey: 'explicit-placement-required',
+          changes: [
+            {
+              command: 'create_object',
+              type: 'text',
+              title: 'Hidden PRD',
+              size: { width: 820, height: 88 },
+              parentId: 'small-section',
+            },
+          ],
+        },
+        {},
+      ),
+    ).rejects.toThrow('Invalid apply_canvas_changes input');
+    expect(service.applyCanvasChanges).not.toHaveBeenCalled();
   });
 });

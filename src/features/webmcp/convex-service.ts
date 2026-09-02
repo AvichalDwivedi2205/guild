@@ -3,6 +3,11 @@ import type { FunctionArgs } from 'convex/server';
 
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
+import {
+  buildWorkspacePlacementGuide,
+  resolveWebMcpPlacement,
+  type PlacementObject,
+} from '@/features/webmcp/placement';
 import type { GuildWebMcpService } from '@/features/webmcp/types';
 
 type WorkspaceId = Id<'workspaces'>;
@@ -24,6 +29,28 @@ function record(value: unknown): Record<string, unknown> {
     : {};
 }
 
+function placementObjects(
+  objects: readonly {
+    _id: Id<'canvasObjects'>;
+    type: PlacementObject['type'];
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    parentId?: Id<'canvasObjects'>;
+  }[],
+): PlacementObject[] {
+  return objects.map((object) => ({
+    _id: object._id,
+    type: object.type,
+    x: object.x,
+    y: object.y,
+    width: object.width,
+    height: object.height,
+    ...(object.parentId ? { parentId: object.parentId } : {}),
+  }));
+}
+
 function canvasCommand(
   change: Parameters<GuildWebMcpService['applyCanvasChanges']>[0]['changes'][number],
 ) {
@@ -37,7 +64,7 @@ function canvasCommand(
         ...(change.variant ? { variant: change.variant } : {}),
         ...(change.title !== undefined ? { title: change.title } : {}),
         ...(change.content !== undefined ? { content: change.content } : {}),
-        ...(change.positionHint ? { position: change.positionHint } : {}),
+        position: change.positionHint,
         ...(change.parentId ? { parentId: id<'canvasObjects'>(change.parentId) } : {}),
         ...(change.style ? { style: change.style } : {}),
         ...(change.semantics ? { semantics: change.semantics } : {}),
@@ -180,6 +207,7 @@ export function createConvexWebMcpService(client: ConvexReactClient): GuildWebMc
         workspace: context.workspace,
         objects: context.objects,
         edges: context.edges,
+        placementGuide: buildWorkspacePlacementGuide(placementObjects(context.objects)),
         roles,
         teams,
         runs,
@@ -201,9 +229,46 @@ export function createConvexWebMcpService(client: ConvexReactClient): GuildWebMc
         objectLimit: 500,
       });
       const objectById = new Map(context.objects.map((object) => [object._id as string, object]));
-      const commands = await Promise.all(
+      const objectsForPlacement = placementObjects(context.objects);
+      const commandGroups = await Promise.all(
         input.changes.map(async (change) => {
-          if (change.command !== 'update_object') return canvasCommand(change);
+          if (change.command === 'create_object') {
+            const position = resolveWebMcpPlacement({
+              objects: objectsForPlacement,
+              ...(change.parentId ? { parentId: change.parentId } : {}),
+              position: change.positionHint,
+              size: change.size,
+              coordinateSpace: change.coordinateSpace,
+            });
+            return [{ ...canvasCommand(change), position }];
+          }
+          if (change.command === 'move_object') {
+            const object = objectById.get(change.objectId);
+            if (!object) throw new Error('object_not_found');
+            const position = resolveWebMcpPlacement({
+              objects: objectsForPlacement,
+              ...(object.parentId ? { parentId: object.parentId } : {}),
+              position: change.position,
+              size: { width: object.width, height: object.height },
+              coordinateSpace: change.coordinateSpace,
+            });
+            return [{ ...canvasCommand(change), position }];
+          }
+          if (change.command === 'resize_object') {
+            const object = objectById.get(change.objectId);
+            if (!object) throw new Error('object_not_found');
+            if (object.parentId) {
+              resolveWebMcpPlacement({
+                objects: objectsForPlacement,
+                parentId: object.parentId,
+                position: { x: object.x, y: object.y },
+                size: change.size,
+                coordinateSpace: 'parent',
+              });
+            }
+            return [canvasCommand(change)];
+          }
+          if (change.command !== 'update_object') return [canvasCommand(change)];
           const object = objectById.get(change.objectId);
           if (!object) throw new Error('object_not_found');
           let current: unknown;
@@ -223,15 +288,42 @@ export function createConvexWebMcpService(client: ConvexReactClient): GuildWebMc
               locked: object.locked,
             };
           }
-          return {
+          const updateCommand = {
             type: 'update_object' as const,
             objectId: id<'canvasObjects'>(change.objectId),
             segment: change.segment,
             expectedRevision: change.expectedRevision,
             value: { ...record(current), ...change.patch },
           };
+          const changesParent =
+            change.segment === 'hierarchy' &&
+            Object.prototype.hasOwnProperty.call(change.patch, 'parentId');
+          if (!changesParent) return [updateCommand];
+          if (!change.placement) throw new Error('hierarchy_placement_required');
+          const nextParentId = change.patch.parentId;
+          if (typeof nextParentId !== 'string' || !nextParentId) {
+            throw new Error('invalid_parent_id');
+          }
+          const position = resolveWebMcpPlacement({
+            objects: objectsForPlacement,
+            parentId: nextParentId,
+            position: change.placement.position,
+            size: { width: object.width, height: object.height },
+            coordinateSpace: change.placement.coordinateSpace,
+          });
+          return [
+            updateCommand,
+            {
+              type: 'move_object' as const,
+              objectId: id<'canvasObjects'>(change.objectId),
+              position,
+              expectedRevision: change.placement.expectedGeometryRevision,
+            },
+          ];
         }),
       );
+      const commands = commandGroups.flat();
+      if (commands.length > 25) throw new Error('too_many_expanded_canvas_commands');
       const result = await client.mutation(api.canvas.executeCommands, {
         workspaceId: targetWorkspaceId,
         source: 'webmcp',

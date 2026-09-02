@@ -78,6 +78,31 @@ describe('canvas interaction store', () => {
     expect(state.actions.undo).toBe(undo);
   });
 
+  it('hydrates containers before their children even when persistence returns children first', () => {
+    const section = object({
+      id: 'section-1',
+      type: 'section',
+      title: 'Guild PRD',
+      position: { x: 2100, y: 0 },
+      size: { width: 980, height: 1800 },
+    });
+    const child = object({
+      id: 'prd-title',
+      type: 'text',
+      title: 'Guild Product Requirements Document',
+      parentId: section.id,
+      position: { x: 40, y: 48 },
+      size: { width: 820, height: 88 },
+    });
+
+    useCanvasInteractionStore.getState().hydrate('workspace-1', [child, section], [], {});
+
+    expect(useCanvasInteractionStore.getState().nodes.map((node) => node.id)).toEqual([
+      section.id,
+      child.id,
+    ]);
+  });
+
   it('does not overwrite a node while a local drag or resize is active', () => {
     useCanvasInteractionStore.getState().hydrate('workspace-1', [object()], [], {});
     useCanvasInteractionStore.getState().beginInteraction('object-1');
