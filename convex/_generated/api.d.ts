@@ -11,6 +11,7 @@
 import type * as activity from '../activity.js';
 import type * as canvas from '../canvas.js';
 import type * as comments from '../comments.js';
+import type * as design from '../design.js';
 import type * as lib_auth from '../lib/auth.js';
 import type * as lib_commands from '../lib/commands.js';
 import type * as lib_content from '../lib/content.js';
@@ -18,6 +19,8 @@ import type * as lib_crypto from '../lib/crypto.js';
 import type * as lib_geometry from '../lib/geometry.js';
 import type * as lib_jobLifecycle from '../lib/jobLifecycle.js';
 import type * as lib_policies from '../lib/policies.js';
+import type * as lib_projection from '../lib/projection.js';
+import type * as lib_recorder from '../lib/recorder.js';
 import type * as lib_runLifecycle from '../lib/runLifecycle.js';
 import type * as lib_runnerAuth from '../lib/runnerAuth.js';
 import type * as migrations from '../migrations.js';
@@ -33,6 +36,7 @@ import type * as undo from '../undo.js';
 import type * as users from '../users.js';
 import type * as validators from '../validators.js';
 import type * as workspaces from '../workspaces.js';
+import type * as workstreams from '../workstreams.js';
 
 import type { ApiFromModules, FilterApi, FunctionReference } from 'convex/server';
 
@@ -40,6 +44,7 @@ declare const fullApi: ApiFromModules<{
   activity: typeof activity;
   canvas: typeof canvas;
   comments: typeof comments;
+  design: typeof design;
   'lib/auth': typeof lib_auth;
   'lib/commands': typeof lib_commands;
   'lib/content': typeof lib_content;
@@ -47,6 +52,8 @@ declare const fullApi: ApiFromModules<{
   'lib/geometry': typeof lib_geometry;
   'lib/jobLifecycle': typeof lib_jobLifecycle;
   'lib/policies': typeof lib_policies;
+  'lib/projection': typeof lib_projection;
+  'lib/recorder': typeof lib_recorder;
   'lib/runLifecycle': typeof lib_runLifecycle;
   'lib/runnerAuth': typeof lib_runnerAuth;
   migrations: typeof migrations;
@@ -62,6 +69,7 @@ declare const fullApi: ApiFromModules<{
   users: typeof users;
   validators: typeof validators;
   workspaces: typeof workspaces;
+  workstreams: typeof workstreams;
 }>;
 
 /**

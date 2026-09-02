@@ -455,4 +455,107 @@ export default defineSchema({
     .index('by_jobId_and_attempt_and_sequence', ['jobId', 'attempt', 'sequence'])
     .index('by_workspaceId_and_updatedAt', ['workspaceId', 'updatedAt'])
     .index('by_teamRunId', ['teamRunId']),
+
+  designSets: defineTable({
+    workspaceId: v.id('workspaces'),
+    key: v.string(),
+    title: v.string(),
+    gallerySectionId: v.id('canvasObjects'),
+    ownerRoleProfileId: v.optional(v.id('roleProfiles')),
+    headRevisionId: v.optional(v.id('designRevisions')),
+    approvedRevisionId: v.optional(v.id('designRevisions')),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_workspaceId_and_key', ['workspaceId', 'key'])
+    .index('by_workspaceId', ['workspaceId']),
+
+  designScreens: defineTable({
+    workspaceId: v.id('workspaces'),
+    designSetId: v.id('designSets'),
+    key: v.string(),
+    canvasObjectId: v.id('canvasObjects'),
+    name: v.string(),
+    order: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_designSetId_and_order', ['designSetId', 'order'])
+    .index('by_designSetId_and_key', ['designSetId', 'key']),
+
+  designRevisions: defineTable({
+    workspaceId: v.id('workspaces'),
+    designSetId: v.id('designSets'),
+    version: v.number(),
+    stage: v.union(v.literal('wireframe'), v.literal('visual')),
+    priorRevisionId: v.optional(v.id('designRevisions')),
+    restoredFromRevisionId: v.optional(v.id('designRevisions')),
+    deploymentId: v.string(),
+    deploymentUrl: v.string(),
+    origin: v.string(),
+    publisherKind: actorKindValidator,
+    publisherUserId: v.optional(v.id('users')),
+    sourceJobId: v.optional(v.id('jobs')),
+    changeSetId: v.id('changeSets'),
+    createdAt: v.number(),
+  })
+    .index('by_designSetId_and_version', ['designSetId', 'version'])
+    .index('by_workspaceId', ['workspaceId'])
+    .index('by_changeSetId', ['changeSetId']),
+
+  designScreenRevisions: defineTable({
+    workspaceId: v.id('workspaces'),
+    designRevisionId: v.id('designRevisions'),
+    designScreenId: v.id('designScreens'),
+    route: v.string(),
+    viewports: v.array(v.union(v.literal('desktop'), v.literal('mobile'))),
+    captureReady: v.boolean(),
+  }).index('by_revision_and_screen', ['designRevisionId', 'designScreenId']),
+
+  previewOrigins: defineTable({
+    workspaceId: v.id('workspaces'),
+    origin: v.string(),
+    bridgePolicy: v.union(v.literal('required'), v.literal('optional'), v.literal('disabled')),
+    status: v.union(v.literal('approved'), v.literal('revoked')),
+    approvedByUserId: v.id('users'),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index('by_workspaceId_and_origin', ['workspaceId', 'origin']),
+
+  previewDeployments: defineTable({
+    workspaceId: v.id('workspaces'),
+    deploymentId: v.string(),
+    url: v.string(),
+    origin: v.string(),
+    evidenceUrl: v.optional(v.string()),
+    verificationState: v.union(
+      v.literal('reported'),
+      v.literal('link_verified'),
+      v.literal('unavailable'),
+    ),
+    createdAt: v.number(),
+  }).index('by_workspaceId_and_deploymentId', ['workspaceId', 'deploymentId']),
+
+  previewCaptureTasks: defineTable({
+    workspaceId: v.id('workspaces'),
+    designScreenRevisionId: v.id('designScreenRevisions'),
+    viewportKey: v.union(v.literal('desktop'), v.literal('mobile')),
+    state: v.union(
+      v.literal('queued'),
+      v.literal('leased'),
+      v.literal('completed'),
+      v.literal('failed'),
+      v.literal('cancelled'),
+    ),
+    attempt: v.number(),
+    fencingToken: v.number(),
+    runnerId: v.optional(v.id('runners')),
+    expiresAt: v.optional(v.number()),
+    error: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_state_and_expiry', ['state', 'expiresAt'])
+    .index('by_runnerId_and_state', ['runnerId', 'state'])
+    .index('by_designScreenRevisionId', ['designScreenRevisionId']),
 });

@@ -23,6 +23,9 @@ export const guildWebMcpToolNames = [
   'list_implementation_tasks',
   'claim_task',
   'report_task_result',
+  'publish_design_preview',
+  'get_design_set',
+  'get_design_revision_status',
 ] as const;
 
 type GuildWebMcpToolName = (typeof guildWebMcpToolNames)[number];
@@ -44,6 +47,10 @@ const descriptions = {
   list_implementation_tasks: 'List bounded task objects carrying implementation semantics.',
   claim_task: 'Claim one implementation task for signed-in human through shared command service.',
   report_task_result: 'Report a claimed task result and create an attributable Change Set.',
+  publish_design_preview:
+    'Publish an immutable design revision with hosted-preview identity and project neutral gallery and screen cards. Never send HTML or image bytes.',
+  get_design_set: 'Read one design set, its screens, and the current head revision.',
+  get_design_revision_status: 'Read capture and revision status for one design publication.',
 } as const satisfies Record<GuildWebMcpToolName, string>;
 
 function toObjectJsonSchema(schema: z.ZodType): JsonObjectSchema {
@@ -108,6 +115,17 @@ function createTools(service: GuildWebMcpService): ModelContextTool[] {
     tool('claim_task', guildWebMcpInputSchemas.claim_task, (input) => service.claimTask(input)),
     tool('report_task_result', guildWebMcpInputSchemas.report_task_result, (input) =>
       service.reportTaskResult(input),
+    ),
+    tool('publish_design_preview', guildWebMcpInputSchemas.publish_design_preview, (input) =>
+      service.publishDesignPreview(input),
+    ),
+    tool('get_design_set', guildWebMcpInputSchemas.get_design_set, (input) =>
+      service.getDesignSet(input),
+    ),
+    tool(
+      'get_design_revision_status',
+      guildWebMcpInputSchemas.get_design_revision_status,
+      (input) => service.getDesignRevisionStatus(input),
     ),
   ];
 }

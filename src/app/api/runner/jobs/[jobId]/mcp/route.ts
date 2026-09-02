@@ -1,3 +1,4 @@
+import { publishDesignPreviewRequestSchema } from '@guild/protocol';
 import type { FunctionArgs } from 'convex/server';
 import { z } from 'zod';
 
@@ -96,6 +97,44 @@ export async function POST(request: Request, { params }: { params: Promise<{ job
       return Response.json({
         changeSetId: result.changeSetId,
         changedIds: [...new Set(result.changed.map((change) => change.targetId))],
+        idempotentReplay: result.idempotentReplay,
+      });
+    }
+
+    if (body.tool === 'publish_design_preview') {
+      const args = publishDesignPreviewRequestSchema.parse({
+        ...body.arguments,
+        workspaceId,
+      });
+      const result = await client.mutation(api.design.publishDesignPreview, {
+        workspaceId,
+        source: 'worker',
+        idempotencyKey: args.idempotencyKey,
+        designSetKey: args.designSetKey,
+        title: args.title,
+        stage: args.stage,
+        deploymentId: args.deploymentId,
+        deploymentUrl: args.deploymentUrl,
+        origin: args.origin,
+        ...(args.expectedBaseRevision !== undefined
+          ? { expectedBaseRevision: args.expectedBaseRevision }
+          : {}),
+        screens: args.screens.map((screen) => ({
+          screenKey: screen.screenKey,
+          name: screen.name,
+          route: screen.route,
+          order: screen.order,
+          viewports: screen.viewports,
+          ...(screen.relatedObjectIds ? { relatedObjectIds: screen.relatedObjectIds } : {}),
+        })),
+        ...(args.addressedCommentIds ? { addressedCommentIds: args.addressedCommentIds } : {}),
+        workerAuthorization,
+      });
+      return Response.json({
+        changeSetId: result.changeSetId,
+        designSetId: result.designSetId,
+        designRevisionId: result.designRevisionId,
+        version: result.version,
         idempotentReplay: result.idempotentReplay,
       });
     }

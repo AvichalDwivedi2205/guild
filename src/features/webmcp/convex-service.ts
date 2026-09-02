@@ -182,6 +182,9 @@ function withWebMcpAudit(
     listImplementationTasks: wrap('list_implementation_tasks', service.listImplementationTasks),
     claimTask: wrap('claim_task', service.claimTask),
     reportTaskResult: wrap('report_task_result', service.reportTaskResult),
+    publishDesignPreview: wrap('publish_design_preview', service.publishDesignPreview),
+    getDesignSet: wrap('get_design_set', service.getDesignSet),
+    getDesignRevisionStatus: wrap('get_design_revision_status', service.getDesignRevisionStatus),
   };
 }
 
@@ -458,6 +461,53 @@ export function createConvexWebMcpService(client: ConvexReactClient): GuildWebMc
         source: 'webmcp',
       });
       return { taskId: input.taskId, changeSetId: result.changeSetId };
+    },
+    async publishDesignPreview(input) {
+      const result = await client.mutation(api.design.publishDesignPreview, {
+        workspaceId: workspaceId(input.workspaceId),
+        source: 'webmcp',
+        idempotencyKey: input.idempotencyKey,
+        designSetKey: input.designSetKey,
+        title: input.title,
+        stage: input.stage,
+        deploymentId: input.deploymentId,
+        deploymentUrl: input.deploymentUrl,
+        origin: input.origin,
+        ...(input.expectedBaseRevision !== undefined
+          ? { expectedBaseRevision: input.expectedBaseRevision }
+          : {}),
+        ...(input.targetSectionId
+          ? { targetSectionId: input.targetSectionId as Id<'canvasObjects'> }
+          : {}),
+        screens: input.screens.map((screen) => ({
+          screenKey: screen.screenKey,
+          name: screen.name,
+          route: screen.route,
+          order: screen.order,
+          viewports: screen.viewports,
+          ...(screen.relatedObjectIds ? { relatedObjectIds: screen.relatedObjectIds } : {}),
+        })),
+        ...(input.addressedCommentIds ? { addressedCommentIds: input.addressedCommentIds } : {}),
+      });
+      return {
+        changeSetId: result.changeSetId,
+        designSetId: result.designSetId,
+        designRevisionId: result.designRevisionId,
+        version: result.version,
+      };
+    },
+    async getDesignSet(input) {
+      return client.query(api.design.getDesignSet, {
+        workspaceId: workspaceId(input.workspaceId),
+        designSetKey: input.designSetKey,
+      });
+    },
+    async getDesignRevisionStatus(input) {
+      return client.query(api.design.getDesignRevisionStatus, {
+        workspaceId: workspaceId(input.workspaceId),
+        designSetKey: input.designSetKey,
+        ...(input.version !== undefined ? { version: input.version } : {}),
+      });
     },
   });
 }

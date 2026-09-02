@@ -1,11 +1,14 @@
 import {
   canvasObjectTypeSchema,
+  getDesignRevisionStatusRequestSchema,
+  getDesignSetRequestSchema,
   identifierSchema,
   idempotencyKeySchema,
   nodeStyleInputSchema,
   pointSchema,
   projectRelationshipSchema,
   projectSemanticsSchema,
+  publishDesignPreviewRequestSchema,
   sizeSchema,
 } from '@guild/protocol';
 import { z } from 'zod';
@@ -180,6 +183,10 @@ export const reportTaskResultInput = z.object({
   idempotencyKey,
 });
 
+export const publishDesignPreviewInput = publishDesignPreviewRequestSchema;
+export const getDesignSetInput = getDesignSetRequestSchema;
+export const getDesignRevisionStatusInput = getDesignRevisionStatusRequestSchema;
+
 export const guildWebMcpInputSchemas = {
   list_workspaces: listWorkspacesInput,
   get_workspace_context: getWorkspaceContextInput,
@@ -195,6 +202,9 @@ export const guildWebMcpInputSchemas = {
   list_implementation_tasks: listImplementationTasksInput,
   claim_task: claimTaskInput,
   report_task_result: reportTaskResultInput,
+  publish_design_preview: publishDesignPreviewInput,
+  get_design_set: getDesignSetInput,
+  get_design_revision_status: getDesignRevisionStatusInput,
 } as const;
 
 export type GuildWebMcpInputSchemas = typeof guildWebMcpInputSchemas;

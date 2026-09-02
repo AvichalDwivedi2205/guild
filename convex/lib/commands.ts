@@ -247,6 +247,23 @@ export function assertWorkerCanModifyObject(
   }
 }
 
+export function assertWorkerCanModifyManagedArtifact(
+  principal: CommandPrincipal,
+  object: Doc<'canvasObjects'>,
+): void {
+  if (principal.kind !== 'worker') return;
+  const target = principal.worker.claim.targetObjectId;
+  if (object._id !== target && !object.hierarchyPath.includes(target)) {
+    throw new Error('outside_work_claim');
+  }
+  if (
+    object.semantics.ownerRoleProfileId &&
+    object.semantics.ownerRoleProfileId !== principal.roleProfileId
+  ) {
+    throw new Error('owned_by_other_role');
+  }
+}
+
 export function commandResult(
   changeSetId: Id<'changeSets'>,
   changed: ChangedRevision[],
