@@ -19,6 +19,9 @@ relevant browser acceptance flow pass.
 5. Human approval is one contextual action on an immutable revision, not a separate workflow app.
 6. The canvas remains primary. Side panels appear only when explicitly requested.
 7. Advanced metadata stays available without dominating ordinary editing and review.
+8. Guild is implemented here; Cinema is implemented and designed in separate Codex/Claude
+   environments and reports into Guild through WebMCP.
+9. Guild does not edit, test, commit, merge, or deploy the Cinema repository.
 
 ## Existing foundations to reuse
 
@@ -197,13 +200,14 @@ Show:
 - engine and Role Profile;
 - logical workstream;
 - current objective;
-- system-owned Job state;
+- source and status provenance;
 - latest model-authored progress summary;
+- last report time and stale state for external workstreams;
 - target section or artifact;
 - dependency count;
 - produced-artifact count;
 - elapsed time and actionable error;
-- stop or retry when valid.
+- stop or retry for authoritative Runner Jobs, or Ask agent for external workstreams.
 
 Do not show chain-of-thought, internal prompts, raw event streams, token usage, or agent debates.
 
@@ -231,8 +235,9 @@ Package the behavior as a `guild-canvas-worker` skill. A Codex plugin may bundle
 configuration for manual sessions, while Runner-launched Workers receive the same protocol through
 their assignment prompt.
 
-Model-authored progress is descriptive. Guild and the Runner remain authoritative for queued,
-leased, running, failed, cancelled, and completed Job states.
+Model-authored progress is descriptive. Guild and the Runner remain authoritative for Runner-backed
+Job state. External Codex/Claude sessions report their own state through WebMCP, and the UI labels
+it Reported or Stale rather than presenting it as observed process state.
 
 ### 11. Asset ingestion and screenshot storage
 
@@ -248,25 +253,23 @@ Persist content type, dimensions, alt text, provenance, immutable revision refer
 Enforce type, size, URL, authorization, and workspace ownership limits. Existing URL-only image nodes
 are insufficient for durable review artifacts.
 
-### 12. Repository implementation path
+### 12. External workstream and implementation reporting
 
-This is required only if the demo says Cinema is being implemented rather than merely designed and
-planned. The desired demo does make that stronger claim, so treat this as P0.
+Cinema implementation happens outside Guild. Codex and Claude use browser WebMCP to make the work
+visible without granting Guild source-tree or deployment access.
 
 Required capabilities:
 
-- explicit repository and directory consent;
-- isolated worktree per implementation workstream;
-- narrowly scoped read/write and command authority;
-- branch and commit attribution;
-- diff capture and review;
-- test execution and evidence;
-- preview deployment;
-- human approval before integration;
-- conflict and cleanup handling.
+- stable logical workstreams for architecture, backend, frontend, design, and verification;
+- authenticated, idempotent, monotonically sequenced phase updates;
+- Reported provenance, Guild receipt time, and derived Stale state;
+- targeted feedback that an active external Controller can retrieve and acknowledge;
+- bounded changed-file, test, commit/PR, and hosted-preview metadata;
+- safe public HTTPS link validation and clear Link-verified/Unavailable states;
+- links from implementation evidence to requirements, designs, architecture, tasks, and comments.
 
-The current Runner is canvas-only and read-only. Do not weaken that restriction without introducing
-the repository consent and isolation model together.
+Guild must not add repository bindings, worktrees, file/shell tools, Git operations, merge flows,
+Cinema deployment, or Cinema credentials. The current Runner remains canvas-only.
 
 ### 13. Implementation evidence view
 
@@ -276,9 +279,10 @@ Link approved screens to real engineering evidence:
 Requirement → Screen → Component → Endpoint → Data → Test → Preview
 ```
 
-The focused evidence view shows changed files, bounded diff summary, test result, commit, deployment,
-responsible Worker, and related comments. It must not display a generated summary as if it were a
-passing test or successful deployment.
+The focused evidence view shows changed files, bounded diff summary, reported test result,
+commit/PR link, hosted preview, responsible Controller, and related comments. Every item is labeled
+Reported, Link verified, or Unavailable. Link reachability must not be shown as proof that Guild ran
+a test or inspected a commit.
 
 ### 14. Presentation mode
 
@@ -300,7 +304,8 @@ Provide a safe reset for the dedicated demo workspace and a preflight report cov
 - Runner authorization, online state, and capacity;
 - local Codex and Claude Code authentication;
 - Claude Sonnet selection;
-- Cinema repository binding and clean worktrees;
+- external Codex/Claude Controller reporting readiness;
+- real hosted Cinema preview reachability;
 - preview origin and bridge readiness;
 - screenshot and asset storage readiness.
 
@@ -317,7 +322,7 @@ The default project surface. Users pan, zoom, select, connect, and see all proje
 ### Focus
 
 Opened by double-clicking a rich artifact. Used for interactive design previews, version comparison,
-diff review, and other content that needs most of the viewport.
+implementation-evidence review, and other content that needs most of the viewport.
 
 ### Agent dock
 
@@ -385,7 +390,7 @@ dependencies without requiring agent conversation.
 4. Visual annotation and comment routing.
 5. Immutable revisions, comparison, and approval.
 6. Compact orchestration dock and Guild Agent Protocol.
-7. Repository consent, worktrees, diffs, tests, and preview deployment.
+7. External workstream/evidence reporting, safe links, and hosted Cinema preview navigation.
 8. Presentation mode, Cinema reset, and full end-to-end rehearsal.
 
 The sequence keeps each vertical slice testable through its user-facing interface. Do not build all
@@ -400,9 +405,13 @@ The missing work is complete only when a signed-in production user can:
 3. review page-by-page wireframes;
 4. open an interactive hosted visual design;
 5. select a point or region and submit a contextual comment;
-6. observe exactly one correctly routed Claude Job;
+6. observe exactly one correctly routed Claude feedback request or Guild Job;
 7. leave the design, inspect Codex artifacts, and return to an updated revision;
 8. compare versions and approve the intended screen set;
-9. inspect real repository, test, commit, and preview evidence for implementation claims;
+9. inspect externally reported changed-file, test, commit, and preview evidence with explicit
+   provenance, then open the real hosted Cinema preview;
 10. query the resulting state through WebMCP and perform conflict-aware undo;
 11. repeat the complete demo from reset twice without manual database repair.
+
+Acceptance also requires that Guild contains no Cinema repository editor, worktree, merge, or
+deployment capability.

@@ -8,9 +8,8 @@ that must pass acceptance before recording.
 
 ## Core claim
 
-> Guild is the visual operating layer where a human uses WebMCP to direct local Codex and Claude
-> Workers, review their artifacts, give visual feedback, and trace every result on one shared
-> canvas.
+> Guild is the visual operating layer where a human uses WebMCP to coordinate Codex and Claude,
+> review their artifacts, give visual feedback, and trace every result on one shared canvas.
 
 The demo must show agents doing visible work. It must not present internal chain-of-thought, agent
 conversation, simulated progress, or a canvas-only plan as completed source implementation.
@@ -22,7 +21,8 @@ conversation, simulated progress, or a canvas-only plan as completed source impl
 - Format: narrated 16:9 H.264/AAC MP4.
 - Project used in the story: Cinema.
 - Production surface: the authenticated Guild deployment.
-- Execution: a paired local Guild Runner using existing Codex and Claude Code logins.
+- Execution: signed-in Codex and Claude Controller sessions report through WebMCP; the paired Guild
+  Runner remains available for canvas-only Jobs and screenshot capture.
 - Claude model: Sonnet.
 
 ## Demo principles
@@ -31,9 +31,10 @@ conversation, simulated progress, or a canvas-only plan as completed source impl
 2. Every claim must have visible or automated evidence.
 3. Agent internals stay hidden; ownership, progress, artifacts, dependencies, and errors stay
    visible.
-4. Human feedback must cause a real routed Job and a visible design revision.
-5. If the narration says Cinema is implemented, Guild must show real repository changes, tests,
-   and a runnable preview.
+4. Human feedback must cause one real routed delivery to the owning Claude workstream and a visible
+   design revision.
+5. If the narration says Cinema is implemented, the external Codex session must report real file,
+   test, commit, and runnable-preview evidence into Guild with explicit provenance.
 6. Authentication and Runner pairing happen before recording.
 7. The complete route must succeed twice consecutively before the final take.
 
@@ -44,7 +45,8 @@ conversation, simulated progress, or a canvas-only plan as completed source impl
 - The Guild Runner is online with sufficient capacity.
 - Codex CLI and Claude Code are authenticated locally.
 - Claude is configured to use Sonnet.
-- The Cinema repository is explicitly bound if repository implementation is part of the claim.
+- Codex can implement Cinema in its separate project environment and report through WebMCP.
+- Claude can publish the separate hosted Cinema design through WebMCP.
 - The Cinema design preview origin allows Guild's sandboxed preview frame and Preview Bridge.
 - Browser notifications, unrelated tabs, development banners, and secrets are absent.
 - Presentation mode has saved camera positions for each scene.
@@ -56,8 +58,8 @@ The exact wording may be shortened for pacing, but it must preserve these respon
 > Plan and build Cinema. Codex owns the agentic architecture, backend architecture, data model,
 > frontend integration, security, implementation plan, and tests. Claude Sonnet owns the product
 > experience, user journeys, wireframes, and visual screen designs. Work in parallel, publish
-> concise progress, place every artifact in the appropriate canvas section, and link designs,
-> requirements, implementation, and evidence.
+> concise progress through WebMCP, place every artifact in the appropriate canvas section, and link
+> designs, requirements, implementation, and evidence.
 
 ## Scene plan
 
@@ -66,7 +68,8 @@ The exact wording may be shortened for pacing, but it must preserve these respon
 - Time: 0:00–0:20.
 - Entry: clean Cinema workspace in presentation mode.
 - Action: send the canonical instruction through the Codex/WebMCP control surface.
-- Visible assertion: Cinema sections and initial workstreams appear on the shared canvas.
+- Visible assertion: Cinema sections and stable Codex/Claude workstreams appear on the shared
+  canvas through WebMCP.
 - Product point: one structured visual workspace replaces disconnected agent chats.
 - Hold: long enough to read the workstream names, not every generated card.
 
@@ -76,8 +79,8 @@ The exact wording may be shortened for pacing, but it must preserve these respon
 - Entry: canvas with the compact agent dock open.
 - Action: expand the Codex and Claude rows once.
 - Visible assertion:
-  - Codex architecture, backend, frontend integration, and testing workstreams have truthful
-    states.
+  - Codex architecture, backend, frontend integration, and testing workstreams have clearly
+    labeled Reported states and fresh timestamps.
   - Claude Sonnet has a product-design workstream.
   - Owned sections and newly produced artifacts highlight as progress arrives.
 - Product point: Guild shows orchestration and results without exposing internal reasoning or
@@ -112,7 +115,8 @@ The exact wording may be shortened for pacing, but it must preserve these respon
   > Make the hero darker, reduce its height, and move Trending above the fold.
 
 - Visible assertion: the blue region, comment pin, preview revision, route, viewport, and Claude
-  ownership are captured. The comment changes from Open to Queued or Working.
+  ownership are captured. The comment changes from Open to Pending, then Acknowledged or Working
+  after Claude retrieves it.
 - Product point: one visual instruction is persistent, attributable, and routed to the correct
   Worker.
 
@@ -132,8 +136,8 @@ The exact wording may be shortened for pacing, but it must preserve these respon
 - Action: compare Home Version 1 and Version 2, then approve Version 2 with one click.
 - Visible assertion: the selected feedback is addressed and the approved revision is linked to its
   implementation target.
-- If repository execution is enabled, show the associated diff, tests, commit, and updated hosted
-  Cinema preview.
+- Show the external Codex session's bounded changed-file, reported-test, commit/PR, and hosted
+  Cinema preview evidence with Reported/Link-verified labels.
 - Product point: human review controls the transition from design to implementation.
 
 ### Scene 8 — Close with control and evidence
@@ -165,15 +169,17 @@ WebMCP JSON, or every canvas object type.
 ## Required recording assertions
 
 - WebMCP writes change the visible production canvas.
-- Codex and Claude Sonnet workstreams show real persisted Job state.
+- Codex and Claude Sonnet external workstreams show persisted Reported state, source, and staleness;
+  any Runner-backed Jobs are visually distinct and authoritative.
 - The hosted Cinema preview is interactive.
 - Comment mode can create a point or rectangular selection on the hosted preview.
 - The visual comment is bound to the correct screen, route, viewport, and immutable revision.
-- The comment routes exactly once to Claude.
+- The comment routes exactly once to Claude as a feedback request or claimed Guild Job.
 - Claude publishes a new visual revision that visibly addresses the feedback.
 - The presenter can compare revisions and approve the chosen one.
 - Codex artifacts link architecture to implementation and tests.
-- Any source-implementation claim includes a real diff, test result, commit, and runnable preview.
+- Any source-implementation claim includes externally reported changed-file/test/commit evidence and
+  a real runnable preview, each with explicit provenance and link state.
 - Activity identifies human, WebMCP Controller, Codex, and Claude changes correctly.
 - No secret, provider token, fake progress, or unrelated personal information appears.
 

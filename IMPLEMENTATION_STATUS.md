@@ -12,17 +12,43 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Planning snapshot — 2026-09-03 (Cinema end-to-end implementation architecture)
+
+- Added `DEMO_IMPLEMENTATION_PLAN.md` as the deep implementation plan for the accepted Cinema
+  experience. It defines the source hierarchy, Guild/Cinema boundary, deep Modules and Interfaces,
+  design/asset/review/external-workstream/evidence data, WebMCP and assignment MCP contracts,
+  simplified Canvas/Focus/Agent-dock/Advanced-details UX, safe migrations, delivery phases,
+  security controls, test matrix, production rollout, reset, and recording gates.
+- Added `DEMO_IMPLEMENTATION_PROMPT.md` as the copyable execution contract for a future
+  implementation session. It preserves the original local subscription-backed Runner architecture,
+  pins Claude to Sonnet, forbids fake progress and raw agent internals, and requires explicit
+  Reported/Link-verified/Unavailable provenance for Cinema implementation claims.
+- Corrected an earlier planning draft that incorrectly placed Cinema repository execution inside
+  Guild. The accepted boundary is now explicit: this repository implements Guild only; Codex and
+  Claude work on Cinema separately and publish progress, designs, bounded implementation metadata,
+  and hosted-preview links into Guild through WebMCP. Guild does not edit, branch, test, commit,
+  merge, or deploy Cinema.
+- The locked current-scope blocks in `PRODUCT.md` and `Plan.md` remain unchanged. Repository editing,
+  worktrees, merging, and deployment management remain excluded in `Product_Future.md`.
+- This batch changes documentation only. It does not mark any new design-review, asset, preview,
+  external-workstream, evidence, presentation, reset, or video capability implemented, and it made
+  no deployment, database, environment, or production-canvas mutation.
+- Documentation verification: Prettier passed for all five demo-planning/status documents,
+  `git diff --check` passed, and an extracted diff of the `PRODUCT.md`/`Plan.md` locked current-scope
+  blocks returned no difference.
+
 ## Planning snapshot — 2026-09-02 (Cinema demo and simplified UX)
 
 - Added `DEMO_FLOW.md` as the canonical three-minute Cinema recording story. It specifies the
   WebMCP launch, truthful parallel Codex and Claude Sonnet workstreams, page-by-page wireframes,
   interactive hosted design review, Codex-style region feedback, immutable design revision,
-  architecture evidence, optional repository proof, and closing WebMCP/undo sequence.
+  architecture evidence, externally reported implementation proof, and closing WebMCP/undo
+  sequence.
 - Added `DEMO_FEATURES_AND_UX_PLAN.md` as a missing-only implementation plan. It records the planned
   contextual editor, design-preview publishing module, gallery, focused preview, Preview Bridge,
   visual annotations, version comparison, one-click approval, compact orchestration dock, agent
-  protocol, asset storage, repository execution, evidence view, presentation mode, and safe Cinema
-  reset.
+  protocol, asset storage, external workstream reporting, evidence view, presentation mode, and
+  safe Cinema reset.
 - These documents do not mark the new demo capabilities implemented. The acceptance contract
   requires connected UI, command, persistence, authorization, realtime, and browser evidence, plus
   two complete production-path rehearsals before recording.
