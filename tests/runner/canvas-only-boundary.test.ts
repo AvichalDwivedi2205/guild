@@ -12,6 +12,7 @@ const CANVAS_ONLY_TOOLS = [
   'add_comment',
   'apply_canvas_changes',
   'get_workspace_context',
+  'publish_design_preview',
   'report_progress',
   'search_canvas',
 ] as const;
@@ -26,13 +27,16 @@ function walkFiles(directory: string): string[] {
 }
 
 describe('canvas-only Runner characterization', () => {
-  it('registers only the five assignment-scoped canvas tools', () => {
+  it('registers only the assignment-scoped canvas tools', () => {
     const source = readFileSync(join(RUNNER_SRC, 'mcp-bridge.ts'), 'utf8');
     const registered = [...source.matchAll(/server\.registerTool\(\s*'([^']+)'/gu)].map(
       (match) => match[1],
     );
     expect(registered.sort()).toEqual([...CANVAS_ONLY_TOOLS]);
-    expect(source).not.toMatch(/list_files|read_file|apply_patch|shell|commit|worktree|deploy/u);
+    expect(source).not.toMatch(
+      /registerTool\(\s*'(?:list_files|read_file|apply_patch|shell|commit|worktree|deploy)'/u,
+    );
+    expect(source).not.toMatch(/\b(?:list_files|read_file|apply_patch|git commit|worktree)\b/u);
   });
 
   it('keeps Claude pinned to Sonnet and never fable', () => {
@@ -66,7 +70,7 @@ describe('canvas-only Runner characterization', () => {
       assignment: assignment({ engine: 'claude' }),
     });
     expect(codex.args.join(' ')).toContain(
-      'mcp_servers.guild.enabled_tools=["get_workspace_context","search_canvas","apply_canvas_changes","add_comment","report_progress"]',
+      'mcp_servers.guild.enabled_tools=["get_workspace_context","search_canvas","apply_canvas_changes","add_comment","publish_design_preview","report_progress"]',
     );
     expect(claude.args[claude.args.indexOf('--allowedTools') + 1]).toContain(
       'mcp__guild__get_workspace_context',

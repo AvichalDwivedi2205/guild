@@ -38,3 +38,17 @@ export const publishDesignPreviewRequestSchema = z.object({
 });
 
 export type PublishDesignPreviewRequest = z.infer<typeof publishDesignPreviewRequestSchema>;
+
+export const getDesignSetRequestSchema = z.object({
+  workspaceId: identifierSchema,
+  designSetKey: stableKeySchema,
+});
+
+export const getDesignRevisionStatusRequestSchema = z.object({
+  workspaceId: identifierSchema,
+  designSetKey: stableKeySchema,
+  version: z.number().int().positive().optional(),
+});
+
+export type GetDesignSetRequest = z.infer<typeof getDesignSetRequestSchema>;
+export type GetDesignRevisionStatusRequest = z.infer<typeof getDesignRevisionStatusRequestSchema>;

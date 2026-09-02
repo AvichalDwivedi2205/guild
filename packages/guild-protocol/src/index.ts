@@ -33,9 +33,13 @@ export {
   designScreenRequestSchema,
   designStageSchema,
   designStages,
+  getDesignRevisionStatusRequestSchema,
+  getDesignSetRequestSchema,
   publishDesignPreviewRequestSchema,
   viewportKeySchema,
   viewportKeys,
+  type GetDesignRevisionStatusRequest,
+  type GetDesignSetRequest,
   type PublishDesignPreviewRequest,
 } from './design.js';
 export {

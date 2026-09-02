@@ -62,6 +62,7 @@ export const assignmentToolBodySchema = z.object({
     'apply_canvas_changes',
     'add_comment',
     'report_progress',
+    'publish_design_preview',
   ]),
   arguments: z.record(z.string(), z.unknown()),
 });

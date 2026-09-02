@@ -25,6 +25,14 @@ function makeService(): GuildWebMcpService {
     listImplementationTasks: vi.fn(async () => ({ tasks: [] })),
     claimTask: vi.fn(async () => ({ taskId: 'task_1', claimed: true })),
     reportTaskResult: vi.fn(async () => ({ taskId: 'task_1', changeSetId: 'change_set_2' })),
+    publishDesignPreview: vi.fn(async () => ({
+      changeSetId: 'change_set_3',
+      designSetId: 'design_set_1',
+      designRevisionId: 'design_revision_1',
+      version: 1,
+    })),
+    getDesignSet: vi.fn(async () => ({ designSet: null })),
+    getDesignRevisionStatus: vi.fn(async () => ({ captureReady: false })),
   };
 }
 

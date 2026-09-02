@@ -12,6 +12,25 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-03 (Phase 3 immutable design publication)
+
+- Added design/preview tables: `designSets`, `designScreens`, `designRevisions`,
+  `designScreenRevisions`, `previewOrigins`, `previewDeployments`, and
+  `previewCaptureTasks`.
+- `design.publishDesignPreview` goes through the Recorder. It projects a
+  `section` gallery and `image`/`wireframeFrame` screen cards with stable
+  logical keys, stores an append-only revision, and queues capture tasks.
+- Later publications require the exact head version. Raw HTML is rejected.
+  Cross-workspace related objects fail with `workspace_mismatch`.
+- WebMCP now exposes `publish_design_preview`, `get_design_set`, and
+  `get_design_revision_status`. Assignment MCP adds `publish_design_preview`.
+- Evidence: `bun run test -- tests/integration/convex-design.test.ts
+  tests/webmcp/registry.test.ts tests/runner/canvas-only-boundary.test.ts
+  tests/runner/mcp-bridge.test.ts tests/runner/adapters.test.ts` (16 passed);
+  `bun run lint`; `bun run typecheck`; `bun run runner:typecheck`.
+- Capture completion, authorized asset URLs, and Focus review remain later
+  phases. No deployment in this batch.
+
 ## Snapshot — 2026-09-03 (Phase 2 contextual canvas UX)
 
 - Added `primaryAction` / `contextActions` registry so renderers stay visual.

@@ -31,7 +31,7 @@ describe('engine spawn plans', () => {
     expect(plan.args).toContain('tools.web_search=false');
     expect(plan.args).not.toContain('tools.view_image=false');
     expect(plan.args).toContain(
-      'mcp_servers.guild.enabled_tools=["get_workspace_context","search_canvas","apply_canvas_changes","add_comment","report_progress"]',
+      'mcp_servers.guild.enabled_tools=["get_workspace_context","search_canvas","apply_canvas_changes","add_comment","publish_design_preview","report_progress"]',
     );
     expect(plan.args).toContain('mcp_servers.guild.default_tools_approval_mode="approve"');
     expect(plan.args.at(-1)).toBe('-');

@@ -53,6 +53,14 @@ export type GuildWebMcpService = {
   reportTaskResult: (
     input: Input<'report_task_result'>,
   ) => Promise<{ taskId: string; changeSetId: string }>;
+  publishDesignPreview: (input: Input<'publish_design_preview'>) => Promise<{
+    changeSetId: string;
+    designSetId: string;
+    designRevisionId: string;
+    version: number;
+  }>;
+  getDesignSet: (input: Input<'get_design_set'>) => Promise<unknown>;
+  getDesignRevisionStatus: (input: Input<'get_design_revision_status'>) => Promise<unknown>;
 };
 
 declare global {

@@ -235,6 +235,67 @@ function createAssignmentServer(
   );
 
   server.registerTool(
+    'publish_design_preview',
+    {
+      description:
+        'Publish an immutable design revision for the current assignment. Project a gallery section and screen cards with stable keys. Never send HTML or image bytes.',
+      inputSchema: {
+        idempotencyKey: z.string().min(8).max(200),
+        designSetKey: z
+          .string()
+          .trim()
+          .min(2)
+          .max(200)
+          .regex(/^[a-z0-9][a-z0-9._:-]{0,198}$/iu),
+        title: z.string().trim().min(1).max(200),
+        stage: z.enum(['wireframe', 'visual']),
+        deploymentId: z.string().trim().min(1).max(200),
+        deploymentUrl: z.string().url().max(2_000),
+        origin: z.string().url().max(2_000),
+        expectedBaseRevision: z.number().int().nonnegative().optional(),
+        screens: z
+          .array(
+            z.object({
+              screenKey: z
+                .string()
+                .trim()
+                .min(2)
+                .max(200)
+                .regex(/^[a-z0-9][a-z0-9._:-]{0,198}$/iu),
+              name: z.string().trim().min(1).max(200),
+              route: z
+                .string()
+                .trim()
+                .min(1)
+                .max(500)
+                .regex(/^\/[A-Za-z0-9._~:/#[\]@!$&'()*+,;=%-]*$/u),
+              order: z.number().int().min(0).max(200),
+              viewports: z
+                .array(z.enum(['desktop', 'mobile']))
+                .min(1)
+                .max(2),
+              relatedObjectIds: z.array(z.string().min(1).max(128)).max(20).optional(),
+            }),
+          )
+          .min(1)
+          .max(40),
+        addressedCommentIds: z.array(z.string().min(1).max(128)).max(50).optional(),
+      },
+      annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+    },
+    async (args) => {
+      try {
+        return textResult(
+          await cloud.callAssignmentTool(assignment, 'publish_design_preview', args),
+          knownSecrets,
+        );
+      } catch (error) {
+        return errorResult(error, knownSecrets);
+      }
+    },
+  );
+
+  server.registerTool(
     'report_progress',
     {
       description: 'Report concise visible Worker progress for current assignment.',
