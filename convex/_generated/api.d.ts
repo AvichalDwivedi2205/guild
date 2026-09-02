@@ -9,9 +9,12 @@
  */
 
 import type * as activity from '../activity.js';
+import type * as assets from '../assets.js';
 import type * as canvas from '../canvas.js';
+import type * as captures from '../captures.js';
 import type * as comments from '../comments.js';
 import type * as design from '../design.js';
+import type * as lib_assetStore from '../lib/assetStore.js';
 import type * as lib_auth from '../lib/auth.js';
 import type * as lib_commands from '../lib/commands.js';
 import type * as lib_content from '../lib/content.js';
@@ -42,9 +45,12 @@ import type { ApiFromModules, FilterApi, FunctionReference } from 'convex/server
 
 declare const fullApi: ApiFromModules<{
   activity: typeof activity;
+  assets: typeof assets;
   canvas: typeof canvas;
+  captures: typeof captures;
   comments: typeof comments;
   design: typeof design;
+  'lib/assetStore': typeof lib_assetStore;
   'lib/auth': typeof lib_auth;
   'lib/commands': typeof lib_commands;
   'lib/content': typeof lib_content;

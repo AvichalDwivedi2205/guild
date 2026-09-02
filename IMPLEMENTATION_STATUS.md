@@ -12,6 +12,25 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-03 (Phase 4 assets and Runner capture)
+
+- Added `assets` and `assetUploadIntents` plus optional capture-task asset
+  pointers. `convex/assets.ts` uses Convex Storage behind
+  `convex/lib/assetStore.ts`.
+- Pure `@guild/protocol` modules sniff PNG/JPEG/WebP headers and reject HTML,
+  SVG, credentialed URLs, private/link-local/loopback/metadata addresses, and
+  unapproved ports. Loopback is an explicit opt-in.
+- `convex/captures.ts` claims, completes, and fails preview capture tasks with
+  attempt and fencing checks. `/api/runner/captures` is the sixth Runner route.
+- Guild Runner uses `playwright-core` with the system Chrome channel, a fresh
+  cookie-free context, and bounded navigation/bytes. Missing Chrome reports
+  `capture_browser_unavailable`.
+- Evidence: `bun run test -- tests/domain/image-header.test.ts
+  tests/domain/url-policy.test.ts tests/runner/capture.test.ts
+  tests/integration/convex-assets.test.ts` (5 passed); `bun run lint`;
+  `bun run typecheck`; `bun run runner:typecheck`.
+- Focus, visual comments, and screenshot compare remain later phases.
+
 ## Snapshot — 2026-09-03 (Phase 3 immutable design publication)
 
 - Added design/preview tables: `designSets`, `designScreens`, `designRevisions`,
@@ -25,8 +44,8 @@ Status vocabulary:
 - WebMCP now exposes `publish_design_preview`, `get_design_set`, and
   `get_design_revision_status`. Assignment MCP adds `publish_design_preview`.
 - Evidence: `bun run test -- tests/integration/convex-design.test.ts
-  tests/webmcp/registry.test.ts tests/runner/canvas-only-boundary.test.ts
-  tests/runner/mcp-bridge.test.ts tests/runner/adapters.test.ts` (16 passed);
+tests/webmcp/registry.test.ts tests/runner/canvas-only-boundary.test.ts
+tests/runner/mcp-bridge.test.ts tests/runner/adapters.test.ts` (16 passed);
   `bun run lint`; `bun run typecheck`; `bun run runner:typecheck`.
 - Capture completion, authorized asset URLs, and Focus review remain later
   phases. No deployment in this batch.

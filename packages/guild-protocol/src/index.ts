@@ -58,6 +58,13 @@ export {
   reportWorkstreamUpdateRequestSchema,
 } from './workstreams.js';
 export {
+  sniffImageHeader,
+  sniffableImageMimes,
+  type ImageHeader,
+  type SniffableImageMime,
+} from './image-header.js';
+export { assertPublicHttpUrl, type UrlPolicyOptions } from './url-policy.js';
+export {
   evidenceKindSchema,
   evidenceKinds,
   evidenceVerificationStateSchema,

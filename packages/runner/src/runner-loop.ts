@@ -87,6 +87,7 @@ export class GuildRunner {
         this.#applyRenewals(response.leaseRenewals);
         for (const assignment of response.assignments) this.#startAssignment(assignment);
         this.#abortExpiredLeases();
+        await this.#claimCaptures(signal);
 
         const active =
           this.#active.size > 0 || this.#cloudHasActiveRun || response.assignments.length > 0;
@@ -113,6 +114,35 @@ export class GuildRunner {
 
     for (const active of this.#active.values()) active.controller.abort('Runner shutting down');
     await Promise.allSettled([...this.#active.values()].map((active) => active.done));
+  }
+
+  async #claimCaptures(signal: AbortSignal): Promise<void> {
+    if (signal.aborted) return;
+    const free = Math.max(0, Math.min(2, this.#config.concurrency - this.#active.size));
+    if (free < 1) return;
+    try {
+      const claimed = await this.#cloud.claimCaptures(this.#runnerToken, free);
+      for (const task of claimed.tasks) {
+        const { capturePreviewScreen } = await import('./capture/index.js');
+        const result = await capturePreviewScreen({
+          captureUrl: String(task.captureUrl ?? ''),
+          origin: String(task.origin ?? ''),
+          viewportKey: task.viewportKey === 'mobile' ? 'mobile' : 'desktop',
+          allowLoopback: process.env.NODE_ENV !== 'production',
+        });
+        if (!result.ok) {
+          await this.#cloud.failCapture(this.#runnerToken, {
+            taskId: task.taskId,
+            capabilityToken: task.capabilityToken,
+            attempt: task.attempt,
+            fencingToken: task.fencingToken,
+            error: result.error,
+          });
+        }
+      }
+    } catch (error) {
+      this.#log('warn', `Capture poll failed: ${errorMessage(error, [this.#runnerToken])}`);
+    }
   }
 
   #startAssignment(assignment: Assignment): void {

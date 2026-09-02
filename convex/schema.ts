@@ -552,10 +552,67 @@ export default defineSchema({
     runnerId: v.optional(v.id('runners')),
     expiresAt: v.optional(v.number()),
     error: v.optional(v.string()),
+    capabilityTokenHash: v.optional(v.string()),
+    viewportAssetId: v.optional(v.id('assets')),
+    fullPageAssetId: v.optional(v.id('assets')),
+    thumbnailAssetId: v.optional(v.id('assets')),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index('by_state_and_expiry', ['state', 'expiresAt'])
     .index('by_runnerId_and_state', ['runnerId', 'state'])
     .index('by_designScreenRevisionId', ['designScreenRevisionId']),
+
+  assets: defineTable({
+    workspaceId: v.id('workspaces'),
+    storageId: v.id('_storage'),
+    kind: v.union(
+      v.literal('viewport'),
+      v.literal('full_page'),
+      v.literal('thumbnail'),
+      v.literal('crop'),
+      v.literal('upload'),
+    ),
+    mime: v.union(v.literal('image/png'), v.literal('image/jpeg'), v.literal('image/webp')),
+    byteSize: v.number(),
+    width: v.number(),
+    height: v.number(),
+    checksum: v.string(),
+    altText: v.string(),
+    provenance: v.union(v.literal('human_upload'), v.literal('runner_capture')),
+    sourceJobId: v.optional(v.id('jobs')),
+    sourceRunnerId: v.optional(v.id('runners')),
+    designRevisionId: v.optional(v.id('designRevisions')),
+    designScreenRevisionId: v.optional(v.id('designScreenRevisions')),
+    status: v.union(v.literal('ready'), v.literal('rejected'), v.literal('expired')),
+    createdAt: v.number(),
+  })
+    .index('by_workspaceId_and_status', ['workspaceId', 'status'])
+    .index('by_designRevisionId', ['designRevisionId'])
+    .index('by_designScreenRevisionId', ['designScreenRevisionId']),
+
+  assetUploadIntents: defineTable({
+    workspaceId: v.id('workspaces'),
+    expectedKind: v.union(
+      v.literal('viewport'),
+      v.literal('full_page'),
+      v.literal('thumbnail'),
+      v.literal('crop'),
+      v.literal('upload'),
+    ),
+    maxBytes: v.number(),
+    state: v.union(
+      v.literal('pending'),
+      v.literal('finalized'),
+      v.literal('expired'),
+      v.literal('rejected'),
+    ),
+    expiresAt: v.number(),
+    assetId: v.optional(v.id('assets')),
+    createdByUserId: v.optional(v.id('users')),
+    createdByRunnerId: v.optional(v.id('runners')),
+    createdAt: v.number(),
+  })
+    .index('by_workspaceId_and_state', ['workspaceId', 'state'])
+    .index('by_expiresAt', ['expiresAt']),
 });

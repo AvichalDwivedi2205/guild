@@ -77,6 +77,9 @@ describe('Runner loop', () => {
       poll,
       completeAssignment,
       callAssignmentTool: vi.fn(),
+      claimCaptures: vi.fn(async () => ({ tasks: [] })),
+      completeCapture: vi.fn(),
+      failCapture: vi.fn(),
     } as unknown as GuildCloudClient;
     const schedule = {
       nextDelay: () => 5,
