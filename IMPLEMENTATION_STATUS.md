@@ -21,7 +21,15 @@ Status vocabulary:
   it, and an inline save sends the expected title, content, object ID, and content revision.
 - Local evidence: `bun run check` passed formatting, zero-warning ESLint, strict TypeScript,
   36 test files / 124 tests, and Runner typecheck. The Next.js 16.3.4 production build also passed.
-  Signed-in production Chrome verification is pending the deployment from this batch.
+  GitHub `main` contains atomic commit `e4ae12f`. Vercel deployment
+  `dpl_82PN9iZatof1PuTV7b6hixfe45Z6` reached `READY` and the stable production alias was updated.
+- Signed-in production verification used only the personal `Your Chrome` profile containing the
+  `avichaldwivedi2005@gmail.com` Guild session. Selecting the existing `New text` object left the
+  Inspector closed; double-click opened its inline editor; Escape cancelled without a write. A
+  real two-axis wheel gesture changed the ReactFlow translation from `(130, 119.026)` to
+  `(70, 74.0258)` while preserving zoom at `0.747423`. A fresh production tab loaded the complete
+  workspace with zero browser warnings or errors. Saving shared production text awaits the required
+  action-time confirmation.
 
 ## Snapshot — 2026-09-02 (production auth and real local Worker proof)
 
