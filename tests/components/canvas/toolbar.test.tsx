@@ -61,7 +61,7 @@ describe('CanvasCreationToolbar', () => {
   it('exposes all connector relationships and stores the selected semantic', () => {
     render(<CanvasCreationToolbar actions={{}} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Connect objects (C)' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Connect objects (L)' }));
     fireEvent.change(screen.getByRole('combobox', { name: 'Connector relationship' }), {
       target: { value: 'verified_by' },
     });

@@ -140,8 +140,8 @@ export function CanvasCreationToolbar({ actions }: { actions: CanvasWorkspaceAct
           type="button"
           data-active={tool === 'connect' || undefined}
           onClick={() => setTool('connect')}
-          aria-label="Connect objects (C)"
-          title="Connect objects (C)"
+          aria-label="Connect objects (L)"
+          title="Connect objects (L)"
         >
           <Network size={18} />
           <span>Connect</span>

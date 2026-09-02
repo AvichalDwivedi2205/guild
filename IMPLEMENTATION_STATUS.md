@@ -12,6 +12,18 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-03 (Phase 2 contextual canvas UX)
+
+- Added `primaryAction` / `contextActions` registry so renderers stay visual.
+- Single click no longer opens a panel. `C` starts a comment, `L` starts Connect,
+  Escape closes Advanced first, and More opens Advanced details.
+- Added a screen-space selection toolbar (Comment, Ask agent, Color, More) and a
+  compact Agent dock projected from real Jobs.
+- Added `convex/workstreams.list` as the Job projection Module. External
+  Controller rows are not present yet.
+- Remaining: design Focus dispatch, visual approval, and dock rows for reported
+  workstreams.
+
 ## Snapshot — 2026-09-03 (Phase 1 shared protocol and mutation recorder)
 
 - Added workspace package `@guild/protocol` with protocol version, shared canvas
