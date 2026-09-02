@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 
 import { engineLabel, projectRunnerWorkstream } from '../src/domain/workstreams';
+import { deriveExternalWorkstreamStatus } from '../src/domain/workstream-staleness';
 import { requireWorkspaceMember } from './lib/auth';
 import { limits } from './lib/policies';
 import { query } from './_generated/server';
@@ -57,6 +58,33 @@ export const list = query({
           updatedAt: job.updatedAt,
         }),
       );
+    }
+    const external = await ctx.db
+      .query('externalWorkstreams')
+      .withIndex('by_workspaceId_and_state', (index) => index.eq('workspaceId', args.workspaceId))
+      .take(50);
+    const now = Date.now();
+    for (const stream of external) {
+      views.push({
+        id: stream._id,
+        source: 'webmcp_controller' as const,
+        roleName: stream.roleLabel,
+        engineLabel: stream.engineLabel === 'claude' ? 'Claude Sonnet' : 'Codex',
+        objective: stream.objective,
+        status: deriveExternalWorkstreamStatus({
+          state: stream.state,
+          lastReceivedAt: stream.lastReceivedAt,
+          now,
+        }),
+        provenance: 'reported' as const,
+        latestProgress: stream.objective,
+        lastUpdate: stream.lastReceivedAt,
+        targetObjectId: stream.targetObjectId ?? null,
+        dependencyCount: 0,
+        artifactCount: 0,
+        reviewNeeded: stream.state === 'completed',
+        error: null,
+      });
     }
     return views.sort((left, right) => right.lastUpdate - left.lastUpdate);
   },

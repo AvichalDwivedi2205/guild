@@ -1,8 +1,11 @@
 'use client';
 
+import { useQuery } from 'convex/react';
 import { Bot, ChevronDown } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
+import { api } from '../../../convex/_generated/api';
+import type { Id } from '../../../convex/_generated/dataModel';
 import { projectRunnerWorkstream, workstreamCounts } from '@/domain/workstreams';
 import { useCanvasInteractionStore } from '@/features/canvas/store';
 import type { CanvasWorkspaceActions, CanvasWorkspaceData } from '@/features/canvas/types';
@@ -17,26 +20,29 @@ export function AgentDock({
   actions: CanvasWorkspaceActions;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const workstreams = useMemo(
-    () =>
-      data.jobs.map((job) =>
-        projectRunnerWorkstream({
-          id: job.id,
-          runId: job.runId,
-          roleName: job.roleName,
-          engine: job.engine,
-          state: job.state,
-          waitingForRunner: job.waitingForRunner,
-          progressMessage: job.progressMessage,
-          errorMessage: job.errorMessage,
-          targetObjectId: job.targetObjectId,
-          dependencyJobIds: job.dependencyJobIds,
-          artifactCount: data.objects.filter((object) => object.id === job.targetObjectId).length,
-          updatedAt: 0,
-        }),
-      ),
-    [data.jobs, data.objects],
-  );
+  const listed = useQuery(api.workstreams.list, {
+    workspaceId: data.workspaceId as Id<'workspaces'>,
+    limit: 50,
+  });
+  const workstreams = useMemo(() => {
+    if (listed) return listed;
+    return data.jobs.map((job) =>
+      projectRunnerWorkstream({
+        id: job.id,
+        runId: job.runId,
+        roleName: job.roleName,
+        engine: job.engine,
+        state: job.state,
+        waitingForRunner: job.waitingForRunner,
+        progressMessage: job.progressMessage,
+        errorMessage: job.errorMessage,
+        targetObjectId: job.targetObjectId,
+        dependencyJobIds: job.dependencyJobIds,
+        artifactCount: data.objects.filter((object) => object.id === job.targetObjectId).length,
+        updatedAt: 0,
+      }),
+    );
+  }, [data.jobs, data.objects, listed]);
   const counts = workstreamCounts(workstreams);
 
   return (
@@ -86,6 +92,7 @@ export function AgentDock({
                     Retry
                   </button>
                 ) : null}
+                {workstream.source === 'webmcp_controller' ? <span>Ask agent</span> : null}
               </li>
             ))
           )}

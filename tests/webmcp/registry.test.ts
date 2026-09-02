@@ -33,6 +33,16 @@ function makeService(): GuildWebMcpService {
     })),
     getDesignSet: vi.fn(async () => ({ designSet: null })),
     getDesignRevisionStatus: vi.fn(async () => ({ captureReady: false })),
+    registerWorkstream: vi.fn(async () => ({ workstreamId: 'ws_1' })),
+    reportWorkstreamUpdate: vi.fn(async () => ({ sequence: 1 })),
+    completeWorkstream: vi.fn(async () => ({ state: 'completed' })),
+    getWorkstreamFeedback: vi.fn(async () => ({ items: [] })),
+    acknowledgeWorkstreamFeedback: vi.fn(async () => ({ state: 'acknowledged' })),
+    reportImplementationEvidence: vi.fn(async () => ({
+      evidenceId: 'ev_1',
+      verificationState: 'reported',
+    })),
+    listImplementationEvidence: vi.fn(async () => ({ items: [] })),
   };
 }
 
