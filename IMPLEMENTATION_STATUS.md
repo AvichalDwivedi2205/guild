@@ -12,6 +12,22 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-02 (native production WebMCP and Guild PRD proof)
+
+- Signed into Guild through the WebMCP-capable in-app browser and discovered all fourteen
+  page-registered production tools. Native calls to `list_workspaces`, `get_workspace_context`,
+  `search_canvas`, and `apply_canvas_changes` succeeded against `Guild Judge Workspace`; this is
+  real browser WebMCP, not UI automation or a direct Convex substitute.
+- Verified that no prior PRD-tagged object existed, then used two idempotent WebMCP writes to create
+  ten Guild-only Product strategy artifacts and eleven semantic connectors. The PRD covers vision,
+  users/jobs, MVP scope, the collaboration loop, functional and non-functional requirements,
+  success metrics, explicit exclusions, and acceptance criteria.
+- Production evidence: object Change Set `jx70fdsk2n4djs6fgynb4nq0kh8dm7hr`, edge Change Set
+  `jx70np2hzct5b4j21g22qkhjw98dndya`, all ten exact canvas articles rendered immediately, a
+  subsequent WebMCP search returned all ten PRD semantic types, and the browser produced no warning
+  or error logs. The remaining ten WebMCP tools still need native invocation before the complete
+  fourteen-tool acceptance criterion can be checked.
+
 ## Snapshot — 2026-09-02 (direct plain-text editing)
 
 - Plain text now stays a lightweight canvas primitive: selecting it does not open the Inspector,
@@ -33,10 +49,8 @@ Status vocabulary:
   action-time confirmation.
 - Native WebMCP availability was checked on the live signed-in personal Chrome page and on the
   isolated in-app browser. Personal Chrome exposes neither `document.modelContext` nor the WebMCP
-  tab capability. The in-app browser exposes the native WebMCP capability but currently redirects
-  this workspace to WorkOS sign-in, so no authenticated Guild tools can be invoked there yet. A PRD
-  must not be represented as a WebMCP-created canvas artifact until that isolated browser is signed
-  in and the real tool call succeeds.
+  tab capability. After its separate WorkOS sign-in, the in-app browser exposed all fourteen real
+  Guild tools and produced the native PRD proof recorded above.
 - Whole-node inline editing shipped in atomic commit `d6be124`. Vercel deployment
   `dpl_FK26jTwkwLU2v6hUqdSEMNG23gzT` reached `READY` on the stable alias. A center-targeted
   production double-click on the outer `New text` article—not its words—opened the inline editor;
@@ -358,17 +372,17 @@ requires the broader production and E2E evidence listed later.
 | 2   | Multiplayer human collaboration            | Partial     | Two real browser-context E2E for cursor, selection, edit, viewport     |
 | 3   | Local AI Workers as teammates              | Implemented | Live pairing, revocation, and re-pair are proven                       |
 | 4   | Multiple Workers simultaneously            | Implemented | Real collision rejection remains                                       |
-| 5   | WebMCP and local Runner paths              | Partial     | Native production WebMCP browser-agent proof remains                   |
+| 5   | WebMCP and local Runner paths              | Partial     | Four native tools proven; remaining ten need production invocation     |
 | 6   | Worker Role Profiles                       | Partial     | Authenticated create/edit/delete browser coverage                      |
 | 7   | Assignment-scoped autonomous canvas access | Implemented | Production adversarial/capability E2E                                  |
 | 8   | Sections and project spaces                | Implemented | Representative browser flow                                            |
-| 9   | Requirements and PRD representation        | Implemented | Representative authenticated browser flow                              |
+| 9   | Requirements and PRD representation        | Implemented | Native WebMCP created and verified a connected Guild PRD               |
 | 10  | Journeys and flows                         | Implemented | Representative authenticated browser flow                              |
 | 11  | Lightweight wireframe design               | Implemented | Renderer-family browser coverage                                       |
 | 12  | System architecture                        | Implemented | Representative semantic-connector E2E                                  |
 | 13  | AI architecture                            | Implemented | Representative semantic-connector E2E                                  |
 | 14  | Implementation planning and tasks          | Implemented | Authenticated integration/E2E coverage                                 |
-| 15  | Semantic traceability                      | Implemented | End-to-end relationship editing coverage                               |
+| 15  | Semantic traceability                      | Implemented | Native WebMCP created eleven live PRD relationship edges               |
 | 16  | Reversible execution                       | Implemented | Live Run undo preserved later edits; history restore is conflict-aware |
 | 17  | Comments and mentions                      | Implemented | Authenticated `@Role`, `@team`, and unowned-comment E2E                |
 | 18  | Worker activity visibility                 | Implemented | Real Codex/Sonnet progress and results proven                          |
@@ -402,7 +416,7 @@ a working production application until the new Production environment variables 
 redeploy.
 
 Latest local proof: frozen install had no changes; `bun run check` passed formatting, ESLint,
-strict TypeScript, 36 test files / 122 tests, and Runner typecheck. `bun run runner:test` passed
+strict TypeScript, 36 test files / 124 tests, and Runner typecheck. `bun run runner:test` passed
 (10 files / 28 tests); Runner and Next.js production builds passed; `bun audit` found no
 vulnerabilities; and the four-test landing suite passed in desktop and mobile Chromium. Convex
 production deployed to `befitting-bird-666` with schema validation and no deleted indexes. Vercel
@@ -443,7 +457,9 @@ errors; `/auth-check` now resolves to the authenticated not-found UI rather than
       conflict-aware Run undo preserving later edits are proven; stale-attempt and collision
       rejection have connected integration proof but not a live adversarial browser run.
 - [ ] Invoke all fourteen WebMCP tools through a real supported production browser/controller and
-      confirm direct changes appear immediately on the live canvas.
+      confirm direct changes appear immediately on the live canvas. Four tools are now proven
+      natively; `apply_canvas_changes` produced ten visible PRD objects and eleven edges in two
+      attributable Change Sets with immediate live rendering. Ten tool invocations remain.
 
 ### P1 — close product gaps
 
