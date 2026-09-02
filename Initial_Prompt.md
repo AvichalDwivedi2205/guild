@@ -921,6 +921,7 @@ Requirements:
 - run_ai_team queues work but does not perform inference.
 - If no Runner is available, return waiting_for_runner honestly.
 - Direct WebMCP canvas changes appear immediately.
+- `get_workspace_context` returns a placement guide and a color guide. Canvas object style may only set `palette` to `paper`, `amber`, `peach`, `mint`, `lilac`, `rose`, or `ink`. Never persist fill, color, or hex.
 - Attribute WebMCP changes distinctly in history and activity.
 - Log tool name, user, workspace, duration, result, and Change Set.
 - The canvas remains usable without a Runner.

@@ -419,6 +419,7 @@ report_task_result
 Rules:
 
 - Read tools inspect the same live state shown in the UI.
+- `get_workspace_context` returns a placement guide and a color guide. Node style may only set `palette` to `paper`, `amber`, `peach`, `mint`, `lilac`, `rose`, or `ink`.
 - Mutations use the Shared Workspace Command Service and authenticated WorkOS user.
 - `run_ai_team` queues the deterministic Team Run; it never performs hosted inference.
 - If no compatible Runner is online, return the Run ID and `waiting_for_runner` state honestly.

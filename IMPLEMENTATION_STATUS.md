@@ -12,6 +12,51 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-02 (production Guild project board)
+
+- Rebuilt the signed-in production workspace as a complete, visible Guild project board through
+  the page's native WebMCP surface. The board now contains 93 active objects and 21 semantic
+  connectors across eight placed sections: product and scope, experience and wireframes, system
+  architecture, local AI execution, data/trust/security, implementation, verification evidence,
+  and the demo story.
+- Added three nested product wireframes for the workspace canvas, Runner pairing, and Team Run
+  detail. Added the hosted/local architecture graph, role-to-engine map, Job lifecycle, data and
+  security controls, implementation task stacks, automated evidence, production links, and a
+  five-beat demo flow. Claude Worker labels and instructions explicitly use Sonnet.
+- The Implementation section separates completed work from implemented-but-unproven work and
+  remaining acceptance work. It does not present the unfinished 24-flow browser matrix, two-context
+  multiplayer proof, adversarial concurrency proof, or final real Worker recording as complete.
+- Placement verification found zero child objects outside their parent bounds and zero duplicate
+  logical keys. Native WebMCP search found the newly created Claude Sonnet artifact after a clean
+  reload. Signed-in visual checks showed the full board in both light and dark themes, and the
+  production browser log contained no errors.
+- Production evidence: Convex deployment `befitting-bird-666`; Vercel deployment
+  `dpl_AANCMPD8fC27qycGna16T7gxZdR1`, READY and aliased to
+  `https://guild-rose-two.vercel.app`. Board mutations were recorded as idempotent Change Sets,
+  including `jx7879b1m5d7q3d1zrgsqm9q698dmc28`,
+  `jx74gbg1335n65c54328jex84h8dnjgq`, and `jx778n20xshbvfjmz6a47j0z5n8dm6kg`.
+
+## Snapshot — 2026-09-02 (theme-safe node palette)
+
+- Replaced free node hex and text-color writes with seven theme-aware palette tokens:
+  `paper`, `amber`, `peach`, `mint`, `lilac`, `rose`, and `ink`. The renderer now sets
+  `data-palette` only; CSS supplies fill, ink, and border for light and dark themes. Stored
+  `style.color` is ignored so leftover WebMCP white ink cannot disappear on cream cards.
+- Convex `create_object` and style updates persist `{ palette }` only. Legacy hex fills map to
+  the nearest token at write and at render, so the existing Guild PRD does not need a backfill
+  to become readable after deploy.
+- The Inspector Fill control is a seven-swatch picker. Browser WebMCP and Runner Codex now
+  reject `{ fill, color }` payloads, accept `{ palette }`, and receive a `colorGuide` from
+  `get_workspace_context`. Worker assignment prompts tell Codex to use `style.palette` only.
+- Regression evidence: new domain contrast checks prove every token pair is at least WCAG AA
+  in both themes. Focused renderer, Inspector, WebMCP schema, Runner MCP, and Convex tests
+  failed on the old hex/color contract and passed after the change. Full local gates passed
+  formatting, zero-warning ESLint, strict TypeScript, 39 test files / 140 tests, Runner
+  typecheck, Runner 10 files / 28 tests, and the Next.js 16.3.4 production build.
+- Deployed the palette contract to Convex production and Vercel. A signed-in production reload
+  rendered the populated Guild board in both light and dark themes; headings, bodies, tables,
+  task cards, and semantic status colors remained visible.
+
 ## Snapshot — 2026-09-02 (visible structured card content)
 
 - Fixed the blank-card regression in the Guild PRD. The workspace subscription previously returned

@@ -249,6 +249,8 @@ type CanvasNode = {
 };
 ```
 
+The only supported style key is `palette`, one of `paper`, `amber`, `peach`, `mint`, `lilac`, `rose`, or `ink`. Theme CSS supplies fill and ink for each token so cards stay readable in light and dark mode. Agents and the Inspector cannot set raw hex fills or text colors.
+
 Connectors attach to any canvas object and support labels, endpoint styles, curves or elbows, and automatic rerouting.
 
 Sections and stacks are container objects. Comments, cursors, selections, Worker presence, activity, and version history are collaboration records or overlays rather than canvas nodes.
