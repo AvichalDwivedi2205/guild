@@ -120,6 +120,23 @@ tests/runner/canvas-only-boundary.test.ts tests/runner/adapters.test.ts
 tests/runner/mcp-bridge.test.ts` (14 passed); `bun run lint`;
   `bun run typecheck`; `bun run runner:typecheck`.
 
+## Snapshot — 2026-09-03 (green CI: protocol packaging and hermetic capture test)
+
+- Fixed the Vercel build failure. `@guild/protocol` was a source-only package whose
+  NodeNext `./x.js` specifiers Turbopack could not resolve, so every `next build`
+  failed with `Module not found: Can't resolve './canvas.js'`. The package now
+  compiles to `dist` and exports built ESM plus declarations, which satisfies both
+  the bundler consumers (Next, Convex, Vitest) and the Runner's NodeNext build.
+- `bun run protocol:build` runs from `postinstall`, `dev`, `build`, and `check`, so a
+  fresh clone or CI/Vercel install always has `dist` before anything consumes it.
+  Removed the root `tsconfig` path alias that pinned the package to raw source.
+- Fixed the failing `verify` job. `tests/runner/capture.test.ts` assumed Chrome was
+  absent, but GitHub's Ubuntu image ships Chrome, so the test launched a browser and
+  hit the network until the 5s timeout. It now mocks `existsSync` to force the
+  absent-browser path: deterministic, offline, and asserting the exact error.
+- Verified locally end to end: `bun run check` (164 tests), `bun run runner:build`,
+  `bun run build`, and `bun run test:e2e` (4 tests, Chromium desktop and mobile).
+
 ## Snapshot — 2026-09-03 (Phase 5 Focus and Preview Bridge)
 
 - Deep-linkable Focus uses validated workspace search params (`focus`,

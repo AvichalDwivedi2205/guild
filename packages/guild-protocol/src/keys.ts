@@ -1,4 +1,4 @@
-import { guildLimits } from './limits';
+import { guildLimits } from './limits.js';
 
 const STABLE_KEY = /^[a-z0-9][a-z0-9._:-]{0,198}$/iu;
 

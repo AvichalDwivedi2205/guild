@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { identifierSchema, idempotencyKeySchema, stableKeySchema } from './canvas';
+import { identifierSchema, idempotencyKeySchema, stableKeySchema } from './canvas.js';
 
 export const designStages = ['wireframe', 'visual'] as const;
 export const designStageSchema = z.enum(designStages);

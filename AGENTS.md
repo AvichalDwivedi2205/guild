@@ -34,6 +34,10 @@ The landing page boots without live Convex/WorkOS values. Sign-in, `/workspaces`
 and authenticated canvas work need the secrets above. Do not run `convex dev`
 unless those credentials are present.
 
+`@guild/protocol` is a compiled workspace package. `bun run protocol:build` emits
+`packages/guild-protocol/dist` and runs automatically from `postinstall`, `dev`,
+`build`, and `check`. Build it before consuming the package in a fresh checkout.
+
 Verify a fresh environment with:
 
 ```bash

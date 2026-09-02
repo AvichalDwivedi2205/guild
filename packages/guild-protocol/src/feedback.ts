@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { identifierSchema, pointSchema } from './canvas';
+import { identifierSchema, pointSchema } from './canvas.js';
 
 export const visualAnchorKindSchema = z.enum(['point', 'rectangle']);
 

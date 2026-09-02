@@ -1,4 +1,13 @@
-import { describe, expect, it } from 'vitest';
+import type * as NodeFs from 'node:fs';
+
+import { describe, expect, it, vi } from 'vitest';
+
+// Chrome presence differs per machine and CI image. Force it absent so this
+// suite never launches a browser or reaches the network.
+vi.mock('node:fs', async (importOriginal) => {
+  const actual = await importOriginal<typeof NodeFs>();
+  return { ...actual, default: { ...actual, existsSync: () => false }, existsSync: () => false };
+});
 
 import { captureLimits, capturePreviewScreen } from '../../packages/runner/src/capture/index.js';
 
@@ -19,7 +28,6 @@ describe('Runner preview capture', () => {
       origin: 'https://preview.example.com',
       viewportKey: 'desktop',
     });
-    if (result.ok) return;
-    expect(['capture_browser_unavailable', 'capture_failed']).toContain(result.error);
+    expect(result).toEqual({ ok: false, error: 'capture_browser_unavailable' });
   });
 });
