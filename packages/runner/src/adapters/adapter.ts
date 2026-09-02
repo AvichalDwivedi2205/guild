@@ -36,6 +36,7 @@ export function buildAssignmentPrompt(assignment: Assignment): string {
     'Use only assignment-scoped Guild MCP tools to read context and change canvas artifacts.',
     'Do not inspect, create, edit, or execute local files. Do not run shell commands or browse web.',
     'Read workspace context before writing. Keep each apply_canvas_changes call at 25 commands or fewer.',
+    'When setting node style, use only style.palette from the color guide. Never send fill, color, or hex.',
     'Report concise progress. Never create Jobs or mention another Worker.',
   ].join('\n');
 }

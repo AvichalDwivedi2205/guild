@@ -7,6 +7,7 @@ import {
   projectSemanticsSchema,
   sizeSchema,
 } from '@/domain/canvas';
+import { nodeStyleInputSchema } from '@/domain/palette';
 
 const identifier = z.string().trim().min(1).max(128);
 const idempotencyKey = z.string().trim().min(8).max(200);
@@ -41,25 +42,36 @@ const createObjectChange = z.object({
   parentId: identifier
     .optional()
     .describe('Optional container. Parent-space coordinates require this field.'),
-  style: z.record(z.string(), z.unknown()).optional(),
+  style: nodeStyleInputSchema.optional(),
   semantics: projectSemanticsSchema.optional(),
 });
 
-const updateObjectChange = z.object({
-  command: z.literal('update_object'),
-  objectId: identifier,
-  segment: z.enum(['content', 'style', 'semantics', 'hierarchy']),
-  expectedRevision: z.number().int().nonnegative(),
-  patch: z.record(z.string(), z.unknown()),
-  placement: z
-    .object({
-      position: pointSchema,
-      coordinateSpace: z.enum(['canvas', 'parent']),
-      expectedGeometryRevision: z.number().int().nonnegative(),
-    })
-    .optional()
-    .describe('Required when a hierarchy patch changes parentId.'),
-});
+const updateObjectChange = z
+  .object({
+    command: z.literal('update_object'),
+    objectId: identifier,
+    segment: z.enum(['content', 'style', 'semantics', 'hierarchy']),
+    expectedRevision: z.number().int().nonnegative(),
+    patch: z.record(z.string(), z.unknown()),
+    placement: z
+      .object({
+        position: pointSchema,
+        coordinateSpace: z.enum(['canvas', 'parent']),
+        expectedGeometryRevision: z.number().int().nonnegative(),
+      })
+      .optional()
+      .describe('Required when a hierarchy patch changes parentId.'),
+  })
+  .superRefine((value, context) => {
+    if (value.segment !== 'style') return;
+    const parsed = nodeStyleInputSchema.safeParse(value.patch);
+    if (parsed.success) return;
+    context.addIssue({
+      code: 'custom',
+      path: ['patch'],
+      message: 'style patch may only set palette to paper, amber, peach, mint, lilac, rose, or ink',
+    });
+  });
 
 const moveObjectChange = z.object({
   command: z.literal('move_object'),

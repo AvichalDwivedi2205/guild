@@ -163,6 +163,31 @@ describe('CanvasRightPanel', () => {
     expect(onEditingObjectChange).toHaveBeenLastCalledWith(null);
   });
 
+  it('lets the Inspector pick a palette swatch instead of a free fill color', async () => {
+    const updateStyle = vi.fn().mockResolvedValue({ ok: true, revision: 1 });
+    useCanvasInteractionStore.setState({ selectedNodeIds: ['task-1'] });
+    render(
+      <CanvasRightPanel
+        panel="inspector"
+        setPanel={vi.fn()}
+        data={workspaceData()}
+        actions={{ updateStyle }}
+      />,
+    );
+
+    expect(document.querySelector('input[type="color"]')).not.toBeInTheDocument();
+    const mint = screen.getByRole('button', { name: 'Mint' });
+    expect(mint).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(screen.getByRole('button', { name: 'Rose' }));
+    await waitFor(() =>
+      expect(updateStyle).toHaveBeenCalledWith({
+        objectId: 'task-1',
+        style: { palette: 'rose' },
+        expectedStyleRevision: 0,
+      }),
+    );
+  });
+
   it('creates one explicit assignment for the selected object', () => {
     const assignJob = vi.fn().mockResolvedValue(true);
     const data = workspaceData();

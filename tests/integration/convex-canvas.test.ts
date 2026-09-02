@@ -167,7 +167,7 @@ describe('Convex canvas command integration', () => {
           objectId: objectId as never,
           segment: 'style',
           expectedRevision: 0,
-          value: { fill: '#fef3c7' },
+          value: { palette: 'amber' },
         },
       ],
     });
@@ -197,7 +197,7 @@ describe('Convex canvas command integration', () => {
           objectId: objectId as never,
           segment: 'style',
           expectedRevision: 0,
-          value: { fill: '#fef3c7' },
+          value: { palette: 'amber' },
         },
       ],
     });
@@ -222,7 +222,7 @@ describe('Convex canvas command integration', () => {
             objectId: objectId as never,
             segment: 'style',
             expectedRevision: 0,
-            value: { fill: '#000000' },
+            value: { palette: 'ink' },
           },
         ],
       }),
@@ -231,7 +231,7 @@ describe('Convex canvas command integration', () => {
     const context = await asOwner.query(api.canvas.getWorkspaceContext, { workspaceId });
     const object = context.objects.find((candidate) => candidate._id === objectId);
     expect(object).toMatchObject({
-      style: { fill: '#fef3c7' },
+      style: { palette: 'amber' },
       semantics: { semanticType: 'requirement', priority: 'P0' },
       styleRevision: 1,
       semanticsRevision: 1,
@@ -239,6 +239,35 @@ describe('Convex canvas command integration', () => {
     const history = await asOwner.query(api.undo.list, { workspaceId });
     expect(history.find((point) => point._id === styleUpdate.changeSetId)).toMatchObject({
       canRestore: true,
+    });
+  });
+
+  it('normalizes hex style writes to a palette token', async () => {
+    const t = convexTest(schema, modules);
+    const asOwner = t.withIdentity(identity);
+    const workspaceId = await asOwner.mutation(api.workspaces.create, {
+      title: 'Palette normalization',
+    });
+    const created = await asOwner.mutation(api.canvas.executeCommands, {
+      workspaceId,
+      source: 'ui',
+      idempotencyKey: 'canvas:palette:create:0001',
+      summary: 'Create styled sticky',
+      commands: [
+        {
+          type: 'create_object',
+          objectType: 'sticky',
+          title: 'Legacy fill',
+          position: { x: 80, y: 80 },
+          size: { width: 220, height: 140 },
+          style: { fill: '#f8df79', color: '#ffffff' },
+        },
+      ],
+    });
+    const objectId = created.changed[0]!.targetId;
+    const context = await asOwner.query(api.canvas.getWorkspaceContext, { workspaceId });
+    expect(context.objects.find((candidate) => candidate._id === objectId)).toMatchObject({
+      style: { palette: 'amber' },
     });
   });
 

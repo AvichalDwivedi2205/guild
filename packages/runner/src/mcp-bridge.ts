@@ -12,6 +12,8 @@ import type { Assignment } from './types.js';
 const MAX_REQUEST_BYTES = 1_000_000;
 const MAX_RESULT_BYTES = 200_000;
 
+const nodePaletteIdSchema = z.enum(['paper', 'amber', 'peach', 'mint', 'lilac', 'rose', 'ink']);
+const nodeStyleSchema = z.object({ palette: nodePaletteIdSchema.optional() }).strict();
 const canvasObjectTypeSchema = z.enum([
   'shape',
   'sticky',
@@ -85,20 +87,30 @@ const canvasCommandSchema = z.discriminatedUnion('type', [
     position: positionSchema.optional(),
     size: sizeSchema,
     rotation: z.number().finite().optional(),
-    style: z.unknown().optional(),
+    style: nodeStyleSchema.optional(),
     semantics: semanticsSchema.optional(),
     parentId: objectIdSchema.optional(),
     orderKey: z.string().min(1).max(200).optional(),
     logicalKey: z.string().min(1).max(200).optional(),
   }),
-  z.object({
-    type: z.literal('update_object'),
-    objectId: objectIdSchema,
-    segment: z.enum(['content', 'style', 'semantics', 'hierarchy']),
-    expectedRevision: revisionSchema,
-    title: z.string().max(240).optional(),
-    value: z.unknown(),
-  }),
+  z
+    .object({
+      type: z.literal('update_object'),
+      objectId: objectIdSchema,
+      segment: z.enum(['content', 'style', 'semantics', 'hierarchy']),
+      expectedRevision: revisionSchema,
+      title: z.string().max(240).optional(),
+      value: z.unknown(),
+    })
+    .superRefine((value, context) => {
+      if (value.segment !== 'style') return;
+      if (nodeStyleSchema.safeParse(value.value).success) return;
+      context.addIssue({
+        code: 'custom',
+        path: ['value'],
+        message: 'style may only set palette to paper, amber, peach, mint, lilac, rose, or ink',
+      });
+    }),
   z.object({
     type: z.literal('move_object'),
     objectId: objectIdSchema,
@@ -182,7 +194,8 @@ function createAssignmentServer(
   server.registerTool(
     'get_workspace_context',
     {
-      description: 'Read bounded context from current Guild workspace and assignment.',
+      description:
+        'Read bounded context from current Guild workspace and assignment, including the color guide for allowed node palettes.',
       inputSchema: {
         cursor: z.string().max(500).optional(),
         limit: z.number().int().min(1).max(200).default(100),
@@ -227,7 +240,7 @@ function createAssignmentServer(
     'apply_canvas_changes',
     {
       description:
-        'Apply at most 25 idempotent canvas commands inside current Work Claim and Reserved Region. Create example: {"type":"create_object","objectType":"sticky","title":"MVP strategy","content":{"text":"Visible result"},"size":{"width":300,"height":180},"logicalKey":"mvp-strategy"}. Put fields directly on each command; never nest them under object. For Worker creates, omit parentId and position because Guild assigns the owned section and collision-free reserved placement.',
+        'Apply at most 25 idempotent canvas commands inside current Work Claim and Reserved Region. Create example: {"type":"create_object","objectType":"sticky","title":"MVP strategy","content":{"text":"Visible result"},"size":{"width":300,"height":180},"logicalKey":"mvp-strategy"}. Node style may only set palette to paper, amber, peach, mint, lilac, rose, or ink. Never send fill, color, or hex. Omit style to use the type default. Put fields directly on each command; never nest them under object. For Worker creates, omit parentId and position because Guild assigns the owned section and collision-free reserved placement.',
       inputSchema: {
         idempotencyKey: z.string().min(8).max(200),
         commands: z.array(canvasCommandSchema).min(1).max(25),

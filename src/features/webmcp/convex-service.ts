@@ -3,6 +3,7 @@ import type { FunctionArgs } from 'convex/server';
 
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
+import { buildNodeColorGuide } from '@/domain/palette';
 import {
   buildWorkspacePlacementGuide,
   resolveWebMcpPlacement,
@@ -208,6 +209,7 @@ export function createConvexWebMcpService(client: ConvexReactClient): GuildWebMc
         objects: context.objects,
         edges: context.edges,
         placementGuide: buildWorkspacePlacementGuide(placementObjects(context.objects)),
+        colorGuide: buildNodeColorGuide(),
         roles,
         teams,
         runs,

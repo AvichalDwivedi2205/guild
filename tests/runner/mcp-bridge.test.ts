@@ -77,6 +77,48 @@ describe('assignment-scoped MCP bridge', () => {
         },
       });
       expect(malformed.isError).toBe(true);
+
+      const paletteChange = {
+        idempotencyKey: 'worker-palette-output-0001',
+        commands: [
+          {
+            type: 'create_object',
+            objectType: 'sticky',
+            title: 'Palette worker output',
+            content: { text: 'Theme-safe artifact.' },
+            size: { width: 300, height: 180 },
+            logicalKey: 'palette-worker-output',
+            style: { palette: 'rose' },
+          },
+        ],
+      };
+      const paletted = await client.callTool({
+        name: 'apply_canvas_changes',
+        arguments: paletteChange,
+      });
+      expect(paletted.isError).not.toBe(true);
+      expect(callAssignmentTool).toHaveBeenCalledWith(
+        currentAssignment,
+        'apply_canvas_changes',
+        paletteChange,
+      );
+
+      const hexStyle = await client.callTool({
+        name: 'apply_canvas_changes',
+        arguments: {
+          idempotencyKey: 'worker-hex-style-0001',
+          commands: [
+            {
+              type: 'create_object',
+              objectType: 'sticky',
+              title: 'Hex worker output',
+              size: { width: 300, height: 180 },
+              style: { fill: '#ffffff', color: '#ffffff' },
+            },
+          ],
+        },
+      });
+      expect(hexStyle.isError).toBe(true);
     } finally {
       await client.close().catch(() => undefined);
       await bridge.close().catch(() => undefined);

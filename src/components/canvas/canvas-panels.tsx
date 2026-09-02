@@ -20,6 +20,12 @@ import {
 import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
 
 import { projectAreas, type CanvasObject, type ProjectSemantics } from '@/domain/canvas';
+import {
+  NODE_PALETTE,
+  NODE_PALETTE_IDS,
+  NODE_PALETTE_LABELS,
+  resolvePaletteId,
+} from '@/domain/palette';
 import { useCanvasInteractionStore } from '@/features/canvas/store';
 import { ObjectContentEditor } from '@/components/canvas/object-content-editor';
 import type { LocalEngine } from '@/domain/jobs';
@@ -195,7 +201,7 @@ function InspectorPanel({
   const relationships = data.edges.filter(
     (edge) => edge.sourceObjectId === object.id || edge.targetObjectId === object.id,
   );
-  const fill = typeof object.style.fill === 'string' ? object.style.fill : '#fffdf7';
+  const palette = resolvePaletteId(object.style, object.type);
 
   const saveSemantics = async () => {
     if (!actions.updateSemantics) return;
@@ -233,20 +239,29 @@ function InspectorPanel({
       <section className={styles.panelSection}>
         <h4>Style</h4>
         <Field label="Fill">
-          <div className={styles.colorField}>
-            <input
-              type="color"
-              value={fill}
-              disabled={!actions.updateStyle}
-              onChange={(event) => {
-                void actions.updateStyle?.({
-                  objectId: object.id,
-                  style: { ...object.style, fill: event.target.value },
-                  expectedStyleRevision: object.revisions.style,
-                });
-              }}
-            />
-            <span>{fill}</span>
+          <div className={styles.paletteField} role="group" aria-label="Node palette">
+            {NODE_PALETTE_IDS.map((id) => {
+              const selected = palette === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  className={styles.paletteSwatch}
+                  data-selected={selected || undefined}
+                  disabled={!actions.updateStyle}
+                  aria-pressed={selected}
+                  aria-label={NODE_PALETTE_LABELS[id]}
+                  style={{ background: NODE_PALETTE[id].light.fill }}
+                  onClick={() => {
+                    void actions.updateStyle?.({
+                      objectId: object.id,
+                      style: { palette: id },
+                      expectedStyleRevision: object.revisions.style,
+                    });
+                  }}
+                />
+              );
+            })}
           </div>
         </Field>
       </section>

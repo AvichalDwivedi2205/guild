@@ -67,6 +67,9 @@ describe('canvas node renderers', () => {
     });
     render(<DiagramNodeRenderer {...props(text)} />);
 
+    expect(screen.getByRole('article', { name: 'Draft copy canvas object' })).not.toHaveAttribute(
+      'data-palette',
+    );
     fireEvent.doubleClick(screen.getByRole('article', { name: 'Draft copy canvas object' }));
     const editor = screen.getByRole('textbox', { name: 'Edit Draft copy' });
     fireEvent.change(editor, { target: { value: 'Clear canvas copy' } });
@@ -96,11 +99,26 @@ describe('canvas node renderers', () => {
     expect(
       screen.getByRole('article', { name: 'Critical requirement canvas object' }),
     ).toHaveAttribute('data-family', 'diagram');
+    expect(
+      screen.getByRole('article', { name: 'Critical requirement canvas object' }),
+    ).toHaveAttribute('data-palette', 'amber');
     expect(screen.getByText('Orders must remain private.')).toBeVisible();
     expect(screen.getByLabelText('Connect into Critical requirement')).toBeInTheDocument();
     expect(screen.getByLabelText('Connect from Critical requirement')).toBeInTheDocument();
     expect(screen.getByLabelText('Locked')).toBeVisible();
     expect(screen.getByTestId('node-resizer')).toHaveAttribute('data-visible', 'false');
+
+    const legacy = object({
+      type: 'shape',
+      title: 'Legacy fill',
+      style: { fill: '#f8df79', color: '#ffffff' },
+    });
+    const legacyView = render(<DiagramNodeRenderer {...props(legacy)} />);
+    expect(screen.getByRole('article', { name: 'Legacy fill canvas object' })).toHaveAttribute(
+      'data-palette',
+      'amber',
+    );
+    legacyView.unmount();
   });
 
   it('renders table and task structured previews from persisted content and semantics', () => {

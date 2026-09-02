@@ -35,7 +35,8 @@ import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ThemeToggle } from '@/components/theme-toggle';
-import type { CanvasObject, CanvasObjectType } from '@/domain/canvas';
+import type { CanvasObject } from '@/domain/canvas';
+import { NODE_PALETTE, resolvePaletteId } from '@/domain/palette';
 import { absoluteObjectRectangle } from '@/domain/geometry';
 import { CanvasCreationToolbar, ToolbarModeIcon } from '@/components/canvas/canvas-toolbar';
 import { canvasEdgeTypes } from '@/components/canvas/connector-edge';
@@ -373,14 +374,9 @@ function CollaboratorPresence({
 }
 
 function minimapColor(node: GuildFlowNode) {
-  const colors: Partial<Record<CanvasObjectType, string>> = {
-    sticky: '#f8d76b',
-    task: '#9ad6b5',
-    wireframeFrame: '#c9c3ef',
-    section: '#d7d2c5',
-    stack: '#d8e5f2',
-  };
-  return colors[node.type] ?? '#a99be8';
+  const palette = resolvePaletteId(node.data.object.style, node.data.object.type);
+  if (!palette) return NODE_PALETTE.paper.light.fill;
+  return NODE_PALETTE[palette].light.fill;
 }
 
 function CanvasViewport({

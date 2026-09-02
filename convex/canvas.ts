@@ -22,6 +22,7 @@ import {
 } from './lib/geometry';
 import { requireWorkspaceMember } from './lib/auth';
 import { createContentPreview, createContentSnapshot } from './lib/content';
+import { normalizeNodeStyle } from '../src/domain/palette';
 import { boundedText, limits } from './lib/policies';
 import {
   canvasObjectTypeValidator,
@@ -385,7 +386,9 @@ async function executeCanvasCommand(
           y: position.y,
           width: command.size.width,
           height: command.size.height,
-          style: command.style ?? existing.style,
+          style: command.style
+            ? normalizeNodeStyle(command.style, command.objectType)
+            : existing.style,
           semantics: command.semantics ?? existing.semantics,
           geometryRevision: existing.geometryRevision + 1,
           contentRevision: nextRevision,
@@ -445,7 +448,9 @@ async function executeCanvasCommand(
             targetId: existing._id,
             segment: 'style',
             beforeValue: existing.style,
-            afterValue: command.style ?? existing.style,
+            afterValue: command.style
+              ? normalizeNodeStyle(command.style, command.objectType)
+              : existing.style,
             postRevision: existing.styleRevision + 1,
             sequence: sequence + 2,
           }),
@@ -484,7 +489,7 @@ async function executeCanvasCommand(
       hierarchyPath,
       ...(command.orderKey ? { orderKey: command.orderKey } : {}),
       locked: false,
-      style: command.style ?? {},
+      style: normalizeNodeStyle(command.style ?? {}, command.objectType),
       semantics: command.semantics ?? {},
       geometryRevision: 0,
       contentRevision: 0,
@@ -600,8 +605,9 @@ async function executeCanvasCommand(
       afterValue = createContentSnapshot(nextTitle, command.value);
     } else if (command.segment === 'style') {
       beforeValue = object.style;
+      afterValue = normalizeNodeStyle(command.value, object.type);
       await ctx.db.patch(object._id, {
-        style: command.value,
+        style: afterValue,
         styleRevision: nextRevision,
         updatedAt: now,
       });

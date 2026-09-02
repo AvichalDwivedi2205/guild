@@ -29,9 +29,11 @@ type GuildWebMcpToolName = (typeof guildWebMcpToolNames)[number];
 
 const descriptions = {
   list_workspaces: 'List Guild workspaces available to the signed-in human.',
-  get_workspace_context: 'Read bounded live canvas, semantic graph, team, and run context.',
+  get_workspace_context:
+    'Read bounded live canvas, semantic graph, team, run context, placement guide, and color guide.',
   search_canvas: 'Search visible and semantic objects in one Guild workspace.',
-  apply_canvas_changes: 'Apply up to 25 idempotent visible canvas commands as WebMCP Controller.',
+  apply_canvas_changes:
+    'Apply up to 25 idempotent visible canvas commands as WebMCP Controller. Node style may only set palette to paper, amber, peach, mint, lilac, rose, or ink. Never send fill, color, or hex. Omit style to use the type default.',
   add_comment: 'Add and deterministically route a workspace, section, or object comment.',
   run_ai_team: 'Queue one deterministic Team Run; local Guild Runner performs all AI execution.',
   get_run_status: 'Read truthful Job, dependency, Runner capacity, progress, and failure state.',

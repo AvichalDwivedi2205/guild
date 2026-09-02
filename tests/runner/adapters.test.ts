@@ -36,6 +36,7 @@ describe('engine spawn plans', () => {
     expect(plan.args).toContain('mcp_servers.guild.default_tools_approval_mode="approve"');
     expect(plan.args.at(-1)).toBe('-');
     expect(plan.stdin).toContain(context.assignment.brief);
+    expect(plan.stdin).toContain('style.palette');
     expect(JSON.stringify(plan.args)).not.toContain(context.assignment.brief);
     expect(JSON.stringify(plan.args)).not.toContain(context.assignment.assignmentToken);
     expect(JSON.stringify(plan.env)).not.toContain(context.assignment.assignmentToken);

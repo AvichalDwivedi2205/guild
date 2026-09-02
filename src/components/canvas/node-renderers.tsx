@@ -10,9 +10,10 @@ import {
   Shapes,
 } from 'lucide-react';
 import { Handle, NodeResizer, Position, type NodeProps, type ResizeParams } from '@xyflow/react';
-import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 
 import type { CanvasObject } from '@/domain/canvas';
+import { resolvePaletteId } from '@/domain/palette';
 import { type GuildFlowNode, useCanvasInteractionStore } from '@/features/canvas/store';
 
 import styles from './canvas.module.css';
@@ -36,11 +37,6 @@ function contentText(object: CanvasObject): string | null {
   return stringField(object.content, 'text') ?? stringField(object.content, 'description');
 }
 
-function styleValue(object: CanvasObject, key: string): string | undefined {
-  const value = object.style[key];
-  return typeof value === 'string' ? value : undefined;
-}
-
 function NodeChrome({
   object,
   selected,
@@ -57,14 +53,7 @@ function NodeChrome({
   const beginInteraction = useCanvasInteractionStore((state) => state.beginInteraction);
   const finishInteraction = useCanvasInteractionStore((state) => state.finishInteraction);
   const persistResize = useCanvasInteractionStore((state) => state.actions.persistResize);
-  const fill = styleValue(object, 'fill');
-  const color = styleValue(object, 'color');
-  const borderColor = styleValue(object, 'borderColor');
-  const nodeStyle: CSSProperties = {
-    ...(fill ? { backgroundColor: fill } : {}),
-    ...(color ? { color } : {}),
-    ...(borderColor ? { borderColor } : {}),
-  };
+  const palette = resolvePaletteId(object.style, object.type);
 
   const finishResize = (_event: unknown, params: ResizeParams) => {
     finishInteraction(object.id);
@@ -81,9 +70,9 @@ function NodeChrome({
       data-family={family}
       data-node-type={object.type}
       data-variant={object.variant ?? 'default'}
+      data-palette={palette}
       data-selected={selected || undefined}
       data-locked={object.locked || undefined}
-      style={nodeStyle}
       aria-label={`${object.title || object.type} canvas object`}
       title={onDoubleClick ? 'Double-click to edit' : undefined}
       onDoubleClick={

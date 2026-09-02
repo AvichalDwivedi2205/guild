@@ -11,6 +11,7 @@ function makeService(): GuildWebMcpService {
       objects: [],
       edges: [],
       placementGuide: {},
+      colorGuide: {},
     })),
     searchCanvas: vi.fn(async () => ({ results: [] })),
     applyCanvasChanges: vi.fn(async () => ({ changeSetId: 'change_set_1', changedIds: [] })),
@@ -118,5 +119,59 @@ describe('Guild WebMCP registry', () => {
       ),
     ).rejects.toThrow('Invalid apply_canvas_changes input');
     expect(service.applyCanvasChanges).not.toHaveBeenCalled();
+  });
+
+  it('accepts palette style and rejects free fill or text color', async () => {
+    const tools: ModelContextTool[] = [];
+    const service = makeService();
+    const modelContext: ModelContext = {
+      registerTool: vi.fn(async (tool) => {
+        tools.push(tool);
+      }),
+    };
+    const registration = registerGuildWebMcpTools(modelContext, service);
+    await registration.ready;
+    const applyTool = tools.find((tool) => tool.name === 'apply_canvas_changes');
+
+    await applyTool?.execute(
+      {
+        workspaceId: 'workspace_1',
+        idempotencyKey: 'palette-style-accepted',
+        changes: [
+          {
+            command: 'create_object',
+            type: 'sticky',
+            title: 'Mint note',
+            positionHint: { x: 40, y: 40 },
+            coordinateSpace: 'canvas',
+            size: { width: 220, height: 140 },
+            style: { palette: 'mint' },
+          },
+        ],
+      },
+      {},
+    );
+    expect(service.applyCanvasChanges).toHaveBeenCalled();
+
+    await expect(
+      applyTool?.execute(
+        {
+          workspaceId: 'workspace_1',
+          idempotencyKey: 'hex-style-rejected',
+          changes: [
+            {
+              command: 'create_object',
+              type: 'sticky',
+              title: 'Invisible note',
+              positionHint: { x: 40, y: 40 },
+              coordinateSpace: 'canvas',
+              size: { width: 220, height: 140 },
+              style: { fill: '#fffdf7', color: '#ffffff' },
+            },
+          ],
+        },
+        {},
+      ),
+    ).rejects.toThrow('Invalid apply_canvas_changes input');
   });
 });

@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 
+import { buildNodeColorGuide } from '../src/domain/palette';
 import { query } from './_generated/server';
 import { requireWorkerAuthorization } from './lib/runnerAuth';
 import { workerAuthorizationValidator } from './validators';
@@ -42,6 +43,7 @@ export const getWorkspaceContext = query({
       },
       objects,
       edges,
+      colorGuide: buildNodeColorGuide(),
     };
   },
 });

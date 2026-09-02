@@ -27,6 +27,7 @@ export type GuildWebMcpService = {
     objects: unknown[];
     edges: unknown[];
     placementGuide: unknown;
+    colorGuide: unknown;
   }>;
   searchCanvas: (input: Input<'search_canvas'>) => Promise<{ results: unknown[] }>;
   applyCanvasChanges: (
