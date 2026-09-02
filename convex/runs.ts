@@ -3,7 +3,7 @@ import { v } from 'convex/values';
 import type { Doc, Id } from './_generated/dataModel';
 import { mutation, query, type QueryCtx } from './_generated/server';
 import { requireWorkspaceMember } from './lib/auth';
-import { parseContentSnapshot } from './lib/content';
+import { createContentPreview, parseContentSnapshot } from './lib/content';
 import { reconcileTeamRun, releaseJobAuthority } from './lib/jobLifecycle';
 import { createTeamRun } from './lib/runLifecycle';
 import { limits } from './lib/policies';
@@ -471,6 +471,7 @@ export const undo = mutation({
             });
           await ctx.db.patch(object._id, {
             ...(snapshot ? { title: snapshot.title } : {}),
+            contentPreview: createContentPreview(previousBody),
             contentRevision: nextRevision,
             updatedAt: now,
           });

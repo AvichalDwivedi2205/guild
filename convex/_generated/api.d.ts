@@ -20,6 +20,7 @@ import type * as lib_jobLifecycle from '../lib/jobLifecycle.js';
 import type * as lib_policies from '../lib/policies.js';
 import type * as lib_runLifecycle from '../lib/runLifecycle.js';
 import type * as lib_runnerAuth from '../lib/runnerAuth.js';
+import type * as migrations from '../migrations.js';
 import type * as presence from '../presence.js';
 import type * as roleProfiles from '../roleProfiles.js';
 import type * as runnerTools from '../runnerTools.js';
@@ -48,6 +49,7 @@ declare const fullApi: ApiFromModules<{
   'lib/policies': typeof lib_policies;
   'lib/runLifecycle': typeof lib_runLifecycle;
   'lib/runnerAuth': typeof lib_runnerAuth;
+  migrations: typeof migrations;
   presence: typeof presence;
   roleProfiles: typeof roleProfiles;
   runnerTools: typeof runnerTools;

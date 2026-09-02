@@ -53,6 +53,7 @@ export default defineSchema({
     type: canvasObjectTypeValidator,
     variant: v.optional(v.string()),
     title: v.optional(v.string()),
+    contentPreview: v.optional(v.any()),
     x: v.number(),
     y: v.number(),
     width: v.number(),

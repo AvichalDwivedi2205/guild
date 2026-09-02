@@ -21,7 +21,7 @@ import {
   type Rectangle,
 } from './lib/geometry';
 import { requireWorkspaceMember } from './lib/auth';
-import { createContentSnapshot } from './lib/content';
+import { createContentPreview, createContentSnapshot } from './lib/content';
 import { boundedText, limits } from './lib/policies';
 import {
   canvasObjectTypeValidator,
@@ -129,6 +129,7 @@ const canvasObjectSummaryValidator = v.object({
   type: canvasObjectTypeValidator,
   variant: v.optional(v.string()),
   title: v.optional(v.string()),
+  contentPreview: v.optional(v.any()),
   x: v.number(),
   y: v.number(),
   width: v.number(),
@@ -377,6 +378,9 @@ async function executeCanvasCommand(
           .unique();
         await ctx.db.patch(existing._id, {
           ...(nextTitle !== undefined ? { title: nextTitle } : {}),
+          ...(command.content !== undefined
+            ? { contentPreview: createContentPreview(command.content) }
+            : {}),
           x: position.x,
           y: position.y,
           width: command.size.width,
@@ -468,6 +472,9 @@ async function executeCanvasCommand(
       type: command.objectType,
       ...(command.variant ? { variant: command.variant } : {}),
       ...(command.title !== undefined ? { title: boundedText(command.title.trim(), 240) } : {}),
+      ...(command.content !== undefined
+        ? { contentPreview: createContentPreview(command.content) }
+        : {}),
       x: position.x,
       y: position.y,
       width: command.size.width,
@@ -586,6 +593,7 @@ async function executeCanvasCommand(
       }
       await ctx.db.patch(object._id, {
         ...(nextTitle !== undefined ? { title: nextTitle } : {}),
+        contentPreview: createContentPreview(command.value),
         contentRevision: nextRevision,
         updatedAt: now,
       });

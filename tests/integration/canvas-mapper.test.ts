@@ -17,6 +17,7 @@ describe('mapCanvasContext', () => {
           workspaceId: 'workspace-1',
           type: 'sticky',
           title: 'No hosted inference',
+          contentPreview: { text: 'Workers use local subscription-backed clients.' },
           x: 24,
           y: 48,
           width: 220,
@@ -56,6 +57,7 @@ describe('mapCanvasContext', () => {
     expect(mapped.workspaceId).toBe('workspace-1');
     expect(mapped.objects[0]).toMatchObject({
       id: 'object-1',
+      content: { text: 'Workers use local subscription-backed clients.' },
       position: { x: 24, y: 48 },
       size: { width: 220, height: 160 },
       revisions: { geometry: 2, content: 3, style: 4, semantics: 5, hierarchy: 6 },

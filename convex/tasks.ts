@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 
 import { mutation, query } from './_generated/server';
 import { requireWorkspaceMember } from './lib/auth';
+import { createContentPreview } from './lib/content';
 
 export const listImplementation = query({
   args: { workspaceId: v.id('workspaces'), status: v.optional(v.string()) },
@@ -153,6 +154,10 @@ export const reportResult = mutation({
       )
       .unique();
     const nextBody = { ...(typeof body?.body === 'object' && body.body ? body.body : {}), result };
+    await ctx.db.patch(task._id, {
+      contentPreview: createContentPreview(nextBody),
+      updatedAt: now,
+    });
     if (body)
       await ctx.db.patch(body._id, { body: nextBody, revision: body.revision + 1, updatedAt: now });
     else

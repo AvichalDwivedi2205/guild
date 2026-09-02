@@ -15,6 +15,7 @@ type ConvexObjectSummary = {
   type: CanvasObjectType;
   variant?: string;
   title?: string;
+  contentPreview?: unknown;
   x: number;
   y: number;
   width: number;
@@ -85,6 +86,7 @@ export function mapCanvasContext(context: ConvexCanvasContext): {
         type: object.type,
         ...(object.variant !== undefined ? { variant: object.variant } : {}),
         ...(object.title !== undefined ? { title: object.title } : {}),
+        ...(object.contentPreview !== undefined ? { content: object.contentPreview } : {}),
         position: { x: object.x, y: object.y },
         size: { width: object.width, height: object.height },
         ...(object.rotation !== undefined ? { rotation: object.rotation } : {}),

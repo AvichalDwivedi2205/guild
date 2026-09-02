@@ -3,7 +3,7 @@ import { v } from 'convex/values';
 import type { Doc, Id } from './_generated/dataModel';
 import { mutation, query } from './_generated/server';
 import { requireWorkspaceMember } from './lib/auth';
-import { parseContentSnapshot } from './lib/content';
+import { createContentPreview, parseContentSnapshot } from './lib/content';
 import { canConflictAwareRestore } from '../src/domain/history';
 
 type Segment = Doc<'changeEntries'>['segment'];
@@ -194,6 +194,7 @@ export const changeSet = mutation({
           }
           await ctx.db.patch(object._id, {
             ...(snapshot ? { title: snapshot.title } : {}),
+            contentPreview: createContentPreview(previousBody),
             contentRevision: revision,
             updatedAt: now,
           });

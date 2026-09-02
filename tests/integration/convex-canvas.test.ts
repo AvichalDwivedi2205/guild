@@ -92,7 +92,11 @@ describe('Convex canvas command integration', () => {
     ]);
     expect(context.objects).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ _id: requirementId, type: 'sticky' }),
+        expect.objectContaining({
+          _id: requirementId,
+          type: 'sticky',
+          contentPreview: { text: 'The reply must cite the source order.' },
+        }),
         expect.objectContaining({ _id: serviceId, type: 'shape' }),
       ]),
     );
