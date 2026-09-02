@@ -27,7 +27,8 @@ Status vocabulary:
   removed all eight attributable Worker artifacts while preserving all four artifacts from the
   later Claude Sonnet retry. Revoking the online Runner caused its next authenticated poll to fail;
   a new device code was then approved through the signed-in production UI, exchanged once, stored
-  in macOS Keychain, and the replacement `Avichal's Mac` returned Online at capacity 2.
+  in macOS Keychain, and the replacement `Avichal's Mac` returned Online at capacity 2. The older
+  stale offline duplicate was also revoked, leaving only the new online Runner authorized.
 - Fixed production Convex authentication for the shared multi-application WorkOS environment by
   allowing an explicit validated WorkOS JWT issuer. A signed-in production browser created and
   loaded `Guild Judge Workspace`, assembled the seven-role recommended team, and exercised live
