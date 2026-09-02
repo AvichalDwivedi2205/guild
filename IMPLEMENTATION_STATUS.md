@@ -37,6 +37,10 @@ Status vocabulary:
   this workspace to WorkOS sign-in, so no authenticated Guild tools can be invoked there yet. A PRD
   must not be represented as a WebMCP-created canvas artifact until that isolated browser is signed
   in and the real tool call succeeds.
+- Whole-node inline editing shipped in atomic commit `d6be124`. Vercel deployment
+  `dpl_FK26jTwkwLU2v6hUqdSEMNG23gzT` reached `READY` on the stable alias. A center-targeted
+  production double-click on the outer `New text` article—not its words—opened the inline editor;
+  Escape closed it without a shared-data write, and the current browser log window stayed clean.
 
 ## Snapshot — 2026-09-02 (production auth and real local Worker proof)
 
