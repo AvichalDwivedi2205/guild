@@ -22,8 +22,23 @@ Status vocabulary:
   for the 15 demo flows. Specs skip unless `GUILD_E2E_STORAGE_STATE` points at
   an untracked storage-state file. This agent did not run them.
 - Native browser WebMCP and signed-in Focus/Interact proof remain for Codex.
-- Branch deployment of Convex preview, Vercel preview, and `preview-fixture`
-  is recorded below if the CLIs succeed; otherwise it stays unproven.
+- Full gate results on this branch:
+  - `bun install --frozen-lockfile` — success
+  - `bun run format:check` — success
+  - `bun run lint` — success
+  - `bun run typecheck` — success
+  - `bun run runner:typecheck` — success
+  - `bun run runner:test` — 33 passed, 1 skipped
+  - `bun run runner:build` — success
+  - `bun run build` — success after protocol imports dropped `.js`
+    suffixes that Turbopack could not resolve
+  - `bun audit` — no vulnerabilities
+  - `bun run test` — 173 passed, 1 skipped, 1 failed:
+    `tests/runner/runner-loop.test.ts` still flakes `job_3` as `failed`
+    instead of `cancelled`. That flake predates this branch and was not
+    changed here.
+- Convex preview, Vercel branch preview, and `preview-fixture` deploy were
+  not run. This environment has no `CONVEX_DEPLOY_KEY` or Vercel CLI.
 - Do not merge `cursor/cinema-demo-platform-d4c4` until human review.
 
 ### Codex WebMCP verification handoff
