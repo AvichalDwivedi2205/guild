@@ -96,7 +96,7 @@ describe('CanvasRightPanel', () => {
     const rail = screen.getByRole('navigation', { name: 'Workspace panels' });
     for (const label of [
       'Overview',
-      'Inspector',
+      'Advanced',
       'Comments',
       'Activity',
       'Team',
@@ -158,7 +158,7 @@ describe('CanvasRightPanel', () => {
     expect(onEditingObjectChange).toHaveBeenLastCalledWith('task-1');
 
     fireEvent.blur(input, {
-      relatedTarget: screen.getByRole('button', { name: 'Close Inspector' }),
+      relatedTarget: screen.getByRole('button', { name: 'Close Advanced' }),
     });
     expect(onEditingObjectChange).toHaveBeenLastCalledWith(null);
   });
