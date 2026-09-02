@@ -12,6 +12,21 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Planning snapshot — 2026-09-02 (Cinema demo and simplified UX)
+
+- Added `DEMO_FLOW.md` as the canonical three-minute Cinema recording story. It specifies the
+  WebMCP launch, truthful parallel Codex and Claude Sonnet workstreams, page-by-page wireframes,
+  interactive hosted design review, Codex-style region feedback, immutable design revision,
+  architecture evidence, optional repository proof, and closing WebMCP/undo sequence.
+- Added `DEMO_FEATURES_AND_UX_PLAN.md` as a missing-only implementation plan. It records the planned
+  contextual editor, design-preview publishing module, gallery, focused preview, Preview Bridge,
+  visual annotations, version comparison, one-click approval, compact orchestration dock, agent
+  protocol, asset storage, repository execution, evidence view, presentation mode, and safe Cinema
+  reset.
+- These documents do not mark the new demo capabilities implemented. The acceptance contract
+  requires connected UI, command, persistence, authorization, realtime, and browser evidence, plus
+  two complete production-path rehearsals before recording.
+
 ## Snapshot — 2026-09-02 (production Guild project board)
 
 - Rebuilt the signed-in production workspace as a complete, visible Guild project board through
