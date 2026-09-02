@@ -223,6 +223,17 @@ tests/runner/mcp-bridge.test.ts tests/runner/adapters.test.ts` (16 passed);
   repository, or deployment adapters in Guild Runner.
 - This batch does not change product behavior, schema, or deployments.
 
+## Snapshot — 2026-09-03 (Cursor Cloud Agent environment)
+
+- Added a repository-managed Cloud Agent environment: `.cursor/environment.json`,
+  `scripts/cloud-agent-install.sh` (Bun 1.3.9 + `bun install --frozen-lockfile`), and
+  `scripts/cloud-agent-start.sh` (writes `.env.local` from injected secrets only when missing).
+- Documented Cloud secrets, ports, and verification in `AGENTS.md` under
+  `Cursor Cloud specific instructions`.
+- Local proof on this machine: `next dev` served http://127.0.0.1:3000 with HTTP 200 landing copy
+  ("Build with an AI team, not an AI chat."), and `/sign-in` returned 307 to WorkOS AuthKit.
+- No product, Convex, or Vercel deployment change. Secrets were not written to tracked files.
+
 ## Planning snapshot — 2026-09-03 (Cinema end-to-end implementation architecture)
 
 - Added `DEMO_IMPLEMENTATION_PLAN.md` as the deep implementation plan for the accepted Cinema
