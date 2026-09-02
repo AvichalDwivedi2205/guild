@@ -1,16 +1,17 @@
-import { z } from 'zod';
-
 import {
   canvasObjectTypeSchema,
+  identifierSchema,
+  idempotencyKeySchema,
+  nodeStyleInputSchema,
   pointSchema,
   projectRelationshipSchema,
   projectSemanticsSchema,
   sizeSchema,
-} from '@/domain/canvas';
-import { nodeStyleInputSchema } from '@/domain/palette';
+} from '@guild/protocol';
+import { z } from 'zod';
 
-const identifier = z.string().trim().min(1).max(128);
-const idempotencyKey = z.string().trim().min(8).max(200);
+const identifier = identifierSchema;
+const idempotencyKey = idempotencyKeySchema;
 
 export const listWorkspacesInput = z.object({
   limit: z.number().int().min(1).max(100).default(50),

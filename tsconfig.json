@@ -22,7 +22,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@guild/protocol": ["./packages/guild-protocol/src/index.ts"]
     }
   },
   "include": [

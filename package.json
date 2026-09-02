@@ -28,6 +28,7 @@
     "check": "bun run format:check && bun run lint && bun run typecheck && bun run test && bun run runner:typecheck"
   },
   "dependencies": {
+    "@guild/protocol": "workspace:*",
     "@convex-dev/presence": "^0.4.0",
     "@convex-dev/rate-limiter": "^0.3.2",
     "@convex-dev/workos": "^0.0.3",

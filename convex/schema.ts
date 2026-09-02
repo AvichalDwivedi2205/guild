@@ -103,6 +103,7 @@ export default defineSchema({
     routing: v.union(v.literal('straight'), v.literal('curve'), v.literal('elbow')),
     style: v.any(),
     revision: v.number(),
+    logicalKey: v.optional(v.string()),
     createdByJobId: v.optional(v.id('jobs')),
     isDeleted: v.boolean(),
     createdAt: v.number(),
@@ -119,7 +120,8 @@ export default defineSchema({
       'targetObjectId',
       'isDeleted',
     ])
-    .index('by_createdByJobId', ['createdByJobId']),
+    .index('by_createdByJobId', ['createdByJobId'])
+    .index('by_workspaceId_and_logicalKey', ['workspaceId', 'logicalKey']),
 
   comments: defineTable({
     workspaceId: v.id('workspaces'),
@@ -156,6 +158,9 @@ export default defineSchema({
     jobId: v.optional(v.id('jobs')),
     source: commandSourceValidator,
     idempotencyKey: v.string(),
+    commandName: v.optional(v.string()),
+    requestHash: v.optional(v.string()),
+    parentChangeSetId: v.optional(v.id('changeSets')),
     summary: v.string(),
     state: v.union(v.literal('applied'), v.literal('undone'), v.literal('partially_undone')),
     undoesChangeSetId: v.optional(v.id('changeSets')),
@@ -176,6 +181,12 @@ export default defineSchema({
       v.literal('comment'),
       v.literal('job'),
       v.literal('run'),
+      v.literal('designPointer'),
+      v.literal('reviewDecision'),
+      v.literal('visualAnchor'),
+      v.literal('assetAttachment'),
+      v.literal('externalWorkstream'),
+      v.literal('reportedEvidence'),
     ),
     targetId: v.string(),
     segment: segmentValidator,

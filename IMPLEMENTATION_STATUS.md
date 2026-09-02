@@ -12,6 +12,23 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-03 (Phase 1 shared protocol and mutation recorder)
+
+- Added workspace package `@guild/protocol` with protocol version, shared canvas
+  primitives, error codes, stable-key rules, canonical request hashing, and
+  schemas for later design, feedback, workstream, and evidence tools.
+- WebMCP and assignment MCP now import those shared primitives instead of
+  maintaining parallel enum copies.
+- Widened `changeSets` with optional `commandName`, `requestHash`, and
+  `parentChangeSetId`; widened `changeEntries.targetKind`; added optional
+  `canvasEdges.logicalKey`.
+- `canvas.executeCommands` now goes through `recordWorkspaceMutation`. Reusing
+  an idempotency key with a different payload throws
+  `idempotency_payload_mismatch`; matching replays remain unchanged.
+- This closes the command-service boundary P1 item for canvas writes. Comment
+  and later modules will adopt the same Recorder.
+- No deployment in this batch.
+
 ## Snapshot — 2026-09-03 (Phase 0 Cinema demo baseline)
 
 - Started implementation of the Guild-only Cinema demo platform on branch
@@ -625,8 +642,9 @@ errors; `/auth-check` now resolves to the authenticated not-found UI rather than
       keeps unsupported Run/comment Change Sets visible without offering a fake restore action.
 - [x] Role/team/Runner management UI now creates, edits, removes roles and teams, and can rename,
       revoke, and re-pair Runners. Authenticated browser coverage is still required.
-- [ ] Decide and document the command-service boundary, then route remaining user/WebMCP mutations
-      through one consistent idempotent attribution path where required.
+- [x] Decide and document the command-service boundary. Canvas writes now use
+      `recordWorkspaceMutation` with payload-bound idempotency. Remaining comment
+      and later module adapters still need to adopt the same Recorder.
 - [x] WebMCP invocations now record tool name, user, workspace, outcome, duration, and optional
       Change Set in `activityEvents`.
 - [ ] Review accessibility, keyboard interaction, focus behavior, mobile layout, reconnect/offline

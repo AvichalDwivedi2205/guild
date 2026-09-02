@@ -4,6 +4,15 @@ import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import {
+  boundedSizeSchema,
+  canvasObjectTypeSchema,
+  nodeStyleInputSchema,
+  pointSchema,
+  projectRelationshipSchema,
+  projectSemanticsSchema,
+  progressPhaseSchema,
+} from '@guild/protocol';
 import { z } from 'zod/v4';
 import type { GuildCloudClient } from './http-client.js';
 import { errorMessage, redactText } from './redaction.js';
@@ -12,71 +21,13 @@ import type { Assignment } from './types.js';
 const MAX_REQUEST_BYTES = 1_000_000;
 const MAX_RESULT_BYTES = 200_000;
 
-const nodePaletteIdSchema = z.enum(['paper', 'amber', 'peach', 'mint', 'lilac', 'rose', 'ink']);
-const nodeStyleSchema = z.object({ palette: nodePaletteIdSchema.optional() }).strict();
-const canvasObjectTypeSchema = z.enum([
-  'shape',
-  'sticky',
-  'text',
-  'mindMapNode',
-  'table',
-  'icon',
-  'image',
-  'link',
-  'section',
-  'annotation',
-  'drawing',
-  'task',
-  'stack',
-  'wireframeFrame',
-  'wireframeComponent',
-]);
-const projectAreaSchema = z.enum([
-  'idea',
-  'product',
-  'journey',
-  'design',
-  'architecture',
-  'aiSystems',
-  'database',
-  'implementation',
-  'testing',
-  'launch',
-]);
-const relationshipSchema = z.enum([
-  'contains',
-  'informs',
-  'requires',
-  'implements',
-  'represents',
-  'supports',
-  'depends_on',
-  'calls',
-  'reads_from',
-  'writes_to',
-  'emits',
-  'triggers',
-  'verified_by',
-  'affects',
-  'blocks',
-  'supersedes',
-]);
+const nodeStyleSchema = nodeStyleInputSchema;
 const objectIdSchema = z.string().min(1).max(200);
 const revisionSchema = z.number().int().nonnegative();
-const positionSchema = z.object({ x: z.number().finite(), y: z.number().finite() });
-const sizeSchema = z.object({
-  width: z.number().finite().min(24).max(4_096),
-  height: z.number().finite().min(24).max(4_096),
-});
-const semanticsSchema = z.object({
-  semanticType: z.string().min(1).max(200).optional(),
-  projectArea: projectAreaSchema.optional(),
-  status: z.string().min(1).max(200).optional(),
-  priority: z.string().min(1).max(200).optional(),
-  ownerUserId: objectIdSchema.optional(),
-  ownerRoleProfileId: objectIdSchema.optional(),
-  customFields: z.record(z.string(), z.unknown()).optional(),
-});
+const positionSchema = pointSchema;
+const sizeSchema = boundedSizeSchema;
+const semanticsSchema = projectSemanticsSchema;
+const relationshipSchema = projectRelationshipSchema;
 const canvasCommandSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('create_object'),
@@ -288,7 +239,7 @@ function createAssignmentServer(
     {
       description: 'Report concise visible Worker progress for current assignment.',
       inputSchema: {
-        phase: z.enum(['reading_context', 'working', 'writing', 'finishing']),
+        phase: progressPhaseSchema,
         message: z.string().trim().min(1).max(2_000),
         targetObjectId: z.string().max(200).optional(),
       },
