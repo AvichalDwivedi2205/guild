@@ -12,6 +12,17 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-02 (direct plain-text editing)
+
+- Plain text now stays a lightweight canvas primitive: selecting it does not open the Inspector,
+  while double-clicking edits the text directly on the canvas. Enter saves, Shift+Enter inserts a
+  newline, Escape cancels, and blur saves through the normal revision-aware content command.
+- Regression coverage proves that task selection still opens the Inspector, text selection closes
+  it, and an inline save sends the expected title, content, object ID, and content revision.
+- Local evidence: `bun run check` passed formatting, zero-warning ESLint, strict TypeScript,
+  36 test files / 124 tests, and Runner typecheck. The Next.js 16.3.4 production build also passed.
+  Signed-in production Chrome verification is pending the deployment from this batch.
+
 ## Snapshot — 2026-09-02 (production auth and real local Worker proof)
 
 - Fixed two production workspace interaction defects reported from a real Mac trackpad session.

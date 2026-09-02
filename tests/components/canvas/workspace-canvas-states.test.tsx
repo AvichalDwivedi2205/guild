@@ -16,11 +16,13 @@ vi.mock('@xyflow/react', () => ({
   Panel: ({ children }: PropsWithChildren) => <div>{children}</div>,
   ReactFlow: ({
     children,
+    onNodeClick,
     panOnScroll,
     zoomOnPinch,
     zoomOnScroll,
   }: {
     children: ReactNode;
+    onNodeClick?: (event: unknown, node: { data: { object: { type: 'task' | 'text' } } }) => void;
     panOnScroll?: boolean;
     zoomOnPinch?: boolean;
     zoomOnScroll?: boolean;
@@ -32,6 +34,12 @@ vi.mock('@xyflow/react', () => ({
       data-zoom-on-scroll={String(zoomOnScroll)}
     >
       {children}
+      <button onClick={() => onNodeClick?.({}, { data: { object: { type: 'task' } } })}>
+        Click task node
+      </button>
+      <button onClick={() => onNodeClick?.({}, { data: { object: { type: 'text' } } })}>
+        Click text node
+      </button>
     </div>
   ),
   ReactFlowProvider: ({ children }: PropsWithChildren) => <>{children}</>,
@@ -52,7 +60,11 @@ vi.mock('@/components/canvas/canvas-toolbar', () => ({
   ToolbarModeIcon: () => <span aria-hidden="true" />,
 }));
 vi.mock('@/components/canvas/canvas-panels', () => ({
-  CanvasRightPanel: () => <div>Workspace panels</div>,
+  CanvasRightPanel: ({ panel }: { panel: string | null }) => (
+    <div data-testid="workspace-panels" data-panel={panel ?? 'closed'}>
+      Workspace panels
+    </div>
+  ),
 }));
 vi.mock('@/components/canvas/node-renderers', () => ({ canvasNodeTypes: {} }));
 vi.mock('@/components/canvas/connector-edge', () => ({ canvasEdgeTypes: {} }));
@@ -93,6 +105,16 @@ afterEach(() => {
 });
 
 describe('WorkspaceCanvas state surfaces', () => {
+  it('keeps plain text on-canvas instead of opening its Inspector automatically', () => {
+    render(<WorkspaceCanvas data={data('ready')} actions={{}} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Click task node' }));
+    expect(screen.getByTestId('workspace-panels')).toHaveAttribute('data-panel', 'inspector');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Click text node' }));
+    expect(screen.getByTestId('workspace-panels')).toHaveAttribute('data-panel', 'closed');
+  });
+
   it('pans with trackpad scrolling while preserving pinch zoom', () => {
     render(<WorkspaceCanvas data={data('ready')} actions={{}} />);
 

@@ -513,7 +513,9 @@ function CanvasViewport({
           onConnect={connect}
           onNodeDragStart={(_event, node) => beginInteraction(node.id)}
           onNodeDragStop={dragStop}
-          onNodeClick={() => setPanel('inspector')}
+          onNodeClick={(_event, node) =>
+            setPanel(node.data.object.type === 'text' ? null : 'inspector')
+          }
           onPaneClick={() => selectOnly(null)}
           onPointerMove={(event) => {
             const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });

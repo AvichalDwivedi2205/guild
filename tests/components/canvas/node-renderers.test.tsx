@@ -2,7 +2,7 @@
 
 import '@testing-library/jest-dom/vitest';
 
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { NodeProps } from '@xyflow/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -15,7 +15,7 @@ import {
   WireframeNodeRenderer,
 } from '@/components/canvas/node-renderers';
 import type { CanvasObject } from '@/domain/canvas';
-import type { GuildFlowNode } from '@/features/canvas/store';
+import { type GuildFlowNode, useCanvasInteractionStore } from '@/features/canvas/store';
 
 vi.mock('@xyflow/react', () => ({
   Handle: (props: { 'aria-label'?: string }) => <span aria-label={props['aria-label']} />,
@@ -50,9 +50,39 @@ function props(value: CanvasObject, selected = true): NodeProps<GuildFlowNode> {
   return { data: { object: value }, selected } as unknown as NodeProps<GuildFlowNode>;
 }
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  useCanvasInteractionStore.setState({ actions: {} });
+});
 
 describe('canvas node renderers', () => {
+  it('edits plain text inline without requiring the Inspector', async () => {
+    const updateContent = vi.fn().mockResolvedValue({ ok: true, revision: 4 });
+    useCanvasInteractionStore.setState({ actions: { updateContent } });
+    const text = object({
+      type: 'text',
+      title: 'Draft copy',
+      content: { text: 'Draft copy' },
+      revisions: { geometry: 0, content: 3, style: 0, semantics: 0, hierarchy: 0 },
+    });
+    render(<DiagramNodeRenderer {...props(text)} />);
+
+    fireEvent.doubleClick(screen.getByText('Draft copy'));
+    const editor = screen.getByRole('textbox', { name: 'Edit Draft copy' });
+    fireEvent.change(editor, { target: { value: 'Clear canvas copy' } });
+    fireEvent.keyDown(editor, { key: 'Enter' });
+
+    await waitFor(() =>
+      expect(updateContent).toHaveBeenCalledWith({
+        objectId: 'object-1',
+        title: 'Clear canvas copy',
+        content: { text: 'Clear canvas copy' },
+        expectedContentRevision: 3,
+      }),
+    );
+    expect(screen.getByText('Clear canvas copy')).toBeVisible();
+  });
+
   it('renders diagram content, connection handles, lock state, and resize visibility', () => {
     const value = object({
       type: 'sticky',

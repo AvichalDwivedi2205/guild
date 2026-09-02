@@ -10,7 +10,7 @@ import {
   Shapes,
 } from 'lucide-react';
 import { Handle, NodeResizer, Position, type NodeProps, type ResizeParams } from '@xyflow/react';
-import type { CSSProperties, ReactNode } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
 
 import type { CanvasObject } from '@/domain/canvas';
 import { type GuildFlowNode, useCanvasInteractionStore } from '@/features/canvas/store';
@@ -116,13 +116,92 @@ function NodeTitle({ object, fallback }: { object: CanvasObject; fallback: strin
   return <h3 className={styles.nodeTitle}>{object.title?.trim() || fallback}</h3>;
 }
 
+function InlineText({ object }: { object: CanvasObject }) {
+  const updateContent = useCanvasInteractionStore((state) => state.actions.updateContent);
+  const persistedText = contentText(object) || object.title?.trim() || 'Text';
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(persistedText);
+  const [optimisticText, setOptimisticText] = useState<{
+    text: string;
+    revision: number;
+  } | null>(null);
+  const editorRef = useRef<HTMLTextAreaElement | null>(null);
+  const visibleText =
+    optimisticText && object.revisions.content < optimisticText.revision
+      ? optimisticText.text
+      : persistedText;
+
+  useEffect(() => {
+    if (!editing) return;
+    editorRef.current?.focus();
+    editorRef.current?.select();
+  }, [editing]);
+
+  const commit = async () => {
+    const nextText = draft.trim();
+    if (!nextText || nextText === visibleText || !updateContent) {
+      setDraft(visibleText);
+      setEditing(false);
+      return;
+    }
+    const result = await updateContent({
+      objectId: object.id,
+      title: nextText,
+      content: { text: nextText },
+      expectedContentRevision: object.revisions.content,
+    });
+    if (!result.ok) return;
+    setOptimisticText({ text: nextText, revision: result.revision });
+    setEditing(false);
+  };
+
+  if (editing) {
+    return (
+      <textarea
+        ref={editorRef}
+        className={`${styles.inlineTextEditor} nodrag nowheel`}
+        aria-label={`Edit ${object.title?.trim() || 'text'}`}
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+        onBlur={() => void commit()}
+        onKeyDown={(event) => {
+          if (event.key === 'Escape') {
+            event.preventDefault();
+            setDraft(visibleText);
+            setEditing(false);
+          }
+          if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            void commit();
+          }
+        }}
+        onPointerDown={(event) => event.stopPropagation()}
+      />
+    );
+  }
+
+  return (
+    <p
+      className={styles.textNode}
+      title="Double-click to edit"
+      onDoubleClick={(event) => {
+        event.stopPropagation();
+        setDraft(visibleText);
+        setEditing(true);
+      }}
+    >
+      {visibleText}
+    </p>
+  );
+}
+
 export function DiagramNodeRenderer({ data, selected }: NodeProps<GuildFlowNode>) {
   const { object } = data;
   const body = contentText(object);
   return (
     <NodeChrome object={object} selected={selected} family="diagram">
       {object.type === 'text' ? (
-        <p className={styles.textNode}>{body || object.title || 'Text'}</p>
+        <InlineText object={object} />
       ) : (
         <>
           <div className={styles.nodeKicker}>
