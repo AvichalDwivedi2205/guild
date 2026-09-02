@@ -896,7 +896,13 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
           onExit={exitFocus}
         />
       ) : null}
-      {focus.kind === 'evidence' ? <EvidenceFocus focus={focus} onExit={exitFocus} /> : null}
+      {focus.kind === 'evidence' ? (
+        <EvidenceFocus
+          workspaceId={rawWorkspaceId as Id<'workspaces'>}
+          focus={focus}
+          onExit={exitFocus}
+        />
+      ) : null}
     </>
   );
 }
