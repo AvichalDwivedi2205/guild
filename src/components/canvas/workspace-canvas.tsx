@@ -40,6 +40,7 @@ import { NODE_PALETTE, resolvePaletteId } from '@/domain/palette';
 import { absoluteObjectRectangle } from '@/domain/geometry';
 import { primaryAction } from '@/features/canvas/action-registry';
 import { AgentDock } from '@/components/canvas/agent-dock';
+import { PresentationMode } from '@/components/canvas/presentation-mode';
 import { CanvasCreationToolbar, ToolbarModeIcon } from '@/components/canvas/canvas-toolbar';
 import { canvasEdgeTypes } from '@/components/canvas/connector-edge';
 import { canvasNodeTypes } from '@/components/canvas/node-renderers';
@@ -613,6 +614,7 @@ function CanvasViewport({
             })()
           : null}
         <AgentDock data={data} actions={actions} />
+        <PresentationMode workspaceId={data.workspaceId as never} />
         <CanvasRightPanel
           panel={panel}
           setPanel={setPanel}
