@@ -12,6 +12,24 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-03 (Phase 6 visual comments)
+
+- `visualAnchors` plus optional comment thread fields persist a point or
+  rectangle against one immutable screen revision.
+- `visualFeedback.createVisualComment` writes the anchor, the root comment,
+  and exactly one delivery in one Recorder transaction: a Runner Job for a
+  Role-owned screen, or one pending external-workstream feedback row.
+- Comment mode in Design Focus hosts an overlay and an edge-flipping
+  composer. Anchors stay on their original revision.
+- Assignment MCP adds `get_assignment_feedback` with bounded text and an
+  optional MCP image content block. Browser WebMCP still does not return
+  screenshot bytes.
+- Evidence: `bun run test -- tests/domain/anchor.test.ts
+tests/integration/convex-visual-feedback.test.ts
+tests/runner/canvas-only-boundary.test.ts tests/runner/adapters.test.ts
+tests/runner/mcp-bridge.test.ts` (14 passed); `bun run lint`;
+  `bun run typecheck`; `bun run runner:typecheck`.
+
 ## Snapshot — 2026-09-03 (Phase 5 Focus and Preview Bridge)
 
 - Deep-linkable Focus uses validated workspace search params (`focus`,

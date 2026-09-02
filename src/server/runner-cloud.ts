@@ -63,6 +63,7 @@ export const assignmentToolBodySchema = z.object({
     'add_comment',
     'report_progress',
     'publish_design_preview',
+    'get_assignment_feedback',
   ]),
   arguments: z.record(z.string(), z.unknown()),
 });

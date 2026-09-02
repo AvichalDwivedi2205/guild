@@ -11,6 +11,7 @@ const RUNNER_SRC = join(REPO_ROOT, 'packages/runner/src');
 const CANVAS_ONLY_TOOLS = [
   'add_comment',
   'apply_canvas_changes',
+  'get_assignment_feedback',
   'get_workspace_context',
   'publish_design_preview',
   'report_progress',
@@ -70,7 +71,7 @@ describe('canvas-only Runner characterization', () => {
       assignment: assignment({ engine: 'claude' }),
     });
     expect(codex.args.join(' ')).toContain(
-      'mcp_servers.guild.enabled_tools=["get_workspace_context","search_canvas","apply_canvas_changes","add_comment","publish_design_preview","report_progress"]',
+      'mcp_servers.guild.enabled_tools=["get_workspace_context","search_canvas","apply_canvas_changes","add_comment","publish_design_preview","get_assignment_feedback","report_progress"]',
     );
     expect(claude.args[claude.args.indexOf('--allowedTools') + 1]).toContain(
       'mcp__guild__get_workspace_context',

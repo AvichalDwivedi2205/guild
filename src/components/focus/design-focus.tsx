@@ -6,6 +6,7 @@ import { useEffect, useId, useState } from 'react';
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { PreviewFrame } from '@/components/focus/preview-frame';
+import { VisualOverlay } from '@/components/focus/visual-overlay';
 import { focusHref, type FocusState } from '@/features/focus/state';
 
 import styles from './focus.module.css';
@@ -144,15 +145,27 @@ export function DesignFocus({
           Exit Focus
         </button>
       </header>
-      <PreviewFrame
-        title={`${screen.name} preview`}
-        src={framedUrl.toString()}
-        origin={revision.origin}
-        mode={mode}
-        sessionNonce={sessionNonce}
-        designRevisionId={revision.id}
-        screenKey={screen.key}
-      />
+      <div className={styles.preview} style={{ position: 'relative' }}>
+        <PreviewFrame
+          title={`${screen.name} preview`}
+          src={framedUrl.toString()}
+          origin={revision.origin}
+          mode={mode}
+          sessionNonce={sessionNonce}
+          designRevisionId={revision.id}
+          screenKey={screen.key}
+        />
+        {mode === 'comment' && screenRevision ? (
+          <VisualOverlay
+            workspaceId={workspaceId}
+            targetObjectId={screen.canvasObjectId}
+            screenRevisionId={screenRevision.id}
+            screenKey={screen.key}
+            route={screenRevision.route}
+            viewportKey={viewportKey}
+          />
+        ) : null}
+      </div>
     </section>
   );
 }
