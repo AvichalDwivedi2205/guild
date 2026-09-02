@@ -50,8 +50,14 @@ vi.mock('@xyflow/react', () => ({
     zoomOut: vi.fn(),
     getZoom: () => 1,
     getViewport: () => ({ x: 0, y: 0, zoom: 1 }),
+    setViewport: vi.fn(),
     screenToFlowPosition: ({ x, y }: { x: number; y: number }) => ({ x, y }),
   }),
+}));
+
+vi.mock('convex/react', () => ({
+  useQuery: () => undefined,
+  useMutation: () => vi.fn(async () => undefined),
 }));
 
 vi.mock('@/components/theme-toggle', () => ({ ThemeToggle: () => <button>Theme</button> }));

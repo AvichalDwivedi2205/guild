@@ -16,7 +16,9 @@ export function PresentationMode({ workspaceId }: { workspaceId: Id<'workspaces'
   const [followWorker, setFollowWorker] = useState(false);
   const [index, setIndex] = useState(0);
   const reducedMotion =
-    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   useEffect(() => {
     if (!active) return;
