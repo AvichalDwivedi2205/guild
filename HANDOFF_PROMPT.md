@@ -27,12 +27,12 @@ timestamped deployment URL.
 
 Start with the highest-priority unchecked item in IMPLEMENTATION_STATUS.md. Current production
 auth, workspace creation, judge-team assembly, Runner pairing, concurrent real Codex + Claude
-Sonnet writes, cancellation, retry, Convex deployment, Vercel deployment, and the clean signed
+Sonnet writes, cancellation, retry, conflict-aware Run undo, Runner revoke/re-pair, trackpad canvas
+panning, readable Inspector contrast, Convex deployment, Vercel deployment, and the clean signed
 browser console are proven. Claude testing must stay pinned to `sonnet`; do not use the user's
 `fable` preference. Unless current evidence changes the order, next:
 - obtain a browser/controller with native `document.modelContext` support and invoke all fourteen
   production WebMCP tools, verifying their visible canvas effects;
-- complete conflict-aware Run undo and Runner revoke/re-pair after action-time user confirmation;
 - verify two real browser contexts, unauthorized membership denial, and sign-out;
 - expand automated Playwright coverage beyond the four landing tests to the remaining required
   authenticated flows;

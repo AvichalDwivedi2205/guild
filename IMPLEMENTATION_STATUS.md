@@ -19,7 +19,15 @@ Status vocabulary:
   movement into zoom. The Inspector now renders on an opaque theme surface without backdrop blur,
   preventing bright canvas objects from washing out labels and fields. Regression evidence: two
   focused component/style checks fail on the old behavior and pass after the fix; strict TypeScript
-  and zero-warning ESLint also pass. Production deployment/browser proof follows this code batch.
+  and zero-warning ESLint also pass. Production deployment `dpl_7ZDR5a2piWf9cCP4YeC815ZiesY3`
+  reached `READY` on the stable alias. A fresh signed-in production tab measured the Inspector at
+  opaque `rgb(28, 27, 25)` with no backdrop filter, rendered its fields legibly, preserved canvas
+  data, and produced no browser warnings/errors. GitHub quality gates passed commit `5a49b38`.
+- Exercised the approved destructive production checks. Undoing the completed 9:15 Team Run
+  removed all eight attributable Worker artifacts while preserving all four artifacts from the
+  later Claude Sonnet retry. Revoking the online Runner caused its next authenticated poll to fail;
+  a new device code was then approved through the signed-in production UI, exchanged once, stored
+  in macOS Keychain, and the replacement `Avichal's Mac` returned Online at capacity 2.
 - Fixed production Convex authentication for the shared multi-application WorkOS environment by
   allowing an explicit validated WorkOS JWT issuer. A signed-in production browser created and
   loaded `Guild Judge Workspace`, assembled the seven-role recommended team, and exercised live
@@ -313,34 +321,34 @@ callback.
 “Implemented” below means the connected behavior is present; the final acceptance gate still
 requires the broader production and E2E evidence listed later.
 
-| #   | Capability                                 | State       | Remaining acceptance evidence or gap                                  |
-| --- | ------------------------------------------ | ----------- | --------------------------------------------------------------------- |
-| 1   | Infinite shared project canvas             | Implemented | Production smoke and large-workspace interaction                      |
-| 2   | Multiplayer human collaboration            | Partial     | Two real browser-context E2E for cursor, selection, edit, viewport    |
-| 3   | Local AI Workers as teammates              | Implemented | Revoke/re-pair browser proof remains                                  |
-| 4   | Multiple Workers simultaneously            | Implemented | Real collision rejection remains                                      |
-| 5   | WebMCP and local Runner paths              | Partial     | Production browser-agent and real Runner verification                 |
-| 6   | Worker Role Profiles                       | Partial     | Authenticated create/edit/delete browser coverage                     |
-| 7   | Assignment-scoped autonomous canvas access | Implemented | Production adversarial/capability E2E                                 |
-| 8   | Sections and project spaces                | Implemented | Representative browser flow                                           |
-| 9   | Requirements and PRD representation        | Implemented | Representative authenticated browser flow                             |
-| 10  | Journeys and flows                         | Implemented | Representative authenticated browser flow                             |
-| 11  | Lightweight wireframe design               | Implemented | Renderer-family browser coverage                                      |
-| 12  | System architecture                        | Implemented | Representative semantic-connector E2E                                 |
-| 13  | AI architecture                            | Implemented | Representative semantic-connector E2E                                 |
-| 14  | Implementation planning and tasks          | Implemented | Authenticated integration/E2E coverage                                |
-| 15  | Semantic traceability                      | Implemented | End-to-end relationship editing coverage                              |
-| 16  | Reversible execution                       | Partial     | History-point restore is Change-Set revert; full conflict E2E remains |
-| 17  | Comments and mentions                      | Implemented | Authenticated `@Role`, `@team`, and unowned-comment E2E               |
-| 18  | Worker activity visibility                 | Implemented | Real Codex/Sonnet progress and results proven                         |
-| 19  | Live Worker target cursors                 | Implemented | Real concurrent browser presence proven                               |
-| 20  | Activity feed                              | Implemented | Attribution integration tests                                         |
-| 21  | Worker progress and result comments        | Implemented | Real Codex/Sonnet completion flow proven                              |
-| 22  | Decision memory                            | Partial     | Explicit history/decision retrieval UX and E2E                        |
-| 23  | Persistent project context                 | Implemented | Production persistence/reconnect E2E                                  |
-| 24  | Project overview                           | Implemented | Authenticated component/E2E coverage                                  |
-| 25  | Team management                            | Partial     | Authenticated role/team/Runner management browser coverage            |
-| 26  | Assemble Team                              | Implemented | Authenticated deterministic browser E2E                               |
+| #   | Capability                                 | State       | Remaining acceptance evidence or gap                                   |
+| --- | ------------------------------------------ | ----------- | ---------------------------------------------------------------------- |
+| 1   | Infinite shared project canvas             | Implemented | Production smoke and large-workspace interaction                       |
+| 2   | Multiplayer human collaboration            | Partial     | Two real browser-context E2E for cursor, selection, edit, viewport     |
+| 3   | Local AI Workers as teammates              | Implemented | Live pairing, revocation, and re-pair are proven                       |
+| 4   | Multiple Workers simultaneously            | Implemented | Real collision rejection remains                                       |
+| 5   | WebMCP and local Runner paths              | Partial     | Native production WebMCP browser-agent proof remains                   |
+| 6   | Worker Role Profiles                       | Partial     | Authenticated create/edit/delete browser coverage                      |
+| 7   | Assignment-scoped autonomous canvas access | Implemented | Production adversarial/capability E2E                                  |
+| 8   | Sections and project spaces                | Implemented | Representative browser flow                                            |
+| 9   | Requirements and PRD representation        | Implemented | Representative authenticated browser flow                              |
+| 10  | Journeys and flows                         | Implemented | Representative authenticated browser flow                              |
+| 11  | Lightweight wireframe design               | Implemented | Renderer-family browser coverage                                       |
+| 12  | System architecture                        | Implemented | Representative semantic-connector E2E                                  |
+| 13  | AI architecture                            | Implemented | Representative semantic-connector E2E                                  |
+| 14  | Implementation planning and tasks          | Implemented | Authenticated integration/E2E coverage                                 |
+| 15  | Semantic traceability                      | Implemented | End-to-end relationship editing coverage                               |
+| 16  | Reversible execution                       | Implemented | Live Run undo preserved later edits; history restore is conflict-aware |
+| 17  | Comments and mentions                      | Implemented | Authenticated `@Role`, `@team`, and unowned-comment E2E                |
+| 18  | Worker activity visibility                 | Implemented | Real Codex/Sonnet progress and results proven                          |
+| 19  | Live Worker target cursors                 | Implemented | Real concurrent browser presence proven                                |
+| 20  | Activity feed                              | Implemented | Attribution integration tests                                          |
+| 21  | Worker progress and result comments        | Implemented | Real Codex/Sonnet completion flow proven                               |
+| 22  | Decision memory                            | Partial     | Explicit history/decision retrieval UX and E2E                         |
+| 23  | Persistent project context                 | Implemented | Production persistence/reconnect E2E                                   |
+| 24  | Project overview                           | Implemented | Authenticated component/E2E coverage                                   |
+| 25  | Team management                            | Partial     | Authenticated role/team/Runner management browser coverage             |
+| 26  | Assemble Team                              | Implemented | Authenticated deterministic browser E2E                                |
 
 ## Verification actually completed
 
@@ -363,11 +371,11 @@ a working production application until the new Production environment variables 
 redeploy.
 
 Latest local proof: frozen install had no changes; `bun run check` passed formatting, ESLint,
-strict TypeScript, 35 test files / 120 tests, and Runner typecheck. `bun run runner:test` passed
+strict TypeScript, 36 test files / 122 tests, and Runner typecheck. `bun run runner:test` passed
 (10 files / 28 tests); Runner and Next.js production builds passed; `bun audit` found no
 vulnerabilities; and the four-test landing suite passed in desktop and mobile Chromium. Convex
 production deployed to `befitting-bird-666` with schema validation and no deleted indexes. Vercel
-deployment `dpl_5Y4cLwWMMqsju6oXT7Q1LPAaREBN` is Ready on the stable alias. The signed production
+deployment `dpl_7ZDR5a2piWf9cCP4YeC815ZiesY3` is Ready on the stable alias. The signed production
 workspace rendered its persisted human and Worker artifacts with no browser console warnings or
 errors; `/auth-check` now resolves to the authenticated not-found UI rather than a diagnostic page.
 
@@ -394,15 +402,15 @@ errors; `/auth-check` now resolves to the authenticated not-found UI rather than
 
 ### P0 — prove real execution surfaces
 
-- [ ] Pair and revoke a real macOS Runner through the deployed app. Pairing is proven; final
-      revoke/re-pair proof remains.
+- [x] Paired, revoked, and re-paired a real macOS Runner through the deployed app. Revocation
+      rejected the old token's next poll; the replacement is Online at capacity 2.
 - [x] Detected authenticated local Codex CLI `0.151.0-alpha.7.2` and Claude Code `2.1.258`
       first-party client sessions; no provider API keys were used.
 - [ ] Execute at least one Codex Job and one Claude Job concurrently, confirm separate Reserved
       Regions, progress/results, cancellation, retry, stale-attempt rejection, and collision
-      rejection. Real concurrency, writes, progress/results, cancellation, and retry are proven;
-      stale-attempt and collision rejection have connected integration proof but not a live
-      adversarial browser run.
+      rejection. Real concurrency, writes, progress/results, cancellation, retry, and
+      conflict-aware Run undo preserving later edits are proven; stale-attempt and collision
+      rejection have connected integration proof but not a live adversarial browser run.
 - [ ] Invoke all fourteen WebMCP tools through a real supported production browser/controller and
       confirm direct changes appear immediately on the live canvas.
 
