@@ -12,6 +12,14 @@ if (mode === 'output') {
     turn += 1;
     process.stdout.write(`${JSON.stringify({ type: 'turn.started', turn })}\n`);
   }, 5);
+} else if (mode === 'codex-failure') {
+  process.stdout.write(
+    `${JSON.stringify({ type: 'item.completed', item: { type: 'agent_message', text: 'attempted work' } })}\n`,
+  );
+  process.stdout.write(
+    `${JSON.stringify({ type: 'turn.failed', message: 'MCP write rejected' })}\n`,
+  );
+  process.exitCode = 1;
 } else if (mode === 'echo') {
   let input = '';
   process.stdin.setEncoding('utf8');

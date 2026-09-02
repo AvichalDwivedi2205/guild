@@ -44,8 +44,8 @@ function completionFromOutcome(outcome: ProcessOutcome): AssignmentCompletion {
     exitCode: outcome.exitCode,
     reason:
       outcome.reason === 'completed'
-        ? `Engine exited with code ${outcome.exitCode ?? 'unknown'}`
-        : outcome.reason,
+        ? (outcome.error ?? `Engine exited with code ${outcome.exitCode ?? 'unknown'}`)
+        : (outcome.error ?? outcome.reason),
     ...(outcome.finalMessage ? { finalMessage: outcome.finalMessage } : {}),
   };
 }

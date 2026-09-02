@@ -9,6 +9,7 @@ export type ParsedProgress = {
 export interface StructuredOutputParser {
   turns: number;
   finalMessage?: string;
+  failureMessage?: string;
   push(chunk: string, stream: 'stdout' | 'stderr'): readonly ParsedProgress[];
   finish(): readonly ParsedProgress[];
 }
@@ -45,6 +46,7 @@ function messageText(value: unknown): string | undefined {
 abstract class JsonLineParser implements StructuredOutputParser {
   turns = 0;
   finalMessage?: string;
+  failureMessage?: string;
   readonly #knownSecrets: readonly string[];
   #stdoutPending = '';
   #stderrPending = '';
@@ -93,6 +95,7 @@ abstract class JsonLineParser implements StructuredOutputParser {
   protected stderr(line: string): readonly ParsedProgress[] {
     const message = this.sanitize(line, 500);
     if (!message || !/(?:error|failed|warning|auth|login)/i.test(message)) return [];
+    if (/(?:error|failed|auth|login)/i.test(message)) this.failureMessage = message;
     return [{ phase: 'working', message }];
   }
 
@@ -116,6 +119,7 @@ export class CodexOutputParser extends JsonLineParser {
       return [{ phase: 'finishing', message: 'Codex Worker finished its turn' }];
     if (type === 'error' || type === 'turn.failed') {
       const message = this.sanitize(messageText(event) ?? 'Codex Worker failed');
+      this.failureMessage = message;
       return [{ phase: 'failed', message }];
     }
     if (type !== 'item.completed') return [];
@@ -155,6 +159,10 @@ export class ClaudeOutputParser extends JsonLineParser {
       const raw = stringAt(event, 'result');
       if (raw) this.finalMessage = this.sanitize(raw);
       const isError = event.is_error === true || stringAt(event, 'subtype') === 'error';
+      if (isError) {
+        this.failureMessage =
+          this.finalMessage ?? this.sanitize(messageText(event) ?? 'Claude Code Worker failed');
+      }
       return [
         {
           phase: isError ? 'failed' : 'finishing',

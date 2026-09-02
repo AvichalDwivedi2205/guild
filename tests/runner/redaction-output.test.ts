@@ -45,6 +45,24 @@ describe('structured engine output', () => {
     expect(parser.finalMessage).toBe('done [REDACTED]');
   });
 
+  it('retains a redacted Codex failure separately from the last agent message', () => {
+    const secret = `assignment_${'u'.repeat(40)}`;
+    const parser = new CodexOutputParser([secret]);
+    parser.push(
+      `${JSON.stringify({ type: 'item.completed', item: { type: 'agent_message', text: 'starting write' } })}\n`,
+      'stdout',
+    );
+
+    expect(
+      parser.push(
+        `${JSON.stringify({ type: 'turn.failed', message: `MCP write failed ${secret}` })}\n`,
+        'stdout',
+      ),
+    ).toEqual([{ phase: 'failed', message: 'MCP write failed [REDACTED]' }]);
+    expect(parser.finalMessage).toBe('starting write');
+    expect(parser.failureMessage).toBe('MCP write failed [REDACTED]');
+  });
+
   it('parses Claude tool and result events without exposing token', () => {
     const secret = `assignment_${'t'.repeat(40)}`;
     const parser = new ClaudeOutputParser([secret]);

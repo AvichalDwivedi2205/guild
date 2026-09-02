@@ -149,6 +149,9 @@ export async function superviseProcess(input: {
         outputBytes,
         turns: input.parser.turns,
         ...(input.parser.finalMessage ? { finalMessage: input.parser.finalMessage } : {}),
+        ...(code !== 0 && input.parser.failureMessage
+          ? { error: input.parser.failureMessage }
+          : {}),
       });
     });
 

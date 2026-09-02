@@ -76,4 +76,21 @@ describe('process supervision', () => {
     expect(outcome.reason).toBe('turn_limit');
     expect(outcome.turns).toBe(3);
   });
+
+  it('preserves structured engine failure detail on nonzero exit', async () => {
+    const outcome = await superviseProcess({
+      plan: plan('codex-failure'),
+      limits: limits(),
+      parser: new CodexOutputParser([]),
+      signal: new AbortController().signal,
+      onProgress: () => undefined,
+    });
+
+    expect(outcome).toMatchObject({
+      exitCode: 1,
+      reason: 'completed',
+      finalMessage: 'attempted work',
+      error: 'MCP write rejected',
+    });
+  });
 });
