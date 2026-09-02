@@ -12,6 +12,137 @@ import type { Assignment } from './types.js';
 const MAX_REQUEST_BYTES = 1_000_000;
 const MAX_RESULT_BYTES = 200_000;
 
+const canvasObjectTypeSchema = z.enum([
+  'shape',
+  'sticky',
+  'text',
+  'mindMapNode',
+  'table',
+  'icon',
+  'image',
+  'link',
+  'section',
+  'annotation',
+  'drawing',
+  'task',
+  'stack',
+  'wireframeFrame',
+  'wireframeComponent',
+]);
+const projectAreaSchema = z.enum([
+  'idea',
+  'product',
+  'journey',
+  'design',
+  'architecture',
+  'aiSystems',
+  'database',
+  'implementation',
+  'testing',
+  'launch',
+]);
+const relationshipSchema = z.enum([
+  'contains',
+  'informs',
+  'requires',
+  'implements',
+  'represents',
+  'supports',
+  'depends_on',
+  'calls',
+  'reads_from',
+  'writes_to',
+  'emits',
+  'triggers',
+  'verified_by',
+  'affects',
+  'blocks',
+  'supersedes',
+]);
+const objectIdSchema = z.string().min(1).max(200);
+const revisionSchema = z.number().int().nonnegative();
+const positionSchema = z.object({ x: z.number().finite(), y: z.number().finite() });
+const sizeSchema = z.object({
+  width: z.number().finite().min(24).max(4_096),
+  height: z.number().finite().min(24).max(4_096),
+});
+const semanticsSchema = z.object({
+  semanticType: z.string().min(1).max(200).optional(),
+  projectArea: projectAreaSchema.optional(),
+  status: z.string().min(1).max(200).optional(),
+  priority: z.string().min(1).max(200).optional(),
+  ownerUserId: objectIdSchema.optional(),
+  ownerRoleProfileId: objectIdSchema.optional(),
+  customFields: z.record(z.string(), z.unknown()).optional(),
+});
+const canvasCommandSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('create_object'),
+    objectType: canvasObjectTypeSchema,
+    variant: z.string().min(1).max(200).optional(),
+    title: z.string().max(240).optional(),
+    content: z.unknown().optional(),
+    position: positionSchema.optional(),
+    size: sizeSchema,
+    rotation: z.number().finite().optional(),
+    style: z.unknown().optional(),
+    semantics: semanticsSchema.optional(),
+    parentId: objectIdSchema.optional(),
+    orderKey: z.string().min(1).max(200).optional(),
+    logicalKey: z.string().min(1).max(200).optional(),
+  }),
+  z.object({
+    type: z.literal('update_object'),
+    objectId: objectIdSchema,
+    segment: z.enum(['content', 'style', 'semantics', 'hierarchy']),
+    expectedRevision: revisionSchema,
+    title: z.string().max(240).optional(),
+    value: z.unknown(),
+  }),
+  z.object({
+    type: z.literal('move_object'),
+    objectId: objectIdSchema,
+    position: positionSchema,
+    expectedRevision: revisionSchema,
+  }),
+  z.object({
+    type: z.literal('resize_object'),
+    objectId: objectIdSchema,
+    size: sizeSchema,
+    expectedRevision: revisionSchema,
+  }),
+  z.object({
+    type: z.literal('delete_object'),
+    objectId: objectIdSchema,
+    expectedRevision: revisionSchema,
+  }),
+  z.object({
+    type: z.literal('create_edge'),
+    sourceObjectId: objectIdSchema,
+    targetObjectId: objectIdSchema,
+    relationship: relationshipSchema,
+    label: z.string().max(240).optional(),
+    sourceHandle: z.string().max(200).optional(),
+    targetHandle: z.string().max(200).optional(),
+    routing: z.enum(['straight', 'curve', 'elbow']).optional(),
+    style: z.unknown().optional(),
+  }),
+  z.object({
+    type: z.literal('update_edge'),
+    edgeId: objectIdSchema,
+    relationship: relationshipSchema.optional(),
+    label: z.string().max(240).optional(),
+    routing: z.enum(['straight', 'curve', 'elbow']).optional(),
+    style: z.unknown().optional(),
+    expectedRevision: revisionSchema,
+  }),
+  z.object({
+    type: z.literal('delete_edge'),
+    edgeId: objectIdSchema,
+    expectedRevision: revisionSchema,
+  }),
+]);
+
 async function readJsonBody(request: IncomingMessage): Promise<unknown> {
   const chunks: Buffer[] = [];
   let bytes = 0;
@@ -96,10 +227,10 @@ function createAssignmentServer(
     'apply_canvas_changes',
     {
       description:
-        'Apply at most 25 idempotent canvas commands inside current Work Claim and Reserved Region.',
+        'Apply at most 25 idempotent canvas commands inside current Work Claim and Reserved Region. Create example: {"type":"create_object","objectType":"sticky","title":"MVP strategy","content":{"text":"Visible result"},"size":{"width":300,"height":180},"logicalKey":"mvp-strategy"}. Put fields directly on each command; never nest them under object. For Worker creates, omit parentId and position because Guild assigns the owned section and collision-free reserved placement.',
       inputSchema: {
         idempotencyKey: z.string().min(8).max(200),
-        commands: z.array(z.record(z.string(), z.unknown())).min(1).max(25),
+        commands: z.array(canvasCommandSchema).min(1).max(25),
       },
       annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
     },

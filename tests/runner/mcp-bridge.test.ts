@@ -44,6 +44,39 @@ describe('assignment-scoped MCP bridge', () => {
         query: 'authentication',
         limit: 10,
       });
+
+      const validChange = {
+        idempotencyKey: 'worker-visible-output-0001',
+        commands: [
+          {
+            type: 'create_object',
+            objectType: 'sticky',
+            title: 'Visible worker output',
+            content: { text: 'Schema-valid artifact.' },
+            size: { width: 300, height: 180 },
+            logicalKey: 'visible-worker-output',
+          },
+        ],
+      };
+      const changed = await client.callTool({
+        name: 'apply_canvas_changes',
+        arguments: validChange,
+      });
+      expect(changed.isError).not.toBe(true);
+      expect(callAssignmentTool).toHaveBeenCalledWith(
+        currentAssignment,
+        'apply_canvas_changes',
+        validChange,
+      );
+
+      const malformed = await client.callTool({
+        name: 'apply_canvas_changes',
+        arguments: {
+          idempotencyKey: 'worker-malformed-output-0001',
+          commands: [{ type: 'create_object', object: { type: 'sticky' } }],
+        },
+      });
+      expect(malformed.isError).toBe(true);
     } finally {
       await client.close().catch(() => undefined);
       await bridge.close().catch(() => undefined);
