@@ -43,3 +43,27 @@ A non-overlapping canvas area allocated to a Job for newly created objects.
 
 **Change Set**:
 An attributable, reversible group of workspace mutations produced by one human action, WebMCP call, or Worker Job.
+
+**Immutable design revision**:
+An append-only published snapshot of a hosted design set. Guild stores the deployment identity, screen metadata, and captures; it never rewrites a published revision in place.
+_Avoid_: Overwritten preview, live HTML injection
+
+**Visual anchor**:
+The exact screen revision, route, viewport, scroll, and normalized point or rectangle that a comment is bound to. Old anchors stay on their original revision.
+_Avoid_: Floating pin, prompt-only selection
+
+**Preview origin**:
+A workspace-approved HTTPS origin that Guild may embed or capture. Capture and Focus reject unapproved, private, or credential-bearing destinations.
+_Avoid_: Arbitrary iframe, open redirect
+
+**External workstream**:
+A stable logical responsibility reported by an authenticated WebMCP Controller working outside Guild. Status is model-reported and can become Stale; it is not a Guild Job.
+_Avoid_: Observed process, Runner Job, internal subagent
+
+**Reported evidence**:
+Bounded implementation metadata a Controller publishes into Guild: files, check names, commit or preview links, and related canvas objects. Guild stores the claim; it does not run the work.
+_Avoid_: Verified test, Guild-run check
+
+**Link verification**:
+A read-only reachability check of an approved public HTTPS URL. A resolving link is labeled Link verified and never upgrades a reported check into a Guild-verified result.
+_Avoid_: Test passed, commit inspected
