@@ -101,6 +101,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ job
       });
     }
 
+    if (body.tool === 'get_assignment_feedback') {
+      const feedback = await client.query(api.visualFeedback.getAssignmentFeedback, {
+        workspaceId,
+        jobId: jobId as Id<'jobs'>,
+      });
+      return Response.json(feedback);
+    }
+
     if (body.tool === 'publish_design_preview') {
       const args = publishDesignPreviewRequestSchema.parse({
         ...body.arguments,

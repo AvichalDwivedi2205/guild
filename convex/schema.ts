@@ -139,6 +139,9 @@ export default defineSchema({
     teamRunId: v.optional(v.id('teamRuns')),
     jobIds: v.array(v.id('jobs')),
     resolvedAt: v.optional(v.number()),
+    visualAnchorId: v.optional(v.id('visualAnchors')),
+    parentCommentId: v.optional(v.id('comments')),
+    threadRootId: v.optional(v.id('comments')),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -615,4 +618,174 @@ export default defineSchema({
   })
     .index('by_workspaceId_and_state', ['workspaceId', 'state'])
     .index('by_expiresAt', ['expiresAt']),
+
+  visualAnchors: defineTable({
+    workspaceId: v.id('workspaces'),
+    commentId: v.id('comments'),
+    designScreenRevisionId: v.id('designScreenRevisions'),
+    kind: v.union(v.literal('point'), v.literal('rectangle')),
+    viewportKey: v.union(v.literal('desktop'), v.literal('mobile')),
+    viewportWidth: v.number(),
+    viewportHeight: v.number(),
+    scrollX: v.number(),
+    scrollY: v.number(),
+    pointX: v.optional(v.number()),
+    pointY: v.optional(v.number()),
+    rectX: v.optional(v.number()),
+    rectY: v.optional(v.number()),
+    rectWidth: v.optional(v.number()),
+    rectHeight: v.optional(v.number()),
+    cropAssetId: v.optional(v.id('assets')),
+    stableElementId: v.optional(v.string()),
+    detached: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index('by_commentId', ['commentId'])
+    .index('by_designScreenRevisionId', ['designScreenRevisionId']),
+
+  designRevisionComments: defineTable({
+    workspaceId: v.id('workspaces'),
+    designRevisionId: v.id('designRevisions'),
+    commentId: v.id('comments'),
+    classification: v.union(v.literal('addressed'), v.literal('carried'), v.literal('detached')),
+    createdAt: v.number(),
+  }).index('by_revision_and_comment', ['designRevisionId', 'commentId']),
+
+  designReviewDecisions: defineTable({
+    workspaceId: v.id('workspaces'),
+    designRevisionId: v.id('designRevisions'),
+    decision: v.union(v.literal('approved'), v.literal('changes_requested')),
+    actorUserId: v.id('users'),
+    note: v.optional(v.string()),
+    createdAt: v.number(),
+  }).index('by_revision_and_createdAt', ['designRevisionId', 'createdAt']),
+
+  externalWorkstreams: defineTable({
+    workspaceId: v.id('workspaces'),
+    key: v.string(),
+    roleLabel: v.string(),
+    engineLabel: v.union(v.literal('codex'), v.literal('claude')),
+    objective: v.string(),
+    state: v.union(
+      v.literal('reported'),
+      v.literal('blocked'),
+      v.literal('completed'),
+      v.literal('cancelled'),
+    ),
+    lastSequence: v.number(),
+    lastEventTime: v.number(),
+    lastReceivedAt: v.number(),
+    targetObjectId: v.optional(v.id('canvasObjects')),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_workspaceId_and_key', ['workspaceId', 'key'])
+    .index('by_workspaceId_and_state', ['workspaceId', 'state']),
+
+  workstreamUpdates: defineTable({
+    workspaceId: v.id('workspaces'),
+    workstreamId: v.id('externalWorkstreams'),
+    sequence: v.number(),
+    phase: v.string(),
+    summary: v.string(),
+    eventTime: v.number(),
+    receivedAt: v.number(),
+    changeSetId: v.id('changeSets'),
+  }).index('by_workstreamId_and_sequence', ['workstreamId', 'sequence']),
+
+  externalWorkstreamFeedback: defineTable({
+    workspaceId: v.id('workspaces'),
+    workstreamId: v.id('externalWorkstreams'),
+    sourceCommentId: v.id('comments'),
+    visualAnchorId: v.optional(v.id('visualAnchors')),
+    state: v.union(
+      v.literal('pending'),
+      v.literal('acknowledged'),
+      v.literal('working'),
+      v.literal('completed'),
+      v.literal('failed'),
+    ),
+    body: v.string(),
+    cropAssetId: v.optional(v.id('assets')),
+    createdAt: v.number(),
+    acknowledgedAt: v.optional(v.number()),
+    addressedAt: v.optional(v.number()),
+  })
+    .index('by_workstreamId_and_state', ['workstreamId', 'state'])
+    .index('by_sourceCommentId', ['sourceCommentId']),
+
+  implementationEvidence: defineTable({
+    workspaceId: v.id('workspaces'),
+    workstreamKey: v.string(),
+    kind: v.union(
+      v.literal('changed_files'),
+      v.literal('check'),
+      v.literal('commit'),
+      v.literal('pull_request'),
+      v.literal('hosted_preview'),
+    ),
+    projectLabel: v.string(),
+    branch: v.optional(v.string()),
+    commit: v.optional(v.string()),
+    changedFiles: v.optional(v.array(v.string())),
+    diffSummary: v.optional(v.string()),
+    checks: v.optional(
+      v.array(
+        v.object({
+          name: v.string(),
+          outcome: v.union(v.literal('passed'), v.literal('failed'), v.literal('skipped')),
+          durationMs: v.optional(v.number()),
+          summary: v.optional(v.string()),
+        }),
+      ),
+    ),
+    url: v.optional(v.string()),
+    relatedObjectIds: v.array(v.string()),
+    verificationState: v.union(
+      v.literal('reported'),
+      v.literal('link_verified'),
+      v.literal('unavailable'),
+    ),
+    reporterUserId: v.id('users'),
+    eventTime: v.number(),
+    createdAt: v.number(),
+  })
+    .index('by_workspaceId_and_workstreamKey', ['workspaceId', 'workstreamKey'])
+    .index('by_workspaceId', ['workspaceId']),
+
+  evidenceLinkChecks: defineTable({
+    workspaceId: v.id('workspaces'),
+    evidenceId: v.id('implementationEvidence'),
+    requestedUrl: v.string(),
+    resolvedUrl: v.optional(v.string()),
+    httpStatus: v.optional(v.number()),
+    state: v.union(v.literal('link_verified'), v.literal('unavailable')),
+    failure: v.optional(v.string()),
+    createdAt: v.number(),
+  }).index('by_evidenceId_and_createdAt', ['evidenceId', 'createdAt']),
+
+  presentationViews: defineTable({
+    workspaceId: v.id('workspaces'),
+    key: v.string(),
+    name: v.string(),
+    order: v.number(),
+    camera: v.object({
+      x: v.number(),
+      y: v.number(),
+      zoom: v.number(),
+    }),
+    focusKind: v.optional(v.union(v.literal('canvas'), v.literal('design'), v.literal('evidence'))),
+    focusTarget: v.optional(v.string()),
+    createdAt: v.number(),
+  }).index('by_workspaceId_and_order', ['workspaceId', 'order']),
+
+  demoScenarios: defineTable({
+    workspaceId: v.id('workspaces'),
+    key: v.string(),
+    checkpoint: v.string(),
+    resetGeneration: v.number(),
+    artifactLogicalKeys: v.array(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index('by_workspaceId_and_key', ['workspaceId', 'key']),
 });

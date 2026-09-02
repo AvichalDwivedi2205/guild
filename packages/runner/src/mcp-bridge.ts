@@ -296,6 +296,41 @@ function createAssignmentServer(
   );
 
   server.registerTool(
+    'get_assignment_feedback',
+    {
+      description:
+        'Read the visual comment, revision identity, and optional crop image for this assignment.',
+      inputSchema: {},
+      annotations: { readOnlyHint: true, openWorldHint: false },
+    },
+    async () => {
+      try {
+        const result = (await cloud.callAssignmentTool(
+          assignment,
+          'get_assignment_feedback',
+          {},
+        )) as {
+          comment?: { body?: string } | null;
+          image?: { data?: string; mime?: string } | null;
+        };
+        const content: Array<
+          { type: 'text'; text: string } | { type: 'image'; data: string; mimeType: string }
+        > = [textResult(result, knownSecrets).content[0]!];
+        if (result.image?.data && result.image.mime) {
+          content.push({
+            type: 'image',
+            data: result.image.data,
+            mimeType: result.image.mime,
+          });
+        }
+        return { content };
+      } catch (error) {
+        return errorResult(error, knownSecrets);
+      }
+    },
+  );
+
+  server.registerTool(
     'report_progress',
     {
       description: 'Report concise visible Worker progress for current assignment.',
