@@ -1,14 +1,20 @@
 import {
   canvasObjectTypeSchema,
+  completeWorkstreamRequestSchema,
   getDesignRevisionStatusRequestSchema,
   getDesignSetRequestSchema,
   identifierSchema,
   idempotencyKeySchema,
+  implementationEvidenceSchemas,
   nodeStyleInputSchema,
   pointSchema,
   projectRelationshipSchema,
   projectSemanticsSchema,
   publishDesignPreviewRequestSchema,
+  registerWorkstreamRequestSchema,
+  reportWorkstreamUpdateRequestSchema,
+  acknowledgeWorkstreamFeedbackRequestSchema,
+  getWorkstreamFeedbackRequestSchema,
   sizeSchema,
 } from '@guild/protocol';
 import { z } from 'zod';
@@ -205,6 +211,13 @@ export const guildWebMcpInputSchemas = {
   publish_design_preview: publishDesignPreviewInput,
   get_design_set: getDesignSetInput,
   get_design_revision_status: getDesignRevisionStatusInput,
+  register_workstream: registerWorkstreamRequestSchema,
+  report_workstream_update: reportWorkstreamUpdateRequestSchema,
+  complete_workstream: completeWorkstreamRequestSchema,
+  get_workstream_feedback: getWorkstreamFeedbackRequestSchema,
+  acknowledge_workstream_feedback: acknowledgeWorkstreamFeedbackRequestSchema,
+  report_implementation_evidence: implementationEvidenceSchemas.report,
+  list_implementation_evidence: implementationEvidenceSchemas.list,
 } as const;
 
 export type GuildWebMcpInputSchemas = typeof guildWebMcpInputSchemas;

@@ -26,6 +26,13 @@ export const guildWebMcpToolNames = [
   'publish_design_preview',
   'get_design_set',
   'get_design_revision_status',
+  'register_workstream',
+  'report_workstream_update',
+  'complete_workstream',
+  'get_workstream_feedback',
+  'acknowledge_workstream_feedback',
+  'report_implementation_evidence',
+  'list_implementation_evidence',
 ] as const;
 
 type GuildWebMcpToolName = (typeof guildWebMcpToolNames)[number];
@@ -51,6 +58,14 @@ const descriptions = {
     'Publish an immutable design revision with hosted-preview identity and project neutral gallery and screen cards. Never send HTML or image bytes.',
   get_design_set: 'Read one design set, its screens, and the current head revision.',
   get_design_revision_status: 'Read capture and revision status for one design publication.',
+  register_workstream: 'Register a reported external Controller workstream with a stable key.',
+  report_workstream_update: 'Report a monotonic external workstream update with dual timestamps.',
+  complete_workstream: 'Complete, block, or cancel a reported external workstream.',
+  get_workstream_feedback: 'Read pending visual feedback for one reported workstream.',
+  acknowledge_workstream_feedback: 'Acknowledge one targeted external workstream feedback item.',
+  report_implementation_evidence:
+    'Report bounded implementation evidence. Claims stay Reported until a separate link check.',
+  list_implementation_evidence: 'List reported implementation evidence with verification labels.',
 } as const satisfies Record<GuildWebMcpToolName, string>;
 
 function toObjectJsonSchema(schema: z.ZodType): JsonObjectSchema {
@@ -126,6 +141,33 @@ function createTools(service: GuildWebMcpService): ModelContextTool[] {
       'get_design_revision_status',
       guildWebMcpInputSchemas.get_design_revision_status,
       (input) => service.getDesignRevisionStatus(input),
+    ),
+    tool('register_workstream', guildWebMcpInputSchemas.register_workstream, (input) =>
+      service.registerWorkstream(input),
+    ),
+    tool('report_workstream_update', guildWebMcpInputSchemas.report_workstream_update, (input) =>
+      service.reportWorkstreamUpdate(input),
+    ),
+    tool('complete_workstream', guildWebMcpInputSchemas.complete_workstream, (input) =>
+      service.completeWorkstream(input),
+    ),
+    tool('get_workstream_feedback', guildWebMcpInputSchemas.get_workstream_feedback, (input) =>
+      service.getWorkstreamFeedback(input),
+    ),
+    tool(
+      'acknowledge_workstream_feedback',
+      guildWebMcpInputSchemas.acknowledge_workstream_feedback,
+      (input) => service.acknowledgeWorkstreamFeedback(input),
+    ),
+    tool(
+      'report_implementation_evidence',
+      guildWebMcpInputSchemas.report_implementation_evidence,
+      (input) => service.reportImplementationEvidence(input),
+    ),
+    tool(
+      'list_implementation_evidence',
+      guildWebMcpInputSchemas.list_implementation_evidence,
+      (input) => service.listImplementationEvidence(input),
     ),
   ];
 }

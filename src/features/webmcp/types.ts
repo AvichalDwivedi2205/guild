@@ -61,6 +61,17 @@ export type GuildWebMcpService = {
   }>;
   getDesignSet: (input: Input<'get_design_set'>) => Promise<unknown>;
   getDesignRevisionStatus: (input: Input<'get_design_revision_status'>) => Promise<unknown>;
+  registerWorkstream: (input: Input<'register_workstream'>) => Promise<unknown>;
+  reportWorkstreamUpdate: (input: Input<'report_workstream_update'>) => Promise<unknown>;
+  completeWorkstream: (input: Input<'complete_workstream'>) => Promise<unknown>;
+  getWorkstreamFeedback: (input: Input<'get_workstream_feedback'>) => Promise<unknown>;
+  acknowledgeWorkstreamFeedback: (
+    input: Input<'acknowledge_workstream_feedback'>,
+  ) => Promise<unknown>;
+  reportImplementationEvidence: (
+    input: Input<'report_implementation_evidence'>,
+  ) => Promise<unknown>;
+  listImplementationEvidence: (input: Input<'list_implementation_evidence'>) => Promise<unknown>;
 };
 
 declare global {
