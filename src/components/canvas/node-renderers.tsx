@@ -46,11 +46,13 @@ function NodeChrome({
   selected,
   children,
   family,
+  onDoubleClick,
 }: {
   object: CanvasObject;
   selected: boolean;
   children: ReactNode;
   family: string;
+  onDoubleClick?: () => void;
 }) {
   const beginInteraction = useCanvasInteractionStore((state) => state.beginInteraction);
   const finishInteraction = useCanvasInteractionStore((state) => state.finishInteraction);
@@ -83,6 +85,15 @@ function NodeChrome({
       data-locked={object.locked || undefined}
       style={nodeStyle}
       aria-label={`${object.title || object.type} canvas object`}
+      title={onDoubleClick ? 'Double-click to edit' : undefined}
+      onDoubleClick={
+        onDoubleClick
+          ? (event) => {
+              event.stopPropagation();
+              onDoubleClick();
+            }
+          : undefined
+      }
     >
       <NodeResizer
         isVisible={selected && !object.locked}
@@ -116,7 +127,7 @@ function NodeTitle({ object, fallback }: { object: CanvasObject; fallback: strin
   return <h3 className={styles.nodeTitle}>{object.title?.trim() || fallback}</h3>;
 }
 
-function InlineText({ object }: { object: CanvasObject }) {
+function InlineTextNode({ object, selected }: { object: CanvasObject; selected: boolean }) {
   const updateContent = useCanvasInteractionStore((state) => state.actions.updateContent);
   const persistedText = contentText(object) || object.title?.trim() || 'Text';
   const [editing, setEditing] = useState(false);
@@ -157,67 +168,64 @@ function InlineText({ object }: { object: CanvasObject }) {
 
   if (editing) {
     return (
-      <textarea
-        ref={editorRef}
-        className={`${styles.inlineTextEditor} nodrag nowheel`}
-        aria-label={`Edit ${object.title?.trim() || 'text'}`}
-        value={draft}
-        onChange={(event) => setDraft(event.target.value)}
-        onBlur={() => void commit()}
-        onKeyDown={(event) => {
-          if (event.key === 'Escape') {
-            event.preventDefault();
-            setDraft(visibleText);
-            setEditing(false);
-          }
-          if (event.key === 'Enter' && !event.shiftKey) {
-            event.preventDefault();
-            void commit();
-          }
-        }}
-        onPointerDown={(event) => event.stopPropagation()}
-      />
+      <NodeChrome object={object} selected={selected} family="diagram">
+        <textarea
+          ref={editorRef}
+          className={`${styles.inlineTextEditor} nodrag nowheel`}
+          aria-label={`Edit ${object.title?.trim() || 'text'}`}
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          onBlur={() => void commit()}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') {
+              event.preventDefault();
+              setDraft(visibleText);
+              setEditing(false);
+            }
+            if (event.key === 'Enter' && !event.shiftKey) {
+              event.preventDefault();
+              void commit();
+            }
+          }}
+          onPointerDown={(event) => event.stopPropagation()}
+        />
+      </NodeChrome>
     );
   }
 
   return (
-    <p
-      className={styles.textNode}
-      title="Double-click to edit"
-      onDoubleClick={(event) => {
-        event.stopPropagation();
+    <NodeChrome
+      object={object}
+      selected={selected}
+      family="diagram"
+      onDoubleClick={() => {
         setDraft(visibleText);
         setEditing(true);
       }}
     >
-      {visibleText}
-    </p>
+      <p className={styles.textNode}>{visibleText}</p>
+    </NodeChrome>
   );
 }
 
 export function DiagramNodeRenderer({ data, selected }: NodeProps<GuildFlowNode>) {
   const { object } = data;
+  if (object.type === 'text') return <InlineTextNode object={object} selected={selected} />;
   const body = contentText(object);
   return (
     <NodeChrome object={object} selected={selected} family="diagram">
-      {object.type === 'text' ? (
-        <InlineText object={object} />
-      ) : (
-        <>
-          <div className={styles.nodeKicker}>
-            {object.type === 'sticky'
-              ? 'Note'
-              : object.type === 'annotation'
-                ? 'Annotation'
-                : object.semantics.semanticType || object.type}
-          </div>
-          <NodeTitle
-            object={object}
-            fallback={object.type === 'mindMapNode' ? 'Mind map idea' : 'Untitled shape'}
-          />
-          {body ? <p className={styles.nodeBody}>{body}</p> : null}
-        </>
-      )}
+      <div className={styles.nodeKicker}>
+        {object.type === 'sticky'
+          ? 'Note'
+          : object.type === 'annotation'
+            ? 'Annotation'
+            : object.semantics.semanticType || object.type}
+      </div>
+      <NodeTitle
+        object={object}
+        fallback={object.type === 'mindMapNode' ? 'Mind map idea' : 'Untitled shape'}
+      />
+      {body ? <p className={styles.nodeBody}>{body}</p> : null}
     </NodeChrome>
   );
 }

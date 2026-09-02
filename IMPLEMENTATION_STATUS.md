@@ -15,8 +15,9 @@ Status vocabulary:
 ## Snapshot — 2026-09-02 (direct plain-text editing)
 
 - Plain text now stays a lightweight canvas primitive: selecting it does not open the Inspector,
-  while double-clicking edits the text directly on the canvas. Enter saves, Shift+Enter inserts a
-  newline, Escape cancels, and blur saves through the normal revision-aware content command.
+  while double-clicking anywhere inside its node edits the text directly on the canvas. Enter
+  saves, Shift+Enter inserts a newline, Escape cancels, and blur saves through the normal
+  revision-aware content command.
 - Regression coverage proves that task selection still opens the Inspector, text selection closes
   it, and an inline save sends the expected title, content, object ID, and content revision.
 - Local evidence: `bun run check` passed formatting, zero-warning ESLint, strict TypeScript,
@@ -30,6 +31,12 @@ Status vocabulary:
   `(70, 74.0258)` while preserving zoom at `0.747423`. A fresh production tab loaded the complete
   workspace with zero browser warnings or errors. Saving shared production text awaits the required
   action-time confirmation.
+- Native WebMCP availability was checked on the live signed-in personal Chrome page and on the
+  isolated in-app browser. Personal Chrome exposes neither `document.modelContext` nor the WebMCP
+  tab capability. The in-app browser exposes the native WebMCP capability but currently redirects
+  this workspace to WorkOS sign-in, so no authenticated Guild tools can be invoked there yet. A PRD
+  must not be represented as a WebMCP-created canvas artifact until that isolated browser is signed
+  in and the real tool call succeeds.
 
 ## Snapshot — 2026-09-02 (production auth and real local Worker proof)
 

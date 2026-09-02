@@ -67,7 +67,7 @@ describe('canvas node renderers', () => {
     });
     render(<DiagramNodeRenderer {...props(text)} />);
 
-    fireEvent.doubleClick(screen.getByText('Draft copy'));
+    fireEvent.doubleClick(screen.getByRole('article', { name: 'Draft copy canvas object' }));
     const editor = screen.getByRole('textbox', { name: 'Edit Draft copy' });
     fireEvent.change(editor, { target: { value: 'Clear canvas copy' } });
     fireEvent.keyDown(editor, { key: 'Enter' });
