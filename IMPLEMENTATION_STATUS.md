@@ -29,8 +29,16 @@ Status vocabulary:
 - Regression evidence: the pre-fix loop failed on the exact oversized/clipped child, ambiguous
   parent creation, and child-before-parent hydration. After the fix, the focused suite passed 12
   tests. Full local gates passed formatting, zero-warning ESLint, strict TypeScript, 37 test files /
-  129 tests, Runner typecheck, and the Next.js 16.3.4 production build. Production deployment and
-  live PRD reparenting are the remaining steps in this batch.
+  129 tests, Runner typecheck, and the Next.js 16.3.4 production build.
+- Vercel production deployment `dpl_6vsnecWjX1A5AvKTaJ3LEyEqsXfG` reached `READY` on the stable
+  alias. Native WebMCP created a top-level 980×1800 `Guild PRD` section at the placement guide's
+  suggested canvas position in Change Set `jx7faxdgehdb2vg1e1g35zh6f58dndk2`, then reparented and
+  moved all ten PRD artifacts in Change Set `jx7cgpd19932xzkjbv9h2aq2bs8dnatc`.
+- A fresh signed-in production load rendered the section plus all ten PRD children in the viewport;
+  every persisted child has the new section parent, parent-relative coordinates, and incremented
+  geometry/hierarchy revisions. The browser log was empty. Replaying the original bad placement
+  returned `placement_outside_parent`, and a follow-up semantic search proved it created zero
+  objects. Vercel reported the deployment Ready and no runtime error logs for the scan window.
 
 ## Snapshot — 2026-09-02 (native production WebMCP and Guild PRD proof)
 
