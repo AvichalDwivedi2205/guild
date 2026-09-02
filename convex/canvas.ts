@@ -7,13 +7,13 @@ import {
   appendChange,
   assertRevision,
   assertWorkerCanModifyObject,
-  beginChangeSet,
   commandResult,
   objectSegmentRevision,
   resolveCommandPrincipal,
   type ChangedRevision,
   type CommandPrincipal,
 } from './lib/commands';
+import { hashWorkspaceRequest, recordWorkspaceMutation } from './lib/recorder';
 import {
   findPlacement,
   rectangleContains,
@@ -815,36 +815,47 @@ export const executeCommands = mutation({
       args.source,
       args.workerAuthorization,
     );
-    const started = await beginChangeSet(ctx, {
+    const summary = boundedText(args.summary.trim() || 'Updated canvas', 240);
+    const requestHash = await hashWorkspaceRequest({
+      commandName: 'canvas.executeCommands',
       workspaceId: args.workspaceId,
+      commands: args.commands,
+    });
+    const recorded = await recordWorkspaceMutation(ctx, {
       principal,
+      workspaceId: args.workspaceId,
+      commandName: 'canvas.executeCommands',
       idempotencyKey: args.idempotencyKey,
-      summary: boundedText(args.summary.trim() || 'Updated canvas', 240),
+      requestHash,
+      summary,
+      apply: async ({ changeSetId }) => {
+        const changed: ChangedRevision[] = [];
+        let sequence = 0;
+        for (const command of args.commands) {
+          const commandChanges = await executeCanvasCommand(ctx, {
+            workspaceId: args.workspaceId,
+            principal,
+            changeSetId,
+            command,
+            sequence,
+          });
+          changed.push(...commandChanges);
+          sequence += commandChanges.length;
+        }
+        await appendActivity(ctx, {
+          workspaceId: args.workspaceId,
+          principal,
+          eventType: 'canvas_commands_applied',
+          summary,
+          changeSetId,
+        });
+        return commandResult(changeSetId, changed, false);
+      },
     });
-    if (started.replay) {
-      return commandResult(started.changeSetId, started.changed, true);
+    if (recorded.replay) {
+      return commandResult(recorded.changeSetId, recorded.changed, true);
     }
-    const changed: ChangedRevision[] = [];
-    let sequence = 0;
-    for (const command of args.commands) {
-      const commandChanges = await executeCanvasCommand(ctx, {
-        workspaceId: args.workspaceId,
-        principal,
-        changeSetId: started.changeSetId,
-        command,
-        sequence,
-      });
-      changed.push(...commandChanges);
-      sequence += commandChanges.length;
-    }
-    await appendActivity(ctx, {
-      workspaceId: args.workspaceId,
-      principal,
-      eventType: 'canvas_commands_applied',
-      summary: boundedText(args.summary.trim() || 'Updated canvas', 240),
-      changeSetId: started.changeSetId,
-    });
-    return commandResult(started.changeSetId, changed, false);
+    return recorded.result;
   },
 });
 

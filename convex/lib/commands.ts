@@ -72,6 +72,9 @@ export async function beginChangeSet(
     principal: CommandPrincipal;
     idempotencyKey: string;
     summary: string;
+    commandName?: string;
+    requestHash?: string;
+    parentChangeSetId?: Id<'changeSets'>;
   },
 ): Promise<
   | { replay: true; changeSetId: Id<'changeSets'>; changed: ChangedRevision[] }
@@ -85,6 +88,16 @@ export async function beginChangeSet(
     )
     .unique();
   if (existing) {
+    if (
+      (existing.commandName !== undefined &&
+        input.commandName !== undefined &&
+        existing.commandName !== input.commandName) ||
+      (existing.requestHash !== undefined &&
+        input.requestHash !== undefined &&
+        existing.requestHash !== input.requestHash)
+    ) {
+      throw new Error('idempotency_payload_mismatch');
+    }
     const entries = await ctx.db
       .query('changeEntries')
       .withIndex('by_changeSetId_and_sequence', (query) => query.eq('changeSetId', existing._id))
@@ -115,6 +128,9 @@ export async function beginChangeSet(
       : {}),
     source: principal.source,
     idempotencyKey: input.idempotencyKey,
+    ...(input.commandName ? { commandName: input.commandName } : {}),
+    ...(input.requestHash ? { requestHash: input.requestHash } : {}),
+    ...(input.parentChangeSetId ? { parentChangeSetId: input.parentChangeSetId } : {}),
     summary: input.summary,
     state: 'applied',
     createdAt: Date.now(),
@@ -133,7 +149,19 @@ export async function appendChange(
   input: {
     workspaceId: Id<'workspaces'>;
     changeSetId: Id<'changeSets'>;
-    targetKind: 'object' | 'body' | 'edge' | 'comment' | 'job' | 'run';
+    targetKind:
+      | 'object'
+      | 'body'
+      | 'edge'
+      | 'comment'
+      | 'job'
+      | 'run'
+      | 'designPointer'
+      | 'reviewDecision'
+      | 'visualAnchor'
+      | 'assetAttachment'
+      | 'externalWorkstream'
+      | 'reportedEvidence';
     targetId: string;
     segment: CommandSegment;
     beforeValue: unknown;
