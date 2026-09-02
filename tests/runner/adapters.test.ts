@@ -25,13 +25,15 @@ describe('engine spawn plans', () => {
     expect(plan.args).toContain('shell_tool');
     expect(plan.args).toContain('multi_agent');
     expect(plan.args).toContain('apps');
+    expect(plan.args).toContain('view_image');
     expect(plan.args).toContain('read-only');
     expect(plan.args).toContain('--json');
     expect(plan.args).toContain('tools.web_search=false');
-    expect(plan.args).toContain('tools.view_image=false');
+    expect(plan.args).not.toContain('tools.view_image=false');
     expect(plan.args).toContain(
       'mcp_servers.guild.enabled_tools=["get_workspace_context","search_canvas","apply_canvas_changes","add_comment","report_progress"]',
     );
+    expect(plan.args).toContain('mcp_servers.guild.default_tools_approval_mode="approve"');
     expect(plan.args.at(-1)).toBe('-');
     expect(plan.stdin).toContain(context.assignment.brief);
     expect(JSON.stringify(plan.args)).not.toContain(context.assignment.brief);
@@ -45,13 +47,15 @@ describe('engine spawn plans', () => {
       assignment: assignment({ engine: 'claude' }),
     });
     expect(plan.args).toContain('-p');
-    expect(plan.args).toContain('--safe-mode');
+    expect(plan.args).not.toContain('--safe-mode');
+    expect(plan.args).toContain('--restricted');
+    expect(plan.args.slice(plan.args.indexOf('--model'), plan.args.indexOf('--model') + 2)).toEqual(
+      ['--model', 'sonnet'],
+    );
     expect(plan.args).toContain('--strict-mcp-config');
     expect(plan.args).toContain('--no-session-persistence');
     expect(plan.args).toContain('stream-json');
-    expect(plan.args.slice(plan.args.indexOf('--tools'), plan.args.indexOf('--tools') + 2)).toEqual(
-      ['--tools', ''],
-    );
+    expect(plan.args).not.toContain('--tools');
     const denylist = plan.args[plan.args.indexOf('--disallowedTools') + 1];
     expect(denylist).toContain('Bash');
     expect(denylist).toContain('Read');
