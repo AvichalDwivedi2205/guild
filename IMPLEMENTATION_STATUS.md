@@ -12,6 +12,81 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-03 (Phase 11 skills, matrix, and Codex handoff)
+
+- Added `skills/guild-canvas-worker/SKILL.md` and
+  `skills/guild-webmcp-controller/SKILL.md` covering context order, progress
+  cadence, stable keys, publication, feedback polling, bounded evidence, and
+  honest completion.
+- Wrote the authenticated Playwright matrix in `tests/e2e/cinema-demo.spec.ts`
+  for the 15 demo flows. Specs skip unless `GUILD_E2E_STORAGE_STATE` points at
+  an untracked storage-state file. This agent did not run them.
+- Native browser WebMCP and signed-in Focus/Interact proof remain for Codex.
+- Branch deployment of Convex preview, Vercel preview, and `preview-fixture`
+  is recorded below if the CLIs succeed; otherwise it stays unproven.
+- Do not merge `cursor/cinema-demo-platform-d4c4` until human review.
+
+### Codex WebMCP verification handoff
+
+Invoke every native browser WebMCP tool against a signed-in workspace:
+
+Existing (14): `list_workspaces`, `get_workspace_context`, `search_canvas`,
+`apply_canvas_changes`, `add_comment`, `run_ai_team`, `get_run_status`,
+`get_runner_status`, `stop_run`, `retry_job`, `undo_run`,
+`list_implementation_tasks`, `claim_task`, `report_task_result`.
+
+New (10): `publish_design_preview`, `get_design_set`,
+`get_design_revision_status`, `register_workstream`,
+`report_workstream_update`, `complete_workstream`, `get_workstream_feedback`,
+`acknowledge_workstream_feedback`, `report_implementation_evidence`,
+`list_implementation_evidence`.
+
+Still unproven in a native recording browser: iframe Preview Bridge handshake
+against the hosted fixture, Interact on a site that allows framing, blocked
+`x-frame-options` fallback, visual point/rectangle overlay, one-click approval,
+two-browser realtime, and the 15 authenticated Playwright flows.
+
+## Snapshot — 2026-09-03 (Phase 10 scenario and presentation)
+
+- `demoScenarios` and `presentationViews` store named cameras and an explicit
+  scenario key. `preflight` and `reset` reject wildcards, fence active Jobs,
+  restore only listed logical keys, and seed no fake progress or evidence.
+- Presentation mode adds Present/Escape, previous/next named views, opt-in
+  Follow Worker, and reduced-motion camera jumps.
+- Evidence: `bun run test -- tests/integration/convex-demo-scenario.test.ts`.
+
+## Snapshot — 2026-09-03 (Phase 9 implementation evidence)
+
+- `implementationEvidence` and `evidenceLinkChecks` store bounded reports.
+  `verifyEvidenceLink` is the repository's first Convex action and never
+  upgrades a reported check outcome; it only changes verification state.
+- WebMCP adds `report_implementation_evidence` and
+  `list_implementation_evidence`. Evidence Focus labels every item Reported,
+  Link verified, or Unavailable.
+- Evidence: `bun run test -- tests/integration/convex-evidence.test.ts`.
+
+## Snapshot — 2026-09-03 (Phase 8 external workstream reporting)
+
+- `externalWorkstreams`, `workstreamUpdates`, and
+  `externalWorkstreamFeedback` support register/update/complete/get/ack with
+  monotonic sequence and dual timestamps.
+- Silent controllers derive Stale, never Running. Five WebMCP tools are
+  registered. The Agent dock merges Runner Jobs with Reported rows and exposes
+  Stop/Retry only for Jobs.
+- Evidence: `bun run test -- tests/domain/workstream-staleness.test.ts
+tests/integration/convex-external-workstreams.test.ts
+tests/webmcp/registry.test.ts`.
+
+## Snapshot — 2026-09-03 (Phase 7 revisions and approval)
+
+- `designReview.approveDesignRevision` and `requestDesignChanges` accept only
+  an authenticated human principal. `restoreDesignRevision` is append-only and
+  does not call `publishDesignPreview`.
+- Screenshot compare supports side-by-side and slider. The selection toolbar
+  Approve action binds the exact head version.
+- Evidence: `bun run test -- tests/domain/design-review.test.ts
+tests/integration/convex-design-review.test.ts`.
+
 ## Snapshot — 2026-09-03 (Phase 6 visual comments)
 
 - `visualAnchors` plus optional comment thread fields persist a point or
