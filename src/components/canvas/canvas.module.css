@@ -3,6 +3,7 @@
   --canvas-muted: var(--ink-2);
   --canvas-paper: var(--paper);
   --canvas-panel: var(--glass-strong);
+  --canvas-panel-solid: var(--paper-strong);
   --canvas-line: var(--hairline);
   --canvas-purple: #8b5cf0;
   --canvas-glass: var(--glass-strong);
@@ -488,9 +489,8 @@
   border: 1px solid var(--canvas-line);
   border-radius: 18px;
   background:
-    linear-gradient(177deg, rgba(255, 255, 255, 0.07), transparent 42%), var(--canvas-glass);
+    linear-gradient(177deg, rgba(255, 255, 255, 0.055), transparent 42%), var(--canvas-panel-solid);
   box-shadow: var(--shadow-2);
-  backdrop-filter: blur(22px) saturate(125%);
 }
 
 .panelHeader {

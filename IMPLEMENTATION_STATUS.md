@@ -14,6 +14,12 @@ Status vocabulary:
 
 ## Snapshot — 2026-09-02 (production auth and real local Worker proof)
 
+- Fixed two production workspace interaction defects reported from a real Mac trackpad session.
+  ReactFlow now pans on two-finger scroll, keeps pinch zoom, and no longer converts ordinary wheel
+  movement into zoom. The Inspector now renders on an opaque theme surface without backdrop blur,
+  preventing bright canvas objects from washing out labels and fields. Regression evidence: two
+  focused component/style checks fail on the old behavior and pass after the fix; strict TypeScript
+  and zero-warning ESLint also pass. Production deployment/browser proof follows this code batch.
 - Fixed production Convex authentication for the shared multi-application WorkOS environment by
   allowing an explicit validated WorkOS JWT issuer. A signed-in production browser created and
   loaded `Guild Judge Workspace`, assembled the seven-role recommended team, and exercised live

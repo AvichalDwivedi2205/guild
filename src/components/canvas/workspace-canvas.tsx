@@ -526,7 +526,10 @@ function CanvasViewport({
           nodesConnectable={tool === 'connect'}
           elementsSelectable={tool !== 'pan'}
           panOnDrag={tool === 'pan' || tool === 'connect' ? [0, 1, 2] : [1, 2]}
+          panOnScroll
           selectionOnDrag={tool === 'select'}
+          zoomOnPinch
+          zoomOnScroll={false}
           deleteKeyCode={null}
           multiSelectionKeyCode={['Meta', 'Control', 'Shift']}
           selectionKeyCode="Shift"

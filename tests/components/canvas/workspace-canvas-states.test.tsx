@@ -14,8 +14,25 @@ vi.mock('@xyflow/react', () => ({
   BackgroundVariant: { Dots: 'dots' },
   MiniMap: ({ ariaLabel }: { ariaLabel: string }) => <div aria-label={ariaLabel} />,
   Panel: ({ children }: PropsWithChildren) => <div>{children}</div>,
-  ReactFlow: ({ children }: { children: ReactNode }) => (
-    <div data-testid="react-flow">{children}</div>
+  ReactFlow: ({
+    children,
+    panOnScroll,
+    zoomOnPinch,
+    zoomOnScroll,
+  }: {
+    children: ReactNode;
+    panOnScroll?: boolean;
+    zoomOnPinch?: boolean;
+    zoomOnScroll?: boolean;
+  }) => (
+    <div
+      data-testid="react-flow"
+      data-pan-on-scroll={String(panOnScroll)}
+      data-zoom-on-pinch={String(zoomOnPinch)}
+      data-zoom-on-scroll={String(zoomOnScroll)}
+    >
+      {children}
+    </div>
   ),
   ReactFlowProvider: ({ children }: PropsWithChildren) => <>{children}</>,
   ViewportPortal: ({ children }: PropsWithChildren) => <>{children}</>,
@@ -76,6 +93,15 @@ afterEach(() => {
 });
 
 describe('WorkspaceCanvas state surfaces', () => {
+  it('pans with trackpad scrolling while preserving pinch zoom', () => {
+    render(<WorkspaceCanvas data={data('ready')} actions={{}} />);
+
+    const flow = screen.getByTestId('react-flow');
+    expect(flow).toHaveAttribute('data-pan-on-scroll', 'true');
+    expect(flow).toHaveAttribute('data-zoom-on-scroll', 'false');
+    expect(flow).toHaveAttribute('data-zoom-on-pinch', 'true');
+  });
+
   it('shows a bounded loading surface while live state connects', () => {
     render(<WorkspaceCanvas data={data('loading')} actions={{}} />);
 
