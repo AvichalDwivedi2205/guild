@@ -53,6 +53,7 @@ describe('engine spawn plans', () => {
     expect(plan.args.slice(plan.args.indexOf('--model'), plan.args.indexOf('--model') + 2)).toEqual(
       ['--model', 'sonnet'],
     );
+    expect(plan.args).not.toContain('fable');
     expect(plan.args).toContain('--strict-mcp-config');
     expect(plan.args).toContain('--no-session-persistence');
     expect(plan.args).toContain('stream-json');

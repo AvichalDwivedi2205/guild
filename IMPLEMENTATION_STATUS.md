@@ -12,6 +12,23 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-03 (Phase 0 Cinema demo baseline)
+
+- Started implementation of the Guild-only Cinema demo platform on branch
+  `cursor/cinema-demo-platform-d4c4`. Cinema repository execution remains out of
+  scope.
+- Proved the `## Locked current scope` blocks in `PRODUCT.md` and `Plan.md` are
+  byte-identical (17 lines). A regression test now fails if they drift.
+- Added glossary terms to `CONTEXT.md`: immutable design revision, visual
+  anchor, preview origin, external workstream, reported evidence, and link
+  verification.
+- Added `docs/adr/0001-design-projection-not-raw-html.md` and
+  `docs/adr/0002-reported-workstreams-vs-job-authority.md`.
+- Added characterization coverage that locks the current five assignment-scoped
+  canvas tools, the Claude `sonnet` pin, and the absence of Git, worktree,
+  repository, or deployment adapters in Guild Runner.
+- This batch does not change product behavior, schema, or deployments.
+
 ## Planning snapshot — 2026-09-03 (Cinema end-to-end implementation architecture)
 
 - Added `DEMO_IMPLEMENTATION_PLAN.md` as the deep implementation plan for the accepted Cinema
