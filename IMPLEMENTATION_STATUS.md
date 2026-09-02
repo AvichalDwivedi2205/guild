@@ -12,6 +12,31 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-02 (production auth and real local Worker proof)
+
+- Fixed production Convex authentication for the shared multi-application WorkOS environment by
+  allowing an explicit validated WorkOS JWT issuer. A signed-in production browser created and
+  loaded `Guild Judge Workspace`, assembled the seven-role recommended team, and exercised live
+  canvas creation with a clean console.
+- Paired `Avichal's Mac` through the deployed device flow and stored its Runner token in macOS
+  Keychain without placing the token in process arguments. The connected Runner reported Codex CLI
+  `0.151.0-alpha.7.2` and Claude Code `2.1.258` as authenticated first-party clients.
+- Ran Codex and Claude concurrently at Runner capacity 2. Claude is pinned to `sonnet` and never
+  uses the user's `fable` preference. Live browser proof showed two Worker presences, separate Work
+  Claims and Reserved Regions, progress, comments, and a completed Run. Codex created three visible
+  Product strategy artifacts; Claude Sonnet created five visible User experience artifacts. A
+  separate active Codex Run was stopped and reached `Cancelled`; a failed Claude Job was retried as
+  attempt 2 and wrote four new section-scoped artifacts.
+- Fixed three production-only Runner defects found by this proof: Codex MCP write approval and
+  unsupported config flags, Claude `--safe-mode` suppressing explicit MCP configuration, and a
+  generic `apply_canvas_changes` schema that caused nested invalid commands. Engine failures now
+  retain redacted structured error detail instead of showing only an exit code.
+- Focused evidence: 14 Runner adapter, MCP bridge, parser, and process-supervision tests passed;
+  Runner TypeScript build passed. Native WebMCP production invocation is not yet accepted because
+  both available controlled browsers report `document.modelContext` as undefined; the registered
+  fourteen-tool implementation and connected service tests remain green, but a supported browser
+  runtime/controller is still required for honest native proof.
+
 ## Snapshot — 2026-09-02 (connected persistence and component state coverage)
 
 - Expanded connected Convex coverage through authenticated workspace listing, object and semantic
@@ -280,8 +305,8 @@ requires the broader production and E2E evidence listed later.
 | --- | ------------------------------------------ | ----------- | --------------------------------------------------------------------- |
 | 1   | Infinite shared project canvas             | Implemented | Production smoke and large-workspace interaction                      |
 | 2   | Multiplayer human collaboration            | Partial     | Two real browser-context E2E for cursor, selection, edit, viewport    |
-| 3   | Local AI Workers as teammates              | Partial     | Pair and run real signed-in Codex and Claude clients                  |
-| 4   | Multiple Workers simultaneously            | Partial     | Real concurrent Codex/Claude Jobs and separate-region proof           |
+| 3   | Local AI Workers as teammates              | Implemented | Revoke/re-pair browser proof remains                                  |
+| 4   | Multiple Workers simultaneously            | Implemented | Real collision rejection remains                                      |
 | 5   | WebMCP and local Runner paths              | Partial     | Production browser-agent and real Runner verification                 |
 | 6   | Worker Role Profiles                       | Partial     | Authenticated create/edit/delete browser coverage                     |
 | 7   | Assignment-scoped autonomous canvas access | Implemented | Production adversarial/capability E2E                                 |
@@ -295,10 +320,10 @@ requires the broader production and E2E evidence listed later.
 | 15  | Semantic traceability                      | Implemented | End-to-end relationship editing coverage                              |
 | 16  | Reversible execution                       | Partial     | History-point restore is Change-Set revert; full conflict E2E remains |
 | 17  | Comments and mentions                      | Implemented | Authenticated `@Role`, `@team`, and unowned-comment E2E               |
-| 18  | Worker activity visibility                 | Partial     | Real Worker progress/result production flow                           |
-| 19  | Live Worker target cursors                 | Partial     | Latest Worker-step mapping exists; real concurrent browser proof      |
+| 18  | Worker activity visibility                 | Implemented | Real Codex/Sonnet progress and results proven                         |
+| 19  | Live Worker target cursors                 | Implemented | Real concurrent browser presence proven                               |
 | 20  | Activity feed                              | Implemented | Attribution integration tests                                         |
-| 21  | Worker progress and result comments        | Partial     | Real Runner completion flow                                           |
+| 21  | Worker progress and result comments        | Implemented | Real Codex/Sonnet completion flow proven                              |
 | 22  | Decision memory                            | Partial     | Explicit history/decision retrieval UX and E2E                        |
 | 23  | Persistent project context                 | Implemented | Production persistence/reconnect E2E                                  |
 | 24  | Project overview                           | Implemented | Authenticated component/E2E coverage                                  |
@@ -356,12 +381,15 @@ suite passes in desktop and mobile Chromium. The latest production deployment is
 
 ### P0 — prove real execution surfaces
 
-- [ ] Pair and revoke a real macOS Runner through the deployed app.
-- [x] Detected authenticated local Codex CLI `0.151.0-alpha.7.2` and Claude Code `2.1.234`
+- [ ] Pair and revoke a real macOS Runner through the deployed app. Pairing is proven; final
+      revoke/re-pair proof remains.
+- [x] Detected authenticated local Codex CLI `0.151.0-alpha.7.2` and Claude Code `2.1.258`
       first-party client sessions; no provider API keys were used.
 - [ ] Execute at least one Codex Job and one Claude Job concurrently, confirm separate Reserved
       Regions, progress/results, cancellation, retry, stale-attempt rejection, and collision
-      rejection.
+      rejection. Real concurrency, writes, progress/results, cancellation, and retry are proven;
+      stale-attempt and collision rejection have connected integration proof but not a live
+      adversarial browser run.
 - [ ] Invoke all fourteen WebMCP tools through a real supported production browser/controller and
       confirm direct changes appear immediately on the live canvas.
 
