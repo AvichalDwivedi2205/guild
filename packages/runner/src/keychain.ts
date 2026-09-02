@@ -4,6 +4,28 @@ import { buildUtilityEnvironment } from './environment.js';
 import { errorMessage } from './redaction.js';
 
 const KEYCHAIN_SERVICE = 'com.guild.runner';
+const KEYCHAIN_ACCOUNT_ENV = 'GUILD_KEYCHAIN_ACCOUNT';
+const KEYCHAIN_WRITE_SCRIPT = String.raw`
+set timeout 10
+log_user 0
+
+if {[gets stdin token] < 0} {
+  exit 64
+}
+
+set account $env(GUILD_KEYCHAIN_ACCOUNT)
+spawn -noecho /usr/bin/security add-generic-password -U -s com.guild.runner -a $account -w
+expect {
+  "password data for new item:" { send -- "$token\r" }
+  timeout { exit 124 }
+  eof { catch wait result; exit [lindex $result 3] }
+}
+expect {
+  "retype password for new item:" { send -- "$token\r"; exp_continue }
+  eof { catch wait result; exit [lindex $result 3] }
+  timeout { exit 125 }
+}
+`;
 
 export type KeychainCommand = (
   executable: string,
@@ -53,11 +75,12 @@ export class MacOsKeychain {
   async setToken(token: string): Promise<void> {
     if (process.platform !== 'darwin')
       throw new Error('Guild Runner keychain currently supports macOS only');
-    if (token.length < 32) throw new Error('Refusing to store malformed Guild Runner token');
-    const args = ['add-generic-password', '-U', '-s', KEYCHAIN_SERVICE, '-a', this.#account, '-w'];
-    const result = await this.#command('/usr/bin/security', args, {
-      env: buildUtilityEnvironment(),
-      timeoutMs: 10_000,
+    if (!/^[A-Za-z0-9_-]{32,512}$/.test(token)) {
+      throw new Error('Refusing to store malformed Guild Runner token');
+    }
+    const result = await this.#command('/usr/bin/expect', ['-c', KEYCHAIN_WRITE_SCRIPT], {
+      env: { ...buildUtilityEnvironment(), [KEYCHAIN_ACCOUNT_ENV]: this.#account },
+      timeoutMs: 15_000,
       input: `${token}\n`,
     });
     if (result.exitCode !== 0) {
