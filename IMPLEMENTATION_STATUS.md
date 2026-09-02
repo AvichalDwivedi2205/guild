@@ -12,6 +12,27 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-02 (visible structured card content)
+
+- Fixed the blank-card regression in the Guild PRD. The workspace subscription previously returned
+  object metadata without renderer content, while the full body was attached only after selecting
+  a card for the Inspector. Canvas objects now carry a bounded renderer-facing `contentPreview`;
+  full bodies remain lazy in `canvasObjectBodies`.
+- Preview generation preserves only supported visual fields (`text`, `description`, `url`,
+  `result`, bounded table/checklist entries, and bounded drawing points). Create, update,
+  logical-key upsert, task-result, ordinary undo, and Team Run undo paths keep previews in sync.
+- Added a workspace-scoped, idempotent production backfill and verification query. Production
+  scanned 26 active objects, updated 14 existing previews, then verified zero mismatches; a second
+  backfill updated zero records.
+- Regression evidence: the focused mapper/connected Convex tests failed before the fix and passed
+  after it. Full local gates passed formatting, zero-warning ESLint, strict TypeScript, 37 test
+  files / 130 tests, and Runner typecheck. The Next.js 16.3.4 production build passed.
+- Convex production schema/functions deployed successfully. Vercel deployment
+  `dpl_5QcMrxhJbacgn8sJcm6u4Q3tF762` reached `READY` and updated the stable alias. A fresh signed-in
+  production load, with no selected card and no Inspector, rendered the PRD paragraphs, table rows,
+  workflow text, requirements, scope, metrics, and acceptance checklist directly on the canvas.
+  Browser diagnostics contained no warning/error; one transient WebSocket reconnect recovered.
+
 ## Snapshot — 2026-09-02 (WebMCP placement contract and PRD layout repair)
 
 - Diagnosed the invisible Guild PRD as a coordinate-contract failure: ten WebMCP-created objects
