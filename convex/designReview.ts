@@ -75,7 +75,12 @@ export const approveDesignRevision = mutation({
       },
     });
     if (recorded.replay) {
-      return { decisionId: recorded.changed[0]?.targetId, idempotentReplay: true };
+      return {
+        decisionId: recorded.changed[0]?.targetId as Id<'designReviewDecisions'>,
+        designRevisionId: recorded.changed[0]?.targetId as Id<'designRevisions'>,
+        version: args.version,
+        idempotentReplay: true,
+      };
     }
     return recorded.result;
   },
@@ -208,7 +213,11 @@ export const restoreDesignRevision = mutation({
       },
     });
     if (recorded.replay) {
-      return { designRevisionId: recorded.changed[0]?.targetId, idempotentReplay: true };
+      return {
+        designRevisionId: recorded.changed[0]?.targetId as Id<'designRevisions'>,
+        version: args.version,
+        idempotentReplay: true,
+      };
     }
     return recorded.result;
   },
