@@ -31,9 +31,10 @@ Status vocabulary:
 - Signed-in native WebMCP resolved the existing `cinemaverse-demo` design set instead of creating a
   duplicate. It contains immutable Version 1 and Version 2 revisions at
   `https://cinemaverse-two.vercel.app`; all six stable screens have ready desktop and mobile
-  captures on both revisions. Version 2 is the restrained liquid-glass revision. Human approval is
-  still pending, so a third Claude pass is neither needed nor permitted unless new user feedback
-  requests one.
+  captures on both revisions. Version 2 is the restrained liquid-glass revision. The authenticated
+  user approved immutable revision `nn7209h4kyn1f7y4qxbjsynmz18dpes2` through the Guild decision UI;
+  signed-in `get_design_set` WebMCP verification confirmed the approved revision equals the current
+  head. A third Claude pass is neither needed nor permitted unless new user feedback requests one.
 - `CINEMAVERSE_AGENT_HANDOFF.md`, `DEMO_VIDEO_SCRIPT.md`, and
   `DEMO_IMPLEMENTATION_PROMPT.md` now carry the exact six stable names, workstream keys, engines,
   accents, detailed-content contract, and resume-safe rule. A new session must reuse the existing
@@ -43,9 +44,9 @@ Status vocabulary:
   to `Completed`, preserving the same Role names and engine identities. Two deterministic browser
   rehearsals passed the landing, Agent dock, owned-artifact selection, expanded Markdown, embedded
   interaction, region feedback composer, Version 1/Version 2 comparison, responsive viewport,
-  selection-aware cited answer, and save-to-canvas paths. The only intentionally pending demo
-  decision is the authenticated human approval of one immutable design revision; the agent did not
-  fabricate that decision.
+  selection-aware cited answer, and save-to-canvas paths. The previously pending human design
+  decision is now durably recorded for Version 2. The final recording may replay that visible click
+  only in a separate reset-safe baseline; it must not erase the source approval.
 - The complete batch merged through
   [PR #17](https://github.com/AvichalDwivedi2205/guild/pull/17) as six cohesive commits after GitHub
   quality run

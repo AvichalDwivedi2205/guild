@@ -331,6 +331,27 @@ hosted preview URL and link state
 Codex implements this approved contract. A later visual change creates a new revision and another
 human decision rather than silently changing the approved target.
 
+### Current approved design packet
+
+The authenticated user approved the following immutable target on 2026-09-04:
+
+```text
+designSetKey: cinemaverse-demo
+approvedVersion: 2
+approvedRevisionId: nn7209h4kyn1f7y4qxbjsynmz18dpes2
+headRevisionId: nn7209h4kyn1f7y4qxbjsynmz18dpes2
+origin: https://cinemaverse-two.vercel.app
+stage: visual
+screenKeys: project-setup, script-review, research-canvas, location-dossier,
+  candidate-comparison, export-brief
+viewports: desktop, mobile
+decisionSource: authenticated Guild human approval UI
+verification: signed-in get_design_set WebMCP receipt
+```
+
+Codex may now consume this packet for final integration. Claude must not create Version 3 unless
+the user supplies new material design feedback.
+
 ## How Guild and the coding clients communicate
 
 ### Browser Controller path

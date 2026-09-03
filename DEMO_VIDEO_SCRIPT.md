@@ -52,6 +52,10 @@ Each row keeps its Role accent across the demo. A green braces glyph identifies 
 sparkle identifies Claude Sonnet, and a separate dot communicates execution state. The badges stay
 compact above active targets and inside the Agent dock; they never cover canvas content.
 
+The source `cinemaverse-demo` Version 2 is already approved. The final take may show the approval
+interaction only from a separate reset-safe recording baseline containing the same verified
+revision metadata. Never unapprove or delete the durable source decision for the sake of a shot.
+
 ## 3. Demo project fixture
 
 Use a short original screenplay excerpt created for the demo. Do not use a copyrighted screenplay.

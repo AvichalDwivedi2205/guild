@@ -52,9 +52,12 @@ Do not assume a framework, remote, branch, dependency, command, or deployed envi
   under the stable design-set key `cinemaverse-demo`. Version 2 is the restrained liquid-glass
   revision. All twelve desktop/mobile captures are ready. Verify the immutable revisions and live
   routes before relying on them; do not rerun Claude merely to recreate existing evidence.
-- Human approval of one exact revision is still pending. Final recording remains blocked on
-  exercising the visible comment, comparison, approval, and agent-identity paths, then passing the
-  exact end-to-end rehearsal twice consecutively.
+- The authenticated user approved Version 2 revision `nn7209h4kyn1f7y4qxbjsynmz18dpes2` through
+  Guild's human decision UI. Signed-in WebMCP verified that it is both the approved revision and the
+  current head. Do not launch Claude again or alter this approval without new user feedback.
+- Two end-to-end rehearsals already passed. Final recording remains; if the take must show the
+  approval click, use a separate reset-safe recording baseline. Never erase or reverse the durable
+  source approval merely to recreate the shot.
 
 ## Product to build
 
@@ -151,12 +154,14 @@ environment, not through Guild Runner's canvas-only authority.
 - Exercise Version 2 inside Guild Interact mode and compare it against Version 1.
 - Do not spend Claude credits or overwrite either revision during rehearsal.
 
-### 5. Exercise my design decision
+### 5. Verify my recorded design decision
 
 - Preserve the existing feedback trail and show its exact revision/screen binding.
-- Let me add the scripted anchored design comment only if the dedicated demo state does not already
-  contain it; never duplicate feedback just to make the activity feed look busy.
-- Stop for my authenticated approve/request-changes decision on one exact immutable revision.
+- Verify that Version 2 revision `nn7209h4kyn1f7y4qxbjsynmz18dpes2` is approved and remains the
+  current head before sending the design handoff to Codex.
+- For the final recording only, a separate reset-safe baseline may replay the scripted anchored
+  comment and approval click. Never duplicate feedback in or remove approval from the durable source
+  design set merely to make the activity feed look busy.
 - Never infer approval from a comment, a ready capture, or a successful deployment.
 
 ### 6. Resume Claude only if I request changes
@@ -168,7 +173,7 @@ environment, not through Guild Runner's canvas-only authority.
 
 ### 7. Verify Cinemaverse and the Codex handoff
 
-Only after I approve one exact design revision:
+The Version 2 approval gate has passed. Continue with the exact approved revision:
 
 - send Codex the approved design packet;
 - verify that the accepted screens and states are integrated, changing code only for a reproduced
