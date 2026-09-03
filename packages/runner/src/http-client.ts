@@ -1,6 +1,10 @@
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
-import { assertSafeCaptureUrl, type CaptureResult } from './capture/index.js';
+import {
+  assertSafeCaptureUrl,
+  type CapturedArtifact,
+  type CaptureResult,
+} from './capture/index.js';
 import { errorMessage, safeStatusMessage } from './redaction.js';
 import {
   captureAssignmentSchema,
@@ -42,6 +46,10 @@ const captureUploadIntentSchema = z.object({
 
 const storageUploadSchema = z.object({
   storageId: z.string().min(1).max(200),
+});
+
+const finalizedCaptureAssetSchema = z.object({
+  assetId: z.string().min(1).max(200),
 });
 
 type SuccessfulCapture = Extract<CaptureResult, { ok: true }>;
@@ -131,11 +139,13 @@ export class GuildCloudClient {
   async claimCaptures(
     token: string,
     capacity: number,
+    signal?: AbortSignal,
   ): Promise<{ tasks: readonly CaptureAssignment[] }> {
     return captureClaimSchema.parse(
       await this.#request('/api/runner/captures', {
         method: 'POST',
         token,
+        ...(signal ? { signal } : {}),
         body: JSON.stringify({ action: 'claim', capacity }),
       }),
     );
@@ -145,6 +155,7 @@ export class GuildCloudClient {
     token: string,
     task: CaptureAssignment,
     capture: SuccessfulCapture,
+    signal?: AbortSignal,
   ): Promise<unknown> {
     const authority = {
       taskId: task.taskId,
@@ -152,56 +163,95 @@ export class GuildCloudClient {
       attempt: task.attempt,
       fencingToken: task.fencingToken,
     };
-    const intent = captureUploadIntentSchema.parse(
-      await this.#request('/api/runner/captures', {
-        method: 'POST',
-        token,
-        body: JSON.stringify({
-          action: 'begin_upload',
-          ...authority,
-          byteSize: capture.bytes.byteLength,
+    const artifacts: readonly CapturedArtifact[] = capture.artifacts ?? [
+      {
+        kind: 'viewport',
+        mime: capture.mime,
+        width: capture.width,
+        height: capture.height,
+        bytes: capture.bytes,
+      },
+    ];
+    const assetIds: Partial<Record<CapturedArtifact['kind'], string>> = {};
+    for (const artifact of artifacts) {
+      const intent = captureUploadIntentSchema.parse(
+        await this.#request('/api/runner/captures', {
+          method: 'POST',
+          token,
+          ...(signal ? { signal } : {}),
+          body: JSON.stringify({
+            action: 'begin_upload',
+            ...authority,
+            kind: artifact.kind,
+            byteSize: artifact.bytes.byteLength,
+          }),
         }),
-      }),
-    );
-    const uploadOrigin = new URL(intent.uploadUrl).origin;
-    const validatedUpload = await assertSafeCaptureUrl(intent.uploadUrl, uploadOrigin);
-    const uploadResponse = await this.#uploadBytes(
-      validatedUpload.url,
-      capture.bytes,
-      capture.mime,
-    );
-    const stored = storageUploadSchema.parse(await this.#readResponse(uploadResponse));
-    const checksum = createHash('sha256').update(capture.bytes).digest('hex');
+      );
+      const uploadOrigin = new URL(intent.uploadUrl).origin;
+      const validatedUpload = await assertSafeCaptureUrl(intent.uploadUrl, uploadOrigin);
+      const uploadResponse = await this.#uploadBytes(
+        validatedUpload.url,
+        artifact.bytes,
+        artifact.mime,
+        signal,
+      );
+      const stored = storageUploadSchema.parse(await this.#readResponse(uploadResponse));
+      const checksum = createHash('sha256').update(artifact.bytes).digest('hex');
+      const finalized = finalizedCaptureAssetSchema.parse(
+        await this.#request('/api/runner/captures', {
+          method: 'POST',
+          token,
+          ...(signal ? { signal } : {}),
+          body: JSON.stringify({
+            action: 'complete_upload',
+            ...authority,
+            intentId: intent.intentId,
+            storageId: stored.storageId,
+            checksum,
+            byteSize: artifact.bytes.byteLength,
+            altText: `${task.screenKey} ${task.viewportKey} ${artifact.kind.replace('_', ' ')} preview`,
+          }),
+        }),
+      );
+      assetIds[artifact.kind] = finalized.assetId;
+    }
+    if (!assetIds.viewport) throw new Error('Capture result is missing a viewport artifact');
     return await this.#request('/api/runner/captures', {
       method: 'POST',
       token,
+      ...(signal ? { signal } : {}),
       body: JSON.stringify({
-        action: 'complete_upload',
+        action: 'complete',
         ...authority,
-        intentId: intent.intentId,
-        storageId: stored.storageId,
-        checksum,
-        byteSize: capture.bytes.byteLength,
-        width: capture.width,
-        height: capture.height,
-        mime: capture.mime,
-        altText: `${task.screenKey} ${task.viewportKey} preview`,
+        viewportAssetId: assetIds.viewport,
+        ...(assetIds.full_page ? { fullPageAssetId: assetIds.full_page } : {}),
+        ...(assetIds.thumbnail ? { thumbnailAssetId: assetIds.thumbnail } : {}),
       }),
     });
   }
 
-  async completeCapture(token: string, payload: Record<string, unknown>): Promise<unknown> {
+  async completeCapture(
+    token: string,
+    payload: Record<string, unknown>,
+    signal?: AbortSignal,
+  ): Promise<unknown> {
     return this.#request('/api/runner/captures', {
       method: 'POST',
       token,
+      ...(signal ? { signal } : {}),
       body: JSON.stringify({ action: 'complete', ...payload }),
     });
   }
 
-  async failCapture(token: string, payload: Record<string, unknown>): Promise<unknown> {
+  async failCapture(
+    token: string,
+    payload: Record<string, unknown>,
+    signal?: AbortSignal,
+  ): Promise<unknown> {
     return this.#request('/api/runner/captures', {
       method: 'POST',
       token,
+      ...(signal ? { signal } : {}),
       body: JSON.stringify({ action: 'fail', ...payload }),
     });
   }
@@ -290,8 +340,16 @@ export class GuildCloudClient {
     }
   }
 
-  async #uploadBytes(url: URL, bytes: Uint8Array, mime: string): Promise<Response> {
+  async #uploadBytes(
+    url: URL,
+    bytes: Uint8Array,
+    mime: string,
+    signal?: AbortSignal,
+  ): Promise<Response> {
     const controller = new AbortController();
+    const abort = (): void => controller.abort(signal?.reason);
+    if (signal?.aborted) abort();
+    else signal?.addEventListener('abort', abort, { once: true });
     const body = new ArrayBuffer(bytes.byteLength);
     new Uint8Array(body).set(bytes);
     const timeout = setTimeout(() => controller.abort('Capture upload timed out'), this.#timeoutMs);
@@ -307,6 +365,7 @@ export class GuildCloudClient {
       throw new Error(`Capture upload failed: ${errorMessage(error, [url.toString()])}`);
     } finally {
       clearTimeout(timeout);
+      signal?.removeEventListener('abort', abort);
     }
   }
 

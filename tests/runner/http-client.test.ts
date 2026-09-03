@@ -14,11 +14,13 @@ const pollRequest = {
 describe('Guild Cloud client', () => {
   it('uses a task capability to upload capture bytes and complete the task', async () => {
     const requests: Array<{ url: string; init?: RequestInit }> = [];
+    let artifactKind = 'viewport';
     const fetchImplementation = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
       requests.push({ url: String(url), ...(init ? { init } : {}) });
       if (String(url) === 'https://guild.test/api/runner/captures') {
         const body = JSON.parse(String(init?.body)) as { action: string };
         if (body.action === 'begin_upload') {
+          artifactKind = String((body as { kind?: string }).kind ?? 'viewport');
           return new Response(
             JSON.stringify({
               intentId: 'intent_1',
@@ -27,6 +29,11 @@ describe('Guild Cloud client', () => {
             }),
             { status: 200 },
           );
+        }
+        if (body.action === 'complete_upload') {
+          return new Response(JSON.stringify({ assetId: `capture_1-${artifactKind}` }), {
+            status: 200,
+          });
         }
         return new Response(JSON.stringify({ taskId: 'capture_1', captureReady: true }), {
           status: 200,
@@ -64,15 +71,21 @@ describe('Guild Cloud client', () => {
       width: 1440,
       height: 900,
       bytes,
+      artifacts: [
+        { kind: 'viewport', mime: 'image/png', width: 1440, height: 900, bytes },
+        { kind: 'full_page', mime: 'image/png', width: 1440, height: 1_800, bytes },
+        { kind: 'thumbnail', mime: 'image/png', width: 480, height: 300, bytes },
+      ],
     });
 
-    expect(requests).toHaveLength(3);
+    expect(requests).toHaveLength(10);
     expect(JSON.parse(String(requests[0]?.init?.body))).toMatchObject({
       action: 'begin_upload',
       taskId: task.taskId,
       capabilityToken: task.capabilityToken,
       attempt: 1,
       fencingToken: 2,
+      kind: 'viewport',
       byteSize: 64,
     });
     expect(requests[1]?.url).toBe('https://93.184.216.34/upload');
@@ -84,9 +97,20 @@ describe('Guild Cloud client', () => {
       intentId: 'intent_1',
       storageId: 'storage_1',
       byteSize: 64,
-      width: 1440,
-      height: 900,
-      mime: 'image/png',
+    });
+    expect(JSON.parse(String(requests[3]?.init?.body))).toMatchObject({
+      action: 'begin_upload',
+      kind: 'full_page',
+    });
+    expect(JSON.parse(String(requests[6]?.init?.body))).toMatchObject({
+      action: 'begin_upload',
+      kind: 'thumbnail',
+    });
+    expect(JSON.parse(String(requests[9]?.init?.body))).toMatchObject({
+      action: 'complete',
+      viewportAssetId: 'capture_1-viewport',
+      fullPageAssetId: 'capture_1-full_page',
+      thumbnailAssetId: 'capture_1-thumbnail',
     });
   });
 
