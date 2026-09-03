@@ -65,4 +65,14 @@ describe('Runner cloud boundary', () => {
     expect(response.status).toBe(409);
     await expect(response.json()).resolves.toEqual({ error: 'reservation_collision' });
   });
+
+  it('preserves bounded Convex error data when production redacts the message', async () => {
+    const error = Object.assign(new Error('Server Error (request id hidden)'), {
+      data: 'reservation_collision',
+    });
+    const response = routeError(error);
+
+    expect(response.status).toBe(409);
+    await expect(response.json()).resolves.toEqual({ error: 'reservation_collision' });
+  });
 });

@@ -1,5 +1,6 @@
 import type { Doc, Id } from '../_generated/dataModel';
 import type { MutationCtx } from '../_generated/server';
+import { ConvexError } from 'convex/values';
 import { requireWorkspaceMember } from './auth';
 import { assertIdempotencyKey } from './policies';
 import { requireWorkerAuthorization } from './runnerAuth';
@@ -230,7 +231,7 @@ export function objectSegmentRevision(
 
 export function assertRevision(actual: number, expected: number): void {
   if (!Number.isInteger(expected) || expected < 0) throw new Error('invalid_revision');
-  if (actual !== expected) throw new Error('revision_conflict');
+  if (actual !== expected) throw new ConvexError('revision_conflict');
 }
 
 export function assertWorkerCanModifyObject(

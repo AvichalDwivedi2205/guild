@@ -140,7 +140,14 @@ export function convexEngineReports(engines: readonly z.output<typeof publicEngi
 }
 
 export function routeError(error: unknown): Response {
-  const message = error instanceof Error ? error.message : '';
+  const message = [
+    error instanceof Error ? error.message : '',
+    typeof error === 'object' && error !== null && 'data' in error
+      ? typeof error.data === 'string'
+        ? error.data
+        : JSON.stringify(error.data)
+      : '',
+  ].join(' ');
   const conflictCode = [
     'revision_conflict',
     'outside_reserved_region',
