@@ -23,7 +23,11 @@ test.describe('Guild accessibility and resilience', () => {
     await home.focus();
     await expect(home).toBeFocused();
     await page.keyboard.press('Tab');
-    await expect(page.getByRole('link', { name: 'Canvas', exact: true })).toBeFocused();
+    const nextControl =
+      (page.viewportSize()?.width ?? 1_000) <= 820
+        ? page.getByRole('link', { name: /Start building/ })
+        : page.getByRole('link', { name: 'Canvas', exact: true });
+    await expect(nextControl).toBeFocused();
   });
 
   test.describe('authenticated workspace', () => {
@@ -36,10 +40,7 @@ test.describe('Guild accessibility and resilience', () => {
     test('workspace has no automatically detectable WCAG A/AA violations', async ({ page }) => {
       await page.goto(workspacePath!);
       await expect(page.getByLabel(/infinite canvas/i)).toBeVisible();
-      const results = await new AxeBuilder({ page })
-        .withTags(['wcag2a', 'wcag2aa'])
-        .disableRules(['aria-prohibited-attr'])
-        .analyze();
+      const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
       expect(results.violations).toEqual([]);
     });
 
