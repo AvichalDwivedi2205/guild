@@ -23,7 +23,7 @@ export default defineConfig({
     },
     {
       command:
-        'WORKOS_API_KEY=sk_test_default WORKOS_API_HOSTNAME=127.0.0.1 WORKOS_API_HTTPS=false WORKOS_API_PORT=4100 WORKOS_CLIENT_ID=client_playwright_guild WORKOS_COOKIE_PASSWORD=guild-playwright-only-cookie-password NEXT_PUBLIC_WORKOS_REDIRECT_URI=http://localhost:3200/callback bun run dev -- -p 3200',
+        'WORKOS_API_KEY=sk_test_default WORKOS_API_HOSTNAME=127.0.0.1 WORKOS_API_HTTPS=false WORKOS_API_PORT=4100 WORKOS_CLIENT_ID=client_playwright_guild WORKOS_COOKIE_PASSWORD=guild-playwright-only-cookie-password NEXT_PUBLIC_WORKOS_REDIRECT_URI=http://localhost:3200/callback NEXT_PUBLIC_CONVEX_URL=https://playwright.invalid bun run dev -- -p 3200',
       url: appUrl,
       reuseExistingServer: false,
       timeout: 120_000,
