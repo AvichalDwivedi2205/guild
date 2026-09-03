@@ -83,6 +83,7 @@ describe('Convex canvas command integration', () => {
       idempotencyKey: 'comment:persistence:ordinary:0001',
     });
     expect(comment.jobIds).toEqual([]);
+    expect(comment.state).toBe('unassigned');
     await asOwner.mutation(api.comments.resolve, { commentId: comment.commentId });
 
     const [context, comments, activity] = await Promise.all([

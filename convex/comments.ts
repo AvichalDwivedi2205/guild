@@ -74,7 +74,7 @@ async function routeHumanComment(
       state: route.commentState,
       updatedAt: Date.now(),
     });
-    return { jobIds: [] as Id<'jobs'>[] };
+    return { jobIds: [] as Id<'jobs'>[], state: route.commentState };
   }
   const started = await createTeamRun(ctx, {
     workspaceId: input.workspaceId,
@@ -101,7 +101,7 @@ async function routeHumanComment(
     jobIds: started.jobIds,
     updatedAt: Date.now(),
   });
-  return { jobIds: started.jobIds, teamRunId: started.runId };
+  return { jobIds: started.jobIds, teamRunId: started.runId, state: 'queued' as const };
 }
 
 export const list = query({
@@ -138,6 +138,7 @@ export const add = mutation({
     commentId: v.id('comments'),
     teamRunId: v.optional(v.id('teamRuns')),
     jobIds: v.array(v.id('jobs')),
+    state: commentStateValidator,
   }),
   handler: async (ctx, args) => {
     const { user } = await requireWorkspaceMember(ctx, args.workspaceId, 'editor');
@@ -161,6 +162,7 @@ export const add = mutation({
         commentId: comment._id,
         ...(comment.teamRunId ? { teamRunId: comment.teamRunId } : {}),
         jobIds: comment.jobIds,
+        state: comment.state,
       };
     }
     const body = args.body.trim();

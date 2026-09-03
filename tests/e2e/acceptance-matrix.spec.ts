@@ -317,7 +317,31 @@ test.describe.serial('Guild connected acceptance matrix', () => {
       body: ordinaryBody,
       idempotencyKey: acceptanceKey('ordinary-comment'),
     });
-    expect(ordinary.state).toBe('open');
+    expect(ordinary.state).toBe('unassigned');
+
+    const unowned = await callWebMcp<{ changedIds: string[] }>(page, 'apply_canvas_changes', {
+      workspaceId,
+      idempotencyKey: acceptanceKey('unowned-comment-target'),
+      changes: [
+        {
+          command: 'create_object',
+          objectType: 'sticky',
+          title: `Unowned note ${acceptanceKey('title')}`,
+          placement: {
+            position: { x: 8_400, y: 8_400 },
+            size: { width: 260, height: 160 },
+          },
+          semantics: { semanticType: 'note', projectArea: 'product' },
+        },
+      ],
+    });
+    const unownedResult = await callWebMcp<{ state: string }>(page, 'add_comment', {
+      workspaceId,
+      target: { kind: 'object', objectId: unowned.changedIds[0]! },
+      body: `Ownerless note ${acceptanceKey('body')}`,
+      idempotencyKey: acceptanceKey('unowned-object-comment'),
+    });
+    expect(unownedResult.state).toBe('unassigned');
 
     const roleResult = await callWebMcp<{ state: string }>(page, 'add_comment', {
       workspaceId,
@@ -351,6 +375,11 @@ test.describe.serial('Guild connected acceptance matrix', () => {
         });
       }
     }
+    const finalContext = await workspaceContext(page);
+    await deleteObjects(
+      page,
+      finalContext.objects.filter((object) => unowned.changedIds.includes(object._id)),
+    );
   });
 
   test('12: creates, edits, and removes a Role Profile and reusable Team through visible UI', async ({

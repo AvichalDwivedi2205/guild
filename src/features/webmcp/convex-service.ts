@@ -374,7 +374,7 @@ export function createConvexWebMcpService(client: ConvexReactClient): GuildWebMc
         source: 'webmcp',
         idempotencyKey: input.idempotencyKey,
       });
-      return { commentId: result.commentId, state: result.teamRunId ? 'queued' : 'open' };
+      return { commentId: result.commentId, state: result.state };
     },
     async runAiTeam(input) {
       const result = await client.mutation(api.runs.startTeam, {
