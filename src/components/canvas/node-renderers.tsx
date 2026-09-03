@@ -17,6 +17,7 @@ import { resolvePaletteId } from '@/domain/palette';
 import { type GuildFlowNode, useCanvasInteractionStore } from '@/features/canvas/store';
 
 import styles from './canvas.module.css';
+import { MarkdownContent } from './markdown-content';
 
 function stringField(value: unknown, key: string): string | null {
   if (!value || typeof value !== 'object') return null;
@@ -192,7 +193,7 @@ function InlineTextNode({ object, selected }: { object: CanvasObject; selected: 
         setEditing(true);
       }}
     >
-      <p className={styles.textNode}>{visibleText}</p>
+      <MarkdownContent source={visibleText} compact className={styles.textNode} />
     </NodeChrome>
   );
 }
@@ -214,7 +215,7 @@ export function DiagramNodeRenderer({ data, selected }: NodeProps<GuildFlowNode>
         object={object}
         fallback={object.type === 'mindMapNode' ? 'Mind map idea' : 'Untitled shape'}
       />
-      {body ? <p className={styles.nodeBody}>{body}</p> : null}
+      {body ? <MarkdownContent source={body} compact className={styles.nodeBody} /> : null}
     </NodeChrome>
   );
 }
@@ -235,8 +236,12 @@ function TablePreview({ object }: { object: CanvasObject }) {
 
 function TaskPreview({ object }: { object: CanvasObject }) {
   const checklist = stringArrayField(object.content, 'checklist');
+  const description = stringField(object.content, 'description');
   return (
     <>
+      {description ? (
+        <MarkdownContent source={description} compact className={styles.nodeBody} />
+      ) : null}
       <div className={styles.taskMeta}>
         <span>{object.semantics.status || 'No status'}</span>
         <span>{object.semantics.priority || 'No priority'}</span>

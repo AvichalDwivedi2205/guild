@@ -121,6 +121,25 @@ describe('canvas node renderers', () => {
     legacyView.unmount();
   });
 
+  it('renders formatted Markdown in diagram and task previews', () => {
+    const sticky = object({
+      type: 'sticky',
+      title: 'Architecture note',
+      content: { text: '**Fenced writes** prevent conflicts.' },
+    });
+    const first = render(<DiagramNodeRenderer {...props(sticky)} />);
+    expect(screen.getByText('Fenced writes', { selector: 'strong' })).toBeVisible();
+    first.unmount();
+
+    const task = object({
+      type: 'task',
+      title: 'Implement worker',
+      content: { description: 'Use `reservation_collision` for overlap.', checklist: [] },
+    });
+    render(<StructuredNodeRenderer {...props(task)} />);
+    expect(screen.getByText('reservation_collision', { selector: 'code' })).toBeVisible();
+  });
+
   it('renders table and task structured previews from persisted content and semantics', () => {
     const table = object({
       type: 'table',

@@ -71,4 +71,27 @@ describe('ObjectContentEditor', () => {
     expect(screen.getByLabelText('Body')).toHaveValue('Keep this draft');
     expect(screen.getByRole('button', { name: 'Retry' })).toBeVisible();
   });
+
+  it('previews rich Markdown without losing the editable source', () => {
+    render(
+      <ObjectContentEditor
+        object={{
+          ...object,
+          content: { text: '## Agent result\n\n**Implemented** with `WebMCP`.' },
+        }}
+        bodyStatus="ready"
+        updateContent={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Preview Markdown' }));
+    expect(screen.getByRole('heading', { name: 'Agent result', level: 2 })).toBeVisible();
+    expect(screen.getByText('Implemented', { selector: 'strong' })).toBeVisible();
+    expect(screen.getByText('WebMCP', { selector: 'code' })).toBeVisible();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit Markdown' }));
+    expect(screen.getByLabelText('Body')).toHaveValue(
+      '## Agent result\n\n**Implemented** with `WebMCP`.',
+    );
+  });
 });

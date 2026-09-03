@@ -13,6 +13,23 @@ export type ObjectContentLabels = {
   secondaryPlaceholder?: string;
 };
 
+const markdownObjectTypes = new Set<CanvasObjectType>([
+  'shape',
+  'sticky',
+  'text',
+  'mindMapNode',
+  'section',
+  'annotation',
+  'task',
+  'stack',
+  'wireframeFrame',
+  'wireframeComponent',
+]);
+
+export function supportsMarkdownContent(type: CanvasObjectType): boolean {
+  return markdownObjectTypes.has(type);
+}
+
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
   return value as Record<string, unknown>;
