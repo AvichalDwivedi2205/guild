@@ -40,6 +40,10 @@ Status vocabulary:
 - Static evidence: strict TypeScript passed and Playwright discovered 46 desktop/mobile tests. The
   signed-in matrix intentionally requires an untracked browser storage state; execution against the
   deployed branch remains pending and is not counted as passed yet.
+- The matrix now also drives Role Profile create/edit/remove, saved Team create/remove, reversible
+  Runner rename, and remote human cursor/selection visibility in two authenticated browser
+  contexts. Cleanup targets only the temporary owned section and restores the Runner name even
+  when a live-execution assertion fails.
 
 ## Snapshot — 2026-09-03 (visible reserved-region evidence)
 

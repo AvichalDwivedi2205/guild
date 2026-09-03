@@ -26,6 +26,7 @@ type ContextRole = {
   name: string;
   handle: string;
   engine: 'codex' | 'claude';
+  ownedSectionId: string;
   staticDependencyRoleProfileIds: string[];
 };
 type ContextTeam = { _id: string; name: string; roleProfileIds: string[] };
@@ -274,6 +275,16 @@ test.describe.serial('Guild connected acceptance matrix', () => {
     });
     try {
       await expect(secondPage.getByText(title, { exact: true })).toBeVisible();
+      await expect(secondPage.getByLabel(/1 collaborators/)).toBeVisible();
+      const firstNode = page.locator(`.react-flow__node[data-id="${created.changedIds[0]}"]`);
+      await firstNode.click();
+      const canvas = page.getByLabel(/infinite canvas/i);
+      const canvasBox = await canvas.boundingBox();
+      expect(canvasBox).not.toBeNull();
+      await page.mouse.move(canvasBox!.x + canvasBox!.width / 2, canvasBox!.y + 180);
+      await expect
+        .poll(() => secondPage.locator('[data-kind="human"]').count())
+        .toBeGreaterThanOrEqual(2);
       const context = await workspaceContext(page);
       const object = context.objects.find((candidate) =>
         created.changedIds.includes(candidate._id),
@@ -354,11 +365,42 @@ test.describe.serial('Guild connected acceptance matrix', () => {
     }
   });
 
-  test('12: creates a reusable two-engine team through the visible Team UI', async ({
+  test('12: creates, edits, and removes a Role Profile and reusable Team through visible UI', async ({
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name !== 'chromium', 'Mutation flow runs once on desktop Chromium.');
     await page.goto(workspacePath!);
+    const roleName = `Acceptance Reviewer ${Date.now()}`;
+    const updatedRoleName = `${roleName} Updated`;
+    await page.getByRole('button', { name: 'Team', exact: true }).click();
+    const addRoleSection = page
+      .getByRole('heading', { name: 'Add Role Profile', exact: true })
+      .locator('..');
+    await addRoleSection.getByLabel('Name').fill(roleName);
+    await addRoleSection.getByLabel('Handle').fill(`acceptance-${Date.now()}`);
+    await addRoleSection
+      .getByLabel('Responsibility')
+      .fill('Validate connected browser acceptance.');
+    await addRoleSection
+      .getByLabel('Instructions')
+      .fill('Report only bounded acceptance evidence.');
+    await addRoleSection.getByLabel('Engine').selectOption('codex');
+    await addRoleSection.getByRole('button', { name: 'Add Role Profile' }).click();
+    await expect
+      .poll(async () => (await workspaceContext(page)).roles.some((role) => role.name === roleName))
+      .toBe(true);
+    const createdRole = (await workspaceContext(page)).roles.find(
+      (role) => role.name === roleName,
+    )!;
+    const roleDetail = page.locator('details').filter({ hasText: roleName });
+    await expect(roleDetail).toBeVisible();
+    await roleDetail.locator('summary').click();
+    await roleDetail.getByLabel('Name').fill(updatedRoleName);
+    await roleDetail.getByRole('button', { name: 'Save Role Profile' }).click();
+    await expect(roleDetail.locator('summary')).toContainText(updatedRoleName);
+    await roleDetail.getByRole('button', { name: 'Remove Role Profile' }).click();
+    await expect(page.getByText(updatedRoleName, { exact: true })).toHaveCount(0);
+
     const context = await workspaceContext(page);
     const codexRole = context.roles.find(
       (role) => role.engine === 'codex' && role.staticDependencyRoleProfileIds.length === 0,
@@ -369,7 +411,6 @@ test.describe.serial('Guild connected acceptance matrix', () => {
     expect(codexRole, 'dependency-free Codex Role Profile').toBeTruthy();
     expect(claudeRole, 'dependency-free Claude Role Profile').toBeTruthy();
 
-    await page.getByRole('button', { name: 'Team', exact: true }).click();
     const selected = new Set([codexRole!._id, claudeRole!._id]);
     for (const role of context.roles) {
       const checkbox = page.getByRole('checkbox', { name: new RegExp(role.name) });
@@ -388,6 +429,11 @@ test.describe.serial('Guild connected acceptance matrix', () => {
       await card.getByRole('button', { name: 'Remove team' }).click();
       await expect(page.getByText(acceptanceTeamName, { exact: true })).toHaveCount(0);
     }
+    const after = await workspaceContext(page);
+    await deleteObjects(
+      page,
+      after.objects.filter((object) => object._id === createdRole.ownedSectionId),
+    );
   });
 
   test('13–18: two engines receive distinct regions and an active run can be stopped', async ({
@@ -401,6 +447,8 @@ test.describe.serial('Guild connected acceptance matrix', () => {
     await page.goto(workspacePath!);
     const runnerStatus = await callWebMcp<{
       runners: Array<{
+        _id: string;
+        name: string;
         status: string;
         configuredConcurrency: number;
         engines: Array<{ engine: string; authState: string; version: string }>;
@@ -417,6 +465,12 @@ test.describe.serial('Guild connected acceptance matrix', () => {
         expect.objectContaining({ engine: 'claude', authState: 'ready' }),
       ]),
     );
+    await page.getByRole('button', { name: 'Guild Runner', exact: true }).click();
+    const originalRunnerName = runner!.name;
+    const acceptanceRunnerName = `${originalRunnerName} · acceptance`;
+    await page.getByLabel('Runner name').fill(acceptanceRunnerName);
+    await page.getByRole('button', { name: 'Rename' }).click();
+    await expect(page.getByLabel('Runner name')).toHaveValue(acceptanceRunnerName);
 
     const context = await workspaceContext(page);
     const team = context.teams.find((candidate) => candidate.name === acceptanceTeamName);
@@ -473,6 +527,9 @@ test.describe.serial('Guild connected acceptance matrix', () => {
       await page.getByRole('button', { name: 'Team', exact: true }).click();
       const card = page.locator('article').filter({ hasText: acceptanceTeamName });
       if ((await card.count()) > 0) await card.getByRole('button', { name: 'Remove team' }).click();
+      await page.getByRole('button', { name: 'Guild Runner', exact: true }).click();
+      await page.getByLabel('Runner name').fill(originalRunnerName);
+      await page.getByRole('button', { name: 'Rename' }).click();
     }
     await page.getByRole('button', { name: 'Runs & Jobs' }).click();
     await expect(page.getByText('cancelled', { exact: true }).first()).toBeVisible();
