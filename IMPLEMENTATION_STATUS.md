@@ -37,8 +37,13 @@ Status vocabulary:
   `roleProfiles.by_ownedSectionId` index makes the check bounded.
 - Verification: `bun run check` passed 59 files / 190 tests; Runner passed 12 files / 40 tests;
   `bun run runner:build`, Next.js 16.3.4 `bun run build`, and `bun audit` passed. Standards review
-  found no issues; spec review found the undo/reset bypasses above, which this batch then fixed. PR,
-  merge, production deployment, and live rejection replay remain pending.
+  found no issues; spec review found the undo/reset bypasses above, which this batch then fixed.
+- PR #6 passed GitHub verification and its Vercel preview. Convex production deployed the additive
+  `roleProfiles.by_ownedSectionId` index with no index deletion. A native WebMCP delete against the
+  live Product-owned section failed with `owned_section_in_use`; a follow-up context read confirmed
+  the section remained active at hierarchy revision 0. A post-deploy Team Run queued all seven
+  configured roles without `owned_section_not_found`, then `stop_run` cancelled all seven Jobs.
+  Final PR merge and merged-production browser replay remain pending.
 
 ## Snapshot — 2026-09-03 (unrouted visual-comment acceptance repair)
 
