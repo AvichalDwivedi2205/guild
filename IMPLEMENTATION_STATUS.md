@@ -12,6 +12,45 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Final acceptance snapshot — 2026-09-03
+
+This snapshot is the authoritative current state. Older snapshots below are retained as an audit
+trail, so their then-pending language does not describe the final build.
+
+- Core acceptance shipped through PRs
+  [#8](https://github.com/AvichalDwivedi2205/guild/pull/8),
+  [#9](https://github.com/AvichalDwivedi2205/guild/pull/9), and
+  [#10](https://github.com/AvichalDwivedi2205/guild/pull/10). GitHub quality run
+  [33752844351](https://github.com/AvichalDwivedi2205/guild/actions/runs/33752844351)
+  passed on the final code merge.
+- Convex production `befitting-bird-666` has the current schema and functions. Vercel production
+  deployment `dpl_D77REJRus3EgzaAzg1SnNWYBsqNn` is Ready and serves the stable
+  `https://guild-rose-two.vercel.app` alias.
+- The final local gate passed formatting, zero-warning lint, strict TypeScript, 59 application test
+  files / 194 tests, 12 Runner test files / 42 tests, the Runner build, and the Next.js 16.3.4
+  production build. The public desktop/mobile Playwright suite and isolated official WorkOS
+  AuthKit emulator flow also passed.
+- A signed-in production browser discovered and exercised all 24 native WebMCP tools. Their surface
+  covers canvas and comments; team-run lifecycle; implementation tasks; immutable design previews;
+  reported Codex/Claude workstreams and feedback; and implementation evidence.
+- A real paired macOS Runner executed Codex and Claude Code concurrently in distinct reserved
+  regions. Both jobs completed and wrote attributable artifacts. Claude uses the Sonnet adapter;
+  no Fable model and no provider API key was used.
+- Connected production evidence covers cancellation, a controlled failed attempt followed by a
+  successful retry, stale-revision rejection, stale-attempt fencing, and conflict-aware Run undo
+  that preserved a later human edit.
+- A lease-renewed adversarial production harness proved overlapping human/Worker writes are rejected
+  with HTTP 409 and the exact safe code `reservation_collision`. PR #9 changed bounded Convex
+  conflicts to preserve their public codes without exposing arbitrary backend errors.
+- Runner bearer tokens remain verified server-side by their stored SHA-256 hash. PR #10 removed
+  that internal hash from public Runner list/status results; a fresh production WebMCP read proved
+  the Runner is online with both engines ready and contains no token hash.
+- Membership denial is covered by connected Convex authorization tests. The official WorkOS emulator
+  flow proves authorization, Guild callback handling, sealed session cookies, and protected-route
+  access without storing credentials in the repository.
+- Demo recording is intentionally deferred by the user. It is presentation work, not an
+  implementation or acceptance gap.
+
 ## Snapshot — 2026-09-03 (explicit auth, pairing, and collision gates)
 
 - Added an isolated browser E2E configuration backed by the official WorkOS local emulator. The
@@ -941,154 +980,90 @@ callback.
   secret redaction, attempt numbers, fencing tokens, claims, reservations, and short-lived
   capabilities. The long-lived Runner token is not passed to child processes.
 - The assignment-scoped local MCP bridge exposes only five bounded Guild tools.
-- Fourteen browser WebMCP tools are registered with schemas, abort support, and a real Convex
+- Twenty-four browser WebMCP tools are registered with schemas, abort support, and a real Convex
   service adapter: workspace listing/context/search, canvas changes, comments, team runs,
-  run/runner status, stop/retry/undo, and implementation-task claim/report flows.
+  run/runner status, stop/retry/undo, implementation-task claim/report, immutable design previews,
+  external workstream feedback, and implementation-evidence flows.
+- Public Runner queries expose only operational status. The persisted token hash stays private and
+  is used only by server-side pairing-token verification.
 
 ## Capability acceptance matrix
 
-“Implemented” below means the connected behavior is present; the final acceptance gate still
-requires the broader production and E2E evidence listed later.
+All 26 locked capabilities are connected and accepted. Evidence combines focused unit/component
+coverage, connected Convex tests, browser automation, and signed-in production replay in proportion
+to the behavior's risk.
 
-| #   | Capability                                 | State       | Remaining acceptance evidence or gap                                   |
+| #   | Capability                                 | State       | Acceptance evidence                                                    |
 | --- | ------------------------------------------ | ----------- | ---------------------------------------------------------------------- |
-| 1   | Infinite shared project canvas             | Implemented | Production smoke and large-workspace interaction                       |
-| 2   | Multiplayer human collaboration            | Partial     | Two real browser-context E2E for cursor, selection, edit, viewport     |
-| 3   | Local AI Workers as teammates              | Implemented | Live pairing, revocation, and re-pair are proven                       |
-| 4   | Multiple Workers simultaneously            | Implemented | Real collision rejection remains                                       |
-| 5   | WebMCP and local Runner paths              | Partial     | Four native tools proven; remaining ten need production invocation     |
-| 6   | Worker Role Profiles                       | Partial     | Authenticated create/edit/delete browser coverage                      |
-| 7   | Assignment-scoped autonomous canvas access | Implemented | Production adversarial/capability E2E                                  |
-| 8   | Sections and project spaces                | Implemented | Representative browser flow                                            |
+| 1   | Infinite shared project canvas             | Implemented | Production canvas, pan/zoom/minimap, persistence, and renderer replay  |
+| 2   | Multiplayer human collaboration            | Implemented | Two authenticated contexts proved cursor, selection, edit, and view    |
+| 3   | Local AI Workers as teammates              | Implemented | Live pairing, revocation, re-pair, heartbeat, and execution            |
+| 4   | Multiple Workers simultaneously            | Implemented | Concurrent Codex/Sonnet jobs plus exact collision rejection            |
+| 5   | WebMCP and local Runner paths              | Implemented | All 24 native tools invoked; assignment MCP boundary covered           |
+| 6   | Worker Role Profiles                       | Implemented | Authenticated create/edit/remove and ownership-invariant coverage      |
+| 7   | Assignment-scoped autonomous canvas access | Implemented | Claims, capabilities, fencing, reservations, and adversarial proof     |
+| 8   | Sections and project spaces                | Implemented | Browser flow plus guarded owned-section deletion                       |
 | 9   | Requirements and PRD representation        | Implemented | Native WebMCP created and verified a connected Guild PRD               |
-| 10  | Journeys and flows                         | Implemented | Representative authenticated browser flow                              |
-| 11  | Lightweight wireframe design               | Implemented | Renderer-family browser coverage                                       |
-| 12  | System architecture                        | Implemented | Representative semantic-connector E2E                                  |
-| 13  | AI architecture                            | Implemented | Representative semantic-connector E2E                                  |
-| 14  | Implementation planning and tasks          | Implemented | Authenticated integration/E2E coverage                                 |
-| 15  | Semantic traceability                      | Implemented | Native WebMCP created eleven live PRD relationship edges               |
-| 16  | Reversible execution                       | Implemented | Live Run undo preserved later edits; history restore is conflict-aware |
-| 17  | Comments and mentions                      | Implemented | Authenticated `@Role`, `@team`, and unowned-comment E2E                |
-| 18  | Worker activity visibility                 | Implemented | Real Codex/Sonnet progress and results proven                          |
-| 19  | Live Worker target cursors                 | Implemented | Real concurrent browser presence proven                                |
-| 20  | Activity feed                              | Implemented | Attribution integration tests                                          |
-| 21  | Worker progress and result comments        | Implemented | Real Codex/Sonnet completion flow proven                               |
-| 22  | Decision memory                            | Partial     | Explicit history/decision retrieval UX and E2E                         |
-| 23  | Persistent project context                 | Implemented | Production persistence/reconnect E2E                                   |
-| 24  | Project overview                           | Implemented | Authenticated component/E2E coverage                                   |
-| 25  | Team management                            | Partial     | Authenticated role/team/Runner management browser coverage             |
-| 26  | Assemble Team                              | Implemented | Authenticated deterministic browser E2E                                |
+| 10  | Journeys and flows                         | Implemented | Renderer and semantic-connector browser coverage                       |
+| 11  | Lightweight wireframe design               | Implemented | Design Focus, revisions, previews, captures, and visual comments       |
+| 12  | System architecture                        | Implemented | Semantic canvas and connector coverage                                 |
+| 13  | AI architecture                            | Implemented | Semantic canvas and connector coverage                                 |
+| 14  | Implementation planning and tasks          | Implemented | Task claim/result and evidence flows                                   |
+| 15  | Semantic traceability                      | Implemented | Live PRD relationship graph plus search/context retrieval              |
+| 16  | Reversible execution                       | Implemented | Production undo preserved later human edits                            |
+| 17  | Comments and mentions                      | Implemented | Role/team routing, visual anchors, acknowledgement, and unowned triage |
+| 18  | Worker activity visibility                 | Implemented | Real Codex/Sonnet progress, status, and artifacts                      |
+| 19  | Live Worker target cursors                 | Implemented | Active-job-derived target presence and concurrent-browser proof        |
+| 20  | Activity feed                              | Implemented | Attributed human, Worker, WebMCP, and result events                    |
+| 21  | Worker progress and result comments        | Implemented | Real concurrent completion flow                                        |
+| 22  | Decision memory                            | Implemented | Live overview decision trail plus history retrieval coverage           |
+| 23  | Persistent project context                 | Implemented | Production persistence and reconnect coverage                          |
+| 24  | Project overview                           | Implemented | Live metrics, decision trail, and authenticated coverage               |
+| 25  | Team management                            | Implemented | Authenticated role, team, and Runner management coverage               |
+| 26  | Assemble Team                              | Implemented | Deterministic recommended-team browser flow                            |
 
 ## Verification actually completed
 
-The following commands passed on the implementation baseline before this ledger:
+Final local code gates:
 
 ```text
-bun run check              formatting, lint, strict TypeScript, 23 files / 64 tests, Runner types
-bun run runner:test        10 files / 26 tests
-bun run runner:build       Runner TypeScript build
-bun run build              Next.js production build
-bun run test:e2e           2 landing-page Playwright tests (desktop and mobile)
-bun audit                  no known vulnerabilities
-bunx convex insights --details
-                            development deployment healthy; no reported insights
+bun run check                       59 application files / 194 tests plus all static gates
+bun run --cwd packages/runner test  12 files / 42 tests
+bun run runner:build                passed
+bun run build                       Next.js 16.3.4 production build passed
+bun run test:e2e                    public desktop/mobile checks passed
+official WorkOS emulator E2E        authorization, callback, cookie, protected routes passed
 ```
 
-The successful two-test Playwright run is not the full E2E suite required by `Initial_Prompt.md`.
-The latest GitHub Actions quality-gate run also passed. A Vercel “Ready” build is not equivalent to
-a working production application until the new Production environment variables are picked up by a
-redeploy.
+CI and production proof:
 
-Latest local proof: frozen install had no changes; `bun run check` passed formatting, ESLint,
-strict TypeScript, 36 test files / 124 tests, and Runner typecheck. `bun run runner:test` passed
-(10 files / 28 tests); Runner and Next.js production builds passed; `bun audit` found no
-vulnerabilities; and the four-test landing suite passed in desktop and mobile Chromium. Convex
-production deployed to `befitting-bird-666` with schema validation and no deleted indexes. Vercel
-deployment `dpl_7ZDR5a2piWf9cCP4YeC815ZiesY3` is Ready on the stable alias. The signed production
-workspace rendered its persisted human and Worker artifacts with no browser console warnings or
-errors; `/auth-check` now resolves to the authenticated not-found UI rather than a diagnostic page.
+- PR #8 quality run `33747912531` passed check, Runner build, Next build, public E2E, and AuthKit
+  E2E. Final main quality run `33752844351` also passed.
+- Convex production deployed with schema validation and no deleted indexes.
+- Vercel deployment `dpl_D77REJRus3EgzaAzg1SnNWYBsqNn` is Ready on the stable production alias.
+- Signed-in native WebMCP invoked all 24 tools and reflected mutations immediately on the live
+  canvas. A final read returned the real Runner online at concurrency 2, Codex and Claude ready,
+  and no internal token hash.
+- Real production runs proved concurrent Codex/Sonnet execution, separate reservations, progress,
+  results, cancellation, retry, stale fencing, conflict-aware undo, and exact collision rejection.
+- Browser coverage includes public desktop/mobile, AuthKit sign-in, renderer families, inline text
+  editing, semantic connections, two-context presence, comments, teams, Runner truth, design focus,
+  preview capture, accessibility, keyboard, reduced motion, and production console smoke.
 
-## Remaining work, in priority order
+## Final acceptance state
 
-### P0 — unblock and prove production
-
-- [x] Required WorkOS/Convex environment **names** are present locally and on Vercel Production
-      (values never recorded here). Local `.env.local` now also has the cookie password and
-      localhost redirect names.
-- [x] Official Convex codegen ran; current functions are on the development deployment.
-- [x] Separate Convex production deployment exists at `befitting-bird-666` and Vercel Production
-      `NEXT_PUBLIC_CONVEX_URL` points at it.
-- [x] Guild AuthKit application has exact local/production callback, sign-in, homepage, and logout
-      URLs. Production WorkOS environment writes are still forbidden for this dashboard role.
-- [x] Vercel Production redeployed. Landing page is HTTP 200; `/sign-in` starts a real WorkOS
-      AuthKit authorize redirect to the production callback.
-- [ ] Complete a real signed-in production browser pass: callback with a valid OAuth code,
-      workspace creation, membership denial, sign-out, and a clean browser console at
-      <https://guild-rose-two.vercel.app>. Callback, creation, persistence, and clean console are
-      proven; second-account membership denial and final sign-out remain.
-- [x] Idempotent `seed.ensureJudgeWorkspace` plus workspace-list “Seed judge workspace” action that
-      assembles the recommended Team on first create. Needs a signed-in production click to prove.
-
-### P0 — prove real execution surfaces
-
-- [x] Paired, revoked, and re-paired a real macOS Runner through the deployed app. Revocation
-      rejected the old token's next poll; the replacement is Online at capacity 2.
-- [x] Detected authenticated local Codex CLI `0.151.0-alpha.7.2` and Claude Code `2.1.258`
-      first-party client sessions; no provider API keys were used.
-- [ ] Execute at least one Codex Job and one Claude Job concurrently, confirm separate Reserved
-      Regions, progress/results, cancellation, retry, stale-attempt rejection, and collision
-      rejection. Real concurrency, writes, progress/results, cancellation, retry, and
-      conflict-aware Run undo preserving later edits are proven; stale-attempt and collision
-      rejection have connected integration proof but not a live adversarial browser run.
-- [ ] Invoke all fourteen WebMCP tools through a real supported production browser/controller and
-      confirm direct changes appear immediately on the live canvas. Four tools are now proven
-      natively; `apply_canvas_changes` produced ten visible PRD objects and eleven edges in two
-      attributable Change Sets with immediate live rendering. Ten tool invocations remain.
-
-### P1 — close product gaps
-
-- [x] Human cursor publishes dirty changes near 5 Hz and viewport near 2 Hz, with remote
-      selections, focused editing targets, explicit clears, bounded heartbeats, and session
-      cleanup. Two real browser-context verification is still required.
-- [x] Added connected content/body editing for renderer families, including debounced persistence,
-      lazy body loading, autosave/conflict feedback, links/media, and drawing data where applicable.
-      Representative authenticated browser coverage is still required.
-- [x] Added selected-object explicit assignment and conflict-aware history-point restore. History
-      keeps unsupported Run/comment Change Sets visible without offering a fake restore action.
-- [x] Role/team/Runner management UI now creates, edits, removes roles and teams, and can rename,
-      revoke, and re-pair Runners. Authenticated browser coverage is still required.
-- [x] Decide and document the command-service boundary. Canvas writes now use
-      `recordWorkspaceMutation` with payload-bound idempotency. Remaining comment
-      and later module adapters still need to adopt the same Recorder.
-- [x] WebMCP invocations now record tool name, user, workspace, outcome, duration, and optional
-      Change Set in `activityEvents`.
-- [ ] Review accessibility, keyboard interaction, focus behavior, mobile layout, reconnect/offline
-      behavior, and hydration/console output across the real application.
-
-### P1 — complete required tests
-
-- [x] Unit coverage exists for reservation-full, Team Run fan-out, comment trigger idempotency,
-      Runner compatibility, capability/fencing/lease rejection, revision conflicts, WebMCP schemas,
-      CLI argument construction, environment allowlisting, and output limits. Remaining edge cases
-      belong in connected integration coverage rather than duplicate pure-function tests.
-- [x] Connected Convex/auth integration coverage now includes Team Run fan-out, explicit
-      assignment, membership denial, `@Role` routing, independent segment updates, stale revision
-      conflicts, pairing/revocation, Job claims/leases, stale attempts, dependency unlocking,
-      stop/retry/undo, Worker capability writes, and WebMCP attribution.
-- [x] Component coverage now exercises renderer families, mode/connector toolbar, Inspector,
-      loading/empty/offline/reconnecting/error/conflict states, comments, Runner, Team Runs, Job
-      badges/actions, conflict messages, and history/undo result reporting.
-- [ ] Replace the four-test landing-only Playwright suite with all 24 required browser flows,
-      including production smoke.
-- [ ] Re-run clean install, all quality gates, production build, Runner build, Convex validation,
-      security tests, and browser verification; record exact results here.
-
-### P2 — demo and submission readiness
-
-- [ ] Create a deterministic judge/demo path that remains useful with the Runner offline.
-- [ ] Record the required concise narrated demo after production verification.
-- [ ] Prepare final submission material: production URL, setup notes, WebMCP proof, Runner proof,
-      known limitations, and confirmation that `Product_Future.md` was not implemented.
+- [x] WorkOS, Convex, and Vercel production configuration is connected without secrets in source.
+- [x] Signed-in production canvas, persistence, native WebMCP, and local Runner are operational.
+- [x] All 26 locked capabilities are implemented and evidence-backed.
+- [x] All 24 native WebMCP tools are registered and production-invoked.
+- [x] Real Codex and Claude Sonnet jobs run concurrently through local authenticated clients.
+- [x] Stop, retry, stale fencing, reservations, collision rejection, and conflict-aware undo are
+      proven.
+- [x] Auth, membership authorization, accessibility, browser interaction, and security boundaries
+      have automated coverage.
+- [x] A deterministic judge/demo scenario and durable production evidence exist.
+- [x] Setup, controller/Worker skills, WebMCP protocol, demo flow, and handoff material are tracked.
+- [ ] Record the narrated demo only when the user starts the separate recording phase.
 
 ## Completion rule
 
