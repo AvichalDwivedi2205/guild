@@ -1,4 +1,4 @@
-import { v } from 'convex/values';
+import { ConvexError, v } from 'convex/values';
 
 import type { Doc, Id } from './_generated/dataModel';
 import { mutation, query, type MutationCtx } from './_generated/server';
@@ -232,7 +232,7 @@ async function validateWorkerRectangle(
 ): Promise<void> {
   if (principal.kind !== 'worker') return;
   if (!rectangleContains(principal.worker.reservation.bounds, rectangle)) {
-    throw new Error('outside_reserved_region');
+    throw new ConvexError('outside_reserved_region');
   }
   const objects = await ctx.db
     .query('canvasObjects')
@@ -246,7 +246,7 @@ async function validateWorkerRectangle(
       object.createdByJobId !== principal.jobId &&
       rectanglesIntersect(rectangle, objectRectangle(object)),
   );
-  if (collision) throw new Error('reservation_collision');
+  if (collision) throw new ConvexError('reservation_collision');
 }
 
 type CanvasCommand =
