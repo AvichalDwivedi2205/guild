@@ -12,6 +12,17 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-03 (executable accessibility gate)
+
+- Added an Axe-powered Playwright gate for WCAG A/AA, keyboard navigation, workspace panel focus,
+  reduced-motion operation, and signed-in canvas scanning. Authenticated checks reuse only an
+  untracked Playwright storage state and never store session material in the repository.
+- The first scan found real landing defects: five small Role Profile initials used insufficiently
+  contrasting white text, and the horizontally scrollable Role Profile rail was unreachable by
+  keyboard in Safari. Initials now use dark ink, and the rail is named and keyboard-focusable.
+- Focused Chromium evidence: the landing Axe scan and keyboard navigation passed; the three
+  authenticated workspace checks skipped honestly until the saved sign-in state is supplied.
+
 ## Snapshot — 2026-09-03 (decision-memory retrieval UI)
 
 - The Overview panel now derives a compact decision trail from neutral canvas objects whose
