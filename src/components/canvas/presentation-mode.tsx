@@ -10,8 +10,9 @@ import { useCanvasInteractionStore } from '@/features/canvas/store';
 
 export function PresentationMode({ workspaceId }: { workspaceId: Id<'workspaces'> }) {
   const views = useQuery(api.demoScenario.listPresentationViews, { workspaceId });
+  const runs = useQuery(api.runs.list, { workspaceId, limit: 25 });
   const saveView = useMutation(api.demoScenario.savePresentationView);
-  const { getViewport, setViewport } = useReactFlow();
+  const { fitView, getNode, getViewport, setViewport } = useReactFlow();
   const [active, setActive] = useState(false);
   const [followWorker, setFollowWorker] = useState(false);
   const [index, setIndex] = useState(0);
@@ -33,6 +34,18 @@ export function PresentationMode({ workspaceId }: { workspaceId: Id<'workspaces'
   }, [active]);
 
   const current = views?.[index];
+  const activeTargetObjectId = runs
+    ?.flatMap((row) => row.jobs)
+    .find(
+      (job) => (job.state === 'leased' || job.state === 'running') && Boolean(job.targetSectionId),
+    )?.targetSectionId;
+
+  useEffect(() => {
+    if (!active || !followWorker || !activeTargetObjectId) return;
+    const node = getNode(activeTargetObjectId);
+    if (!node) return;
+    void fitView({ nodes: [node], padding: 0.22, duration: reducedMotion ? 0 : 400 });
+  }, [active, activeTargetObjectId, fitView, followWorker, getNode, reducedMotion]);
 
   return (
     <div data-presentation={active || undefined} data-follow-worker={followWorker || undefined}>
@@ -90,7 +103,11 @@ export function PresentationMode({ workspaceId }: { workspaceId: Id<'workspaces'
             Save camera
           </button>
           {followWorker ? (
-            <p>Follow Worker is on. Canvas stays on the active Job target when one exists.</p>
+            <p>
+              {activeTargetObjectId
+                ? 'Following the active Job target.'
+                : 'Waiting for an active Job with a canvas target.'}
+            </p>
           ) : null}
           <p>{useCanvasInteractionStore.getState().selectedNodeIds.length} selected</p>
         </>
