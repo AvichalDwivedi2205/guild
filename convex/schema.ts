@@ -303,7 +303,8 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index('by_workspaceId', ['workspaceId'])
-    .index('by_workspaceId_and_handle', ['workspaceId', 'handle']),
+    .index('by_workspaceId_and_handle', ['workspaceId', 'handle'])
+    .index('by_ownedSectionId', ['ownedSectionId']),
 
   teams: defineTable({
     workspaceId: v.id('workspaces'),

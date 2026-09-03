@@ -7,6 +7,7 @@ import { createContentPreview, parseContentSnapshot } from './lib/content';
 import { reconcileTeamRun, releaseJobAuthority } from './lib/jobLifecycle';
 import { createTeamRun } from './lib/runLifecycle';
 import { limits } from './lib/policies';
+import { assertCanvasObjectCanBeDeleted } from './lib/roleOwnership';
 
 async function runJobs(ctx: QueryCtx, teamRunId: Id<'teamRuns'>) {
   return await ctx.db
@@ -434,6 +435,9 @@ export const undo = mutation({
         const nextRevision = entry.postRevision + 1;
         if (entry.segment === 'lifecycle') {
           const before = entry.beforeValue as { isDeleted?: boolean } | null;
+          if (before?.isDeleted ?? true) {
+            await assertCanvasObjectCanBeDeleted(ctx, object);
+          }
           await ctx.db.patch(object._id, {
             isDeleted: before?.isDeleted ?? true,
             hierarchyRevision: nextRevision,

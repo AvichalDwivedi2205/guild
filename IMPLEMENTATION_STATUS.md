@@ -12,6 +12,39 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-03 (native WebMCP acceptance and owned-section invariant)
+
+- Production native WebMCP acceptance invoked all 24 registered tools successfully. The matrix
+  covered bounded canvas create/update/move/resize/delete, search, routed comments, Team Run
+  queue/status/stop/retry/undo, implementation task claim/result, immutable design publication,
+  external workstream feedback/acknowledgement, and reported implementation evidence. Temporary
+  acceptance objects were soft-deleted after verification.
+- A real revision-bound Cinema Login comment was saved in Design Focus, routed to the registered
+  `cinema-design-claude` workstream, read and acknowledged through native WebMCP, and reflected as
+  one active reported Claude Sonnet workstream. An unrouted production comment also persisted after
+  PR #5 merged and Convex production was deployed.
+- Publishing Cinema design revision v2 queued four Runner captures. With the paired local Runner
+  started, desktop and mobile captures for Home and Login all completed and `captureReady` became
+  true. Runner status reported Codex and Claude Code authenticated and ready; Claude execution
+  remains pinned to Sonnet by the Runner adapter.
+- The matrix exposed live `run_ai_team` failure `owned_section_not_found`: board repopulation had
+  deleted the seven sections still referenced by Role Profiles. Production ownership was repaired
+  through the Team UI by mapping all seven profiles to the canonical Product, Design,
+  Architecture, AI, Data, Testing, and Implementation sections.
+- New deletion invariant rejects removing a section while any Role Profile owns it. One shared
+  `owned_section_in_use` guard now covers direct canvas deletion, Change Set undo, Team Run undo,
+  and demo-scenario reset; regression coverage exercises all four public mutation paths. The
+  `roleProfiles.by_ownedSectionId` index makes the check bounded.
+- Verification: `bun run check` passed 59 files / 190 tests; Runner passed 12 files / 40 tests;
+  `bun run runner:build`, Next.js 16.3.4 `bun run build`, and `bun audit` passed. Standards review
+  found no issues; spec review found the undo/reset bypasses above, which this batch then fixed.
+- PR #6 passed GitHub verification and its Vercel preview. Convex production deployed the additive
+  `roleProfiles.by_ownedSectionId` index with no index deletion. A native WebMCP delete against the
+  live Product-owned section failed with `owned_section_in_use`; a follow-up context read confirmed
+  the section remained active at hierarchy revision 0. A post-deploy Team Run queued all seven
+  configured roles without `owned_section_not_found`, then `stop_run` cancelled all seven Jobs.
+  Final PR merge and merged-production browser replay remain pending.
+
 ## Snapshot — 2026-09-03 (unrouted visual-comment acceptance repair)
 
 - Production Design Focus exposed a routing edge case: a visual comment on a published screen with

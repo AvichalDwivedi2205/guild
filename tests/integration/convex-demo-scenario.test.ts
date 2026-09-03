@@ -115,4 +115,60 @@ describe('Convex demo scenario', () => {
     });
     expect(restoredBody?.body).toEqual({ text: 'Baseline body' });
   });
+
+  it('refuses to reset away a section that became Role-owned', async () => {
+    const t = convexTest(schema, modules);
+    const asOwner = t.withIdentity(identity);
+    const workspaceId = await asOwner.mutation(api.workspaces.create, {
+      title: 'Protected scenario workspace',
+    });
+    await asOwner.mutation(api.demoScenario.configure, {
+      workspaceId,
+      key: 'protected-demo',
+      checkpoint: 'start',
+      artifactLogicalKeys: ['demo:protected-section'],
+    });
+    const created = await asOwner.mutation(api.canvas.executeCommands, {
+      workspaceId,
+      source: 'ui',
+      idempotencyKey: 'scenario:protected-section:create:0001',
+      summary: 'Create future owned section',
+      commands: [
+        {
+          type: 'create_object',
+          logicalKey: 'demo:protected-section',
+          objectType: 'section',
+          title: 'Protected Product',
+          position: { x: 0, y: 0 },
+          size: { width: 440, height: 320 },
+        },
+      ],
+    });
+    const sectionId = created.changed[0]!.targetId as Id<'canvasObjects'>;
+    await asOwner.mutation(api.roleProfiles.create, {
+      workspaceId,
+      handle: 'product',
+      name: 'Product Strategist',
+      responsibility: 'Own product strategy.',
+      instructions: 'Keep requirements visible.',
+      engine: 'codex',
+      ownedSectionId: sectionId,
+      capabilities: ['read_workspace', 'write_owned_section'],
+      expectedArtifactTypes: ['sticky', 'text'],
+      staticDependencyRoleProfileIds: [],
+      color: '#7c3aed',
+    });
+
+    await expect(
+      asOwner.mutation(api.demoScenario.reset, {
+        workspaceId,
+        scenarioKey: 'protected-demo',
+      }),
+    ).rejects.toThrow('owned_section_in_use');
+
+    const context = await asOwner.query(api.canvas.getWorkspaceContext, { workspaceId });
+    expect(context.objects.find((object) => object._id === sectionId)).toMatchObject({
+      isDeleted: false,
+    });
+  });
 });

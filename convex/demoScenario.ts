@@ -3,6 +3,7 @@ import { v } from 'convex/values';
 import type { Doc, Id } from './_generated/dataModel';
 import { mutation, query, type MutationCtx } from './_generated/server';
 import { requireWorkspaceMember } from './lib/auth';
+import { assertCanvasObjectCanBeDeleted } from './lib/roleOwnership';
 
 const WILDCARD = /[*?]|^\.\.$|^\.$/u;
 
@@ -245,6 +246,7 @@ export const reset = mutation({
       const object = await objectByLogicalKey(ctx, args.workspaceId, baseline.logicalKey);
       if (!baseline.present) {
         if (object && !object.isDeleted) {
+          await assertCanvasObjectCanBeDeleted(ctx, object);
           await ctx.db.patch(object._id, {
             isDeleted: true,
             hierarchyRevision: object.hierarchyRevision + 1,
