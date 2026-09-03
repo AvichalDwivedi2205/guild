@@ -15,6 +15,12 @@ Before implementation, deployment, or handoff work, read `Initial_Prompt.md` and
 `IMPLEMENTATION_STATUS.md` after every meaningful batch, and keep claims tied to code, tests, or
 deployed evidence. Never copy environment-variable values or secrets into tracked files.
 
+## Guild agent protocols
+
+Before a browser agent controls a Guild workspace through WebMCP, read
+`skills/guild-webmcp-controller/SKILL.md`. Runner-launched Codex and Claude Workers use the bounded
+protocol in `skills/guild-canvas-worker/SKILL.md`, mirrored into their generated assignment prompt.
+
 ## Cursor Cloud specific instructions
 
 Cloud Agents use `.cursor/environment.json`. `install` pins Bun 1.3.9 and runs

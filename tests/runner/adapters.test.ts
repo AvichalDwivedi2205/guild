@@ -37,6 +37,10 @@ describe('engine spawn plans', () => {
     expect(plan.args.at(-1)).toBe('-');
     expect(plan.stdin).toContain(context.assignment.brief);
     expect(plan.stdin).toContain('style.palette');
+    expect(plan.stdin).toContain('get_assignment_feedback');
+    expect(plan.stdin).toContain('stable logical keys');
+    expect(plan.stdin).toContain('detailed Markdown artifacts');
+    expect(plan.stdin).toContain('Trust Guild receipts');
     expect(JSON.stringify(plan.args)).not.toContain(context.assignment.brief);
     expect(JSON.stringify(plan.args)).not.toContain(context.assignment.assignmentToken);
     expect(JSON.stringify(plan.env)).not.toContain(context.assignment.assignmentToken);
