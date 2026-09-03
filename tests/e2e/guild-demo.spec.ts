@@ -92,6 +92,22 @@ test.describe('Guild authenticated demo path', () => {
     await expect(textNode.getByRole('textbox', { name: /^Edit / })).toHaveCount(0);
   });
 
+  test('opens a complete task result from its canvas preview', async ({ page }) => {
+    await page.goto(workspacePath!);
+    const taskNode = page.locator('[data-node-type="task"]').first();
+    test.skip((await taskNode.count()) === 0, 'Workspace needs one task object.');
+
+    const title = await taskNode.getAttribute('aria-label');
+    await taskNode.dblclick();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    if (title) await expect(dialog).toHaveAccessibleName(title.replace(/ canvas object$/, ''));
+    await expect(dialog.getByRole('button', { name: 'Edit content' })).toBeVisible();
+
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
+  });
+
   test('registers all WebMCP tools and executes authenticated read through page service', async ({
     page,
   }) => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { MessageSquare, MoreHorizontal, Palette, Sparkles } from 'lucide-react';
+import { Maximize2, MessageSquare, MoreHorizontal, Palette, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 
 import type { CanvasObject } from '@/domain/canvas';
@@ -15,12 +15,14 @@ export function SelectionToolbar({
   object,
   data,
   actions,
+  onOpen,
   onComment,
   onMore,
 }: {
   object: CanvasObject;
   data: CanvasWorkspaceData;
   actions: CanvasWorkspaceActions;
+  onOpen: () => void;
   onComment: () => void;
   onMore: () => void;
 }) {
@@ -29,6 +31,12 @@ export function SelectionToolbar({
 
   return (
     <div className={styles.selectionToolbar} onPointerDown={(event) => event.stopPropagation()}>
+      {available.includes('open') ? (
+        <button type="button" onClick={onOpen} aria-label="Open expanded view">
+          <Maximize2 size={15} />
+          Open
+        </button>
+      ) : null}
       {available.includes('comment') ? (
         <button type="button" onClick={onComment} aria-label="Comment (C)">
           <MessageSquare size={15} />
