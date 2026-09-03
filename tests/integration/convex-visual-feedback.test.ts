@@ -131,7 +131,7 @@ describe('Convex visual feedback', () => {
     void published;
   });
 
-  it('routes to exactly one external workstream when no Role Profile owns the screen', async () => {
+  it('routes hosted-design feedback to Claude when both Claude and Codex are connected', async () => {
     const t = convexTest(schema, modules);
     const asOwner = t.withIdentity(identity);
     const workspaceId = await asOwner.mutation(api.workspaces.create, {
@@ -184,7 +184,7 @@ describe('Convex visual feedback', () => {
           route: '/login',
           order: 0,
           viewports: ['desktop'],
-          relatedObjectIds: [designOwnerObjectId],
+          relatedObjectIds: [designOwnerObjectId, unrelatedObjectId],
         },
       ],
     });

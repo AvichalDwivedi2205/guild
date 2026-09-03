@@ -173,6 +173,7 @@ async function applyVisualComment(
       targetObjectId: input.targetObjectId,
       body: input.body.trim(),
       visualAnchorId: anchorId,
+      preferredEngine: 'claude',
       ...(input.cropAssetId ? { cropAssetId: input.cropAssetId } : {}),
     });
   }
@@ -244,27 +245,82 @@ export const getAssignmentFeedback = query({
     await requireWorkspaceMember(ctx, args.workspaceId, 'viewer');
     const job = await ctx.db.get(args.jobId);
     if (!job || job.workspaceId !== args.workspaceId) throw new Error('job_not_found');
-    const comments = await ctx.db
-      .query('comments')
-      .withIndex('by_workspaceId_and_state', (query) =>
-        query.eq('workspaceId', args.workspaceId).eq('state', 'queued'),
-      )
-      .take(50);
-    const matched = comments.find((comment) => comment.jobIds.includes(args.jobId));
-    if (!matched) return { comment: null, image: null };
-    const anchor = matched.visualAnchorId ? await ctx.db.get(matched.visualAnchorId) : null;
+    const run = await ctx.db.get(job.teamRunId);
+    const batchKey = run?.triggerKey.startsWith('feedback:')
+      ? run.triggerKey.replace(/:role:[^:]+$/, '')
+      : undefined;
+    const matched = batchKey
+      ? await ctx.db
+          .query('comments')
+          .withIndex('by_workspaceId_and_triggerKey', (query) =>
+            query.eq('workspaceId', args.workspaceId).eq('triggerKey', batchKey),
+          )
+          .take(50)
+      : (
+          await ctx.db
+            .query('comments')
+            .withIndex('by_workspaceId_and_state', (query) =>
+              query.eq('workspaceId', args.workspaceId).eq('state', 'queued'),
+            )
+            .take(50)
+        ).filter((comment) => comment.jobIds.includes(args.jobId));
+    if (matched.length === 0) {
+      return { comment: null, comments: [], image: null, anchor: null, overallInstruction: null };
+    }
+    const comments = await Promise.all(
+      matched.map(async (comment) => {
+        const anchor = comment.visualAnchorId ? await ctx.db.get(comment.visualAnchorId) : null;
+        return {
+          id: comment._id,
+          body: comment.body.slice(0, 10_000),
+          anchor: anchor
+            ? {
+                surface: anchor.surface ?? 'design',
+                kind: anchor.kind,
+                targetObjectId: anchor.targetObjectId ?? comment.objectId ?? null,
+                targetRevisions: anchor.targetRevisions ?? null,
+                viewportKey: anchor.viewportKey ?? null,
+                screenRevisionId: anchor.designScreenRevisionId ?? null,
+                screenKey: anchor.screenKey ?? null,
+                route: anchor.route ?? null,
+                point:
+                  anchor.pointX !== undefined && anchor.pointY !== undefined
+                    ? { x: anchor.pointX, y: anchor.pointY }
+                    : null,
+                rectangle:
+                  anchor.rectX !== undefined &&
+                  anchor.rectY !== undefined &&
+                  anchor.rectWidth !== undefined &&
+                  anchor.rectHeight !== undefined
+                    ? {
+                        x: anchor.rectX,
+                        y: anchor.rectY,
+                        width: anchor.rectWidth,
+                        height: anchor.rectHeight,
+                      }
+                    : null,
+                stableElementId: anchor.stableElementId ?? null,
+              }
+            : null,
+        };
+      }),
+    );
+    const first = matched[0]!;
+    const firstAnchor = first.visualAnchorId ? await ctx.db.get(first.visualAnchorId) : null;
     return {
       comment: {
-        id: matched._id,
-        body: matched.body.slice(0, 2_000),
-        revisionRoute: anchor ? undefined : undefined,
+        id: first._id,
+        body: first.body.slice(0, 2_000),
+        revisionRoute: firstAnchor?.route,
       },
-      image: anchor?.cropAssetId ? { assetId: anchor.cropAssetId } : null,
-      anchor: anchor
+      comments,
+      overallInstruction: first.feedbackOverallInstruction ?? null,
+      image: firstAnchor?.cropAssetId ? { assetId: firstAnchor.cropAssetId } : null,
+      anchor: firstAnchor
         ? {
-            kind: anchor.kind,
-            viewportKey: anchor.viewportKey,
-            screenRevisionId: anchor.designScreenRevisionId,
+            kind: firstAnchor.kind,
+            viewportKey: firstAnchor.viewportKey ?? null,
+            screenRevisionId: firstAnchor.designScreenRevisionId ?? null,
           }
         : null,
     };

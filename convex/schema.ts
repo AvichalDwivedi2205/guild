@@ -140,6 +140,8 @@ export default defineSchema({
     jobIds: v.array(v.id('jobs')),
     resolvedAt: v.optional(v.number()),
     visualAnchorId: v.optional(v.id('visualAnchors')),
+    feedbackBatchKey: v.optional(v.string()),
+    feedbackOverallInstruction: v.optional(v.string()),
     parentCommentId: v.optional(v.id('comments')),
     threadRootId: v.optional(v.id('comments')),
     createdAt: v.number(),
@@ -625,13 +627,18 @@ export default defineSchema({
   visualAnchors: defineTable({
     workspaceId: v.id('workspaces'),
     commentId: v.id('comments'),
-    designScreenRevisionId: v.id('designScreenRevisions'),
+    designScreenRevisionId: v.optional(v.id('designScreenRevisions')),
+    targetObjectId: v.optional(v.id('canvasObjects')),
+    surface: v.optional(v.union(v.literal('canvas'), v.literal('design'))),
+    targetRevisions: v.optional(v.any()),
+    screenKey: v.optional(v.string()),
+    route: v.optional(v.string()),
     kind: v.union(v.literal('point'), v.literal('rectangle')),
-    viewportKey: v.union(v.literal('desktop'), v.literal('mobile')),
-    viewportWidth: v.number(),
-    viewportHeight: v.number(),
-    scrollX: v.number(),
-    scrollY: v.number(),
+    viewportKey: v.optional(v.union(v.literal('desktop'), v.literal('mobile'))),
+    viewportWidth: v.optional(v.number()),
+    viewportHeight: v.optional(v.number()),
+    scrollX: v.optional(v.number()),
+    scrollY: v.optional(v.number()),
     pointX: v.optional(v.number()),
     pointY: v.optional(v.number()),
     rectX: v.optional(v.number()),
@@ -644,7 +651,8 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index('by_commentId', ['commentId'])
-    .index('by_designScreenRevisionId', ['designScreenRevisionId']),
+    .index('by_designScreenRevisionId', ['designScreenRevisionId'])
+    .index('by_targetObjectId', ['targetObjectId']),
 
   designRevisionComments: defineTable({
     workspaceId: v.id('workspaces'),
