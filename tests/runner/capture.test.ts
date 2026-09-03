@@ -9,7 +9,11 @@ vi.mock('node:fs', async (importOriginal) => {
   return { ...actual, default: { ...actual, existsSync: () => false }, existsSync: () => false };
 });
 
-import { captureLimits, capturePreviewScreen } from '../../packages/runner/src/capture/index.js';
+import {
+  assertSafeCaptureUrl,
+  captureLimits,
+  capturePreviewScreen,
+} from '../../packages/runner/src/capture/index.js';
 
 describe('Runner preview capture', () => {
   it('rejects unsafe URLs before launching a browser', async () => {
@@ -29,5 +33,33 @@ describe('Runner preview capture', () => {
       viewportKey: 'desktop',
     });
     expect(result).toEqual({ ok: false, error: 'capture_browser_unavailable' });
+  });
+
+  it('rejects hostnames resolving to private or mixed public/private addresses', async () => {
+    await expect(
+      assertSafeCaptureUrl('https://preview.example.com/', 'https://preview.example.com', {
+        resolveHostname: async () => ['10.0.0.7'],
+      }),
+    ).rejects.toThrow('unsafe_url');
+    await expect(
+      assertSafeCaptureUrl('https://preview.example.com/', 'https://preview.example.com', {
+        resolveHostname: async () => ['93.184.216.34', '169.254.169.254'],
+      }),
+    ).rejects.toThrow('unsafe_url');
+  });
+
+  it('accepts only public addresses on the exact registered origin', async () => {
+    const result = await assertSafeCaptureUrl(
+      'https://preview.example.com/screens/home',
+      'https://preview.example.com',
+      { resolveHostname: async () => ['93.184.216.34'] },
+    );
+    expect(result.url.pathname).toBe('/screens/home');
+    expect(result.addresses).toEqual(['93.184.216.34']);
+    await expect(
+      assertSafeCaptureUrl('https://cdn.example.com/a.js', 'https://preview.example.com', {
+        resolveHostname: async () => ['93.184.216.34'],
+      }),
+    ).rejects.toThrow('origin_mismatch');
   });
 });
