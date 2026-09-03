@@ -43,7 +43,14 @@ Status vocabulary:
   live Product-owned section failed with `owned_section_in_use`; a follow-up context read confirmed
   the section remained active at hierarchy revision 0. A post-deploy Team Run queued all seven
   configured roles without `owned_section_not_found`, then `stop_run` cancelled all seven Jobs.
-  Final PR merge and merged-production browser replay remain pending.
+- PR #6 merged with atomic commits preserved at `7c65844ccb7f0535b66a932d3fb8de95172fb80e`.
+  Vercel production deployment `dpl_BdkPKMicFn5YiauSufa51a7qhEoj` reached Ready and the canonical
+  production alias moved to it. Public production Playwright passed four landing checks with twelve
+  authenticated cases honestly skipped because no saved Playwright login state was supplied.
+- Signed-in merged-production native WebMCP registered all 24 tools, found the workspace, reported
+  the local Runner online with both Codex and Claude Code ready, and returned Cinema design v2 with
+  all four captures completed. The merged document also rejected another owned-section delete and
+  preserved the Product section at hierarchy revision 0.
 
 ## Snapshot — 2026-09-03 (unrouted visual-comment acceptance repair)
 
