@@ -20,12 +20,12 @@ trail, so their then-pending language does not describe the final build.
 - Core acceptance shipped through PRs
   [#8](https://github.com/AvichalDwivedi2205/guild/pull/8),
   [#9](https://github.com/AvichalDwivedi2205/guild/pull/9), and
-  [#10](https://github.com/AvichalDwivedi2205/guild/pull/10). GitHub quality run
-  [33752844351](https://github.com/AvichalDwivedi2205/guild/actions/runs/33752844351)
-  passed on the final code merge.
-- Convex production `befitting-bird-666` has the current schema and functions. Vercel production
-  deployment `dpl_D77REJRus3EgzaAzg1SnNWYBsqNn` is Ready and serves the stable
-  `https://guild-rose-two.vercel.app` alias.
+  [#10](https://github.com/AvichalDwivedi2205/guild/pull/10), with the acceptance ledger merged in
+  [#11](https://github.com/AvichalDwivedi2205/guild/pull/11). GitHub quality run
+  [33753756594](https://github.com/AvichalDwivedi2205/guild/actions/runs/33753756594)
+  passed on the final main merge.
+- Convex production `befitting-bird-666` has the current schema and functions. The stable
+  `https://guild-rose-two.vercel.app` production alias serves a Ready main deployment.
 - The final local gate passed formatting, zero-warning lint, strict TypeScript, 59 application test
   files / 194 tests, 12 Runner test files / 42 tests, the Runner build, and the Next.js 16.3.4
   production build. The public desktop/mobile Playwright suite and isolated official WorkOS
@@ -1038,9 +1038,9 @@ official WorkOS emulator E2E        authorization, callback, cookie, protected r
 CI and production proof:
 
 - PR #8 quality run `33747912531` passed check, Runner build, Next build, public E2E, and AuthKit
-  E2E. Final main quality run `33752844351` also passed.
+  E2E. Code-merge run `33752844351` and final ledger-merge run `33753756594` also passed.
 - Convex production deployed with schema validation and no deleted indexes.
-- Vercel deployment `dpl_D77REJRus3EgzaAzg1SnNWYBsqNn` is Ready on the stable production alias.
+- The stable Vercel production alias serves a Ready main deployment.
 - Signed-in native WebMCP invoked all 24 tools and reflected mutations immediately on the live
   canvas. A final read returned the real Runner online at concurrency 2, Codex and Claude ready,
   and no internal token hash.
