@@ -202,7 +202,6 @@ async function applyVisualComment(
     }
   }
   if (jobId && feedbackId) throw new Error('duplicate_delivery');
-  if (!jobId && !feedbackId) throw new Error('no_delivery_target');
 
   await appendChange(ctx, {
     workspaceId: input.workspaceId,
