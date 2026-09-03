@@ -165,6 +165,7 @@ export const recordLinkCheck = internalMutation({
     failure: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireWorkspaceMember(ctx, args.workspaceId, 'viewer');
     const evidence = await ctx.db.get(args.evidenceId);
     if (!evidence || evidence.workspaceId !== args.workspaceId)
       throw new Error('evidence_not_found');
@@ -238,6 +239,7 @@ export const getEvidenceInternal = internalQuery({
     evidenceId: v.id('implementationEvidence'),
   },
   handler: async (ctx, args) => {
+    await requireWorkspaceMember(ctx, args.workspaceId, 'viewer');
     const evidence = await ctx.db.get(args.evidenceId);
     if (!evidence || evidence.workspaceId !== args.workspaceId) return null;
     return evidence;

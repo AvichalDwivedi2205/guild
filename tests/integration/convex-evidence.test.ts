@@ -4,6 +4,7 @@ import { convexTest } from 'convex-test';
 import { describe, expect, it } from 'vitest';
 
 import { api } from '../../convex/_generated/api';
+import type { Id } from '../../convex/_generated/dataModel';
 import schema from '../../convex/schema';
 
 const modules = import.meta.glob('../../convex/**/*.*s');
@@ -41,5 +42,31 @@ describe('Convex implementation evidence', () => {
     expect(listed.items[0]?.checks[0]).toEqual(
       expect.objectContaining({ name: 'typecheck', outcome: 'passed', provenance: 'reported' }),
     );
+  });
+
+  it('rejects an unauthenticated link check before fetching the reported URL', async () => {
+    const t = convexTest(schema, modules);
+    const asOwner = t.withIdentity(identity);
+    const workspaceId = await asOwner.mutation(api.workspaces.create, {
+      title: 'Private evidence workspace',
+      boardMode: 'diagram',
+    });
+    const reported = await asOwner.mutation(api.evidence.reportImplementationEvidence, {
+      workspaceId,
+      idempotencyKey: 'evidence:report:auth-gate:0001',
+      workstreamKey: 'frontend',
+      kind: 'hosted_preview',
+      projectLabel: 'cinema',
+      url: 'https://example.com/preview',
+      eventTime: 2_000,
+    });
+    const evidenceId = reported.evidenceId as Id<'implementationEvidence'>;
+
+    await expect(
+      t.action(api.evidence.verifyEvidenceLink, {
+        workspaceId,
+        evidenceId,
+      }),
+    ).rejects.toThrow('unauthenticated');
   });
 });
