@@ -69,8 +69,16 @@ Status vocabulary:
   gate (66 application files / 219 tests, formatting, zero-warning lint, strict TypeScript,
   protocol build/typecheck, and Runner typecheck), 12 Runner files / 42 tests, the Runner build,
   the Next.js 16.3.4 production build, and the public Playwright suite (8 passed; 46 authenticated
-  cases truthfully skipped without its test session). Pull-request, merge, and production smoke
-  evidence remain pending.
+  cases truthfully skipped without its test session). PR
+  [#22](https://github.com/AvichalDwivedi2205/guild/pull/22) preserved all four atomic commits;
+  GitHub quality run
+  [33816274376](https://github.com/AvichalDwivedi2205/guild/actions/runs/33816274376) and the Vercel
+  preview passed before merge commit `0ef2d62`. Convex production `befitting-bird-666` deployed the
+  additive exact-evidence query with schema validation and no deleted indexes. Vercel production
+  deployment `dpl_9yMvqJCMKhshp8x4WJLsfLu9Evuz` reached Ready and claimed
+  `https://guild-rose-two.vercel.app`; public landing, signed-out workspace redirect, signed-in
+  Design Focus, optional-bridge warning removal, and the updated 25-tool WebMCP schema passed smoke
+  checks afterward.
 
 ## Snapshot — 2026-09-04 (canvas-native annotation review and grouped agent dispatch)
 
