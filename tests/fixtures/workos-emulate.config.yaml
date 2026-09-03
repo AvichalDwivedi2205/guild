@@ -1,0 +1,6 @@
+users:
+  - email: guild-e2e@example.com
+    first_name: Guild
+    last_name: Tester
+    password: guild-e2e-password
+    email_verified: true
