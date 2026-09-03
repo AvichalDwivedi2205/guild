@@ -1184,7 +1184,7 @@ function JobsPanel({
                 </dd>
               </div>
               <div>
-                <dt>Reserved canvas</dt>
+                <dt>Reserved Region</dt>
                 <dd>{regionLabel(job)}</dd>
               </div>
               <div>

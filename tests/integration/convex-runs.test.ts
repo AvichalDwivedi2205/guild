@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
 import schema from '../../convex/schema';
+import { rectanglesIntersect } from '../../src/domain/geometry';
 
 const modules = import.meta.glob('../../convex/**/*.*s');
 
@@ -131,12 +132,7 @@ describe('Convex Run integration', () => {
     }
     const firstBounds = firstJob.reservation.bounds;
     const secondBounds = secondJob.reservation.bounds;
-    const intersects =
-      firstBounds.x < secondBounds.x + secondBounds.width &&
-      firstBounds.x + firstBounds.width > secondBounds.x &&
-      firstBounds.y < secondBounds.y + secondBounds.height &&
-      firstBounds.y + firstBounds.height > secondBounds.y;
-    expect(intersects).toBe(false);
+    expect(rectanglesIntersect(firstBounds, secondBounds)).toBe(false);
   });
 
   it('assigns one dependency-free Job to the exact object and rejects a non-member', async () => {

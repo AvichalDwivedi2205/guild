@@ -12,21 +12,6 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
-## Snapshot — 2026-09-03 (deterministic six-screen hosted preview)
-
-- Expanded Guild's isolated Preview Bridge fixture from Home/Login placeholders into six polished,
-  responsive, interactive Cinema screens: Home, Search, Movie Details, Watchlist, Profile, and
-  Admin Dashboard. Login remains available as an additional state. This changes only Guild's
-  protocol fixture; no Cinema repository or application source was touched.
-- Browse-mode interactions now include catalogue search, watchlist toggle/removal, trailer dialog,
-  login feedback, settings controls, and cross-screen navigation. Every screen loads the Preview
-  Bridge so the same hosted URLs can be browsed, captured, selected, and commented on in Design
-  Focus.
-- Red/green static coverage failed for all eight missing contracts before implementation, then
-  passed. A real headless browser loaded all six desktop screens, exercised search and trailer
-  interactions, and loaded Home at 390×844; visual inspection of the 1440px Home capture passed.
-  Publishing the new fixture revision and its six-screen capture set remains pending.
-
 ## Snapshot — 2026-09-03 (completion-branch clean gates)
 
 - `bun run check` passed formatting, zero-warning ESLint, strict TypeScript, 60 application test
@@ -35,16 +20,18 @@ Status vocabulary:
   16.3.4 production build passed across every application and Runner route; `bun audit` reported no
   vulnerabilities.
 - These are local branch results. PR review, Convex production deploy, Vercel production deploy,
-  authenticated desktop/mobile browser execution, native WebMCP replay, and the six-screen hosted
-  preview publication remain required before completion.
+  authenticated desktop/mobile browser execution, and native WebMCP replay remain required before
+  completion.
 
 ## Snapshot — 2026-09-03 (connected browser acceptance matrix)
 
-- Added one serial, cleanup-safe Playwright matrix for the 24-point final acceptance flow. It now
-  exercises protected routing, workspace creation, every renderer family and board mode, inline text
-  editing, semantic edges, two authenticated browser contexts, comment routing, saved-team UI,
-  Runner truth, Codex/Claude engine readiness, distinct reserved regions, stop/retry controls,
-  direct WebMCP visibility, a real stale-revision rejection, and production console smoke.
+- Added one serial Playwright matrix for connected acceptance coverage. Temporary objects, roles,
+  teams, and Runner names have explicit cleanup paths; the reusable acceptance workspace and routed
+  comment history intentionally persist as audit evidence. The matrix exercises protected routing,
+  workspace creation, every renderer family and board mode, inline text editing, semantic edges,
+  two authenticated browser contexts, comment routing, saved-team UI, Runner truth, Codex/Claude
+  engine readiness, distinct reserved regions, stop/retry controls, direct WebMCP visibility, a real
+  stale-revision rejection, and production console smoke.
 - Shared Playwright WebMCP helpers install the standards-shaped page host before application code,
   enumerate native registrations, and execute tools through `document.modelContext`. The older demo
   suite now uses the same helper and correctly reads Convex workspace `_id` values.
@@ -55,6 +42,9 @@ Status vocabulary:
   Runner rename, and remote human cursor/selection visibility in two authenticated browser
   contexts. Cleanup targets only the temporary owned section and restores the Runner name even
   when a live-execution assertion fails.
+- This file does not treat the matrix as proof of OAuth sign-in, initial Runner pairing, simultaneous
+  execution, collision rejection, deterministic retry, or conflict-aware Run undo. Those require
+  separate explicit fixtures or connected production evidence and remain completion gates.
 
 ## Snapshot — 2026-09-03 (visible reserved-region evidence)
 

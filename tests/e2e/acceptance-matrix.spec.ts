@@ -1,11 +1,15 @@
 import { existsSync } from 'node:fs';
 
-import { expect, test, type Browser, type Page } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
+import { rectanglesIntersect } from '@/domain/geometry';
 import { acceptanceKey, callWebMcp, installWebMcpHost } from './helpers/webmcp';
 
 const storageState = process.env.GUILD_E2E_STORAGE_STATE;
 const workspacePath = process.env.GUILD_E2E_WORKSPACE_PATH;
+const failedJobId = process.env.GUILD_E2E_FAILED_JOB_ID;
+const undoRunId = process.env.GUILD_E2E_UNDO_RUN_ID;
+const undoObjectId = process.env.GUILD_E2E_UNDO_OBJECT_ID;
 const authenticated = Boolean(
   storageState && existsSync(storageState) && workspacePath?.startsWith('/workspaces/'),
 );
@@ -52,18 +56,6 @@ type WorkspaceContext = {
 
 const acceptanceTeamName = `Guild acceptance pair ${Date.now()}`;
 
-function regionsIntersect(
-  first: { x: number; y: number; width: number; height: number },
-  second: { x: number; y: number; width: number; height: number },
-) {
-  return (
-    first.x < second.x + second.width &&
-    first.x + first.width > second.x &&
-    first.y < second.y + second.height &&
-    first.y + first.height > second.y
-  );
-}
-
 async function workspaceContext(page: Page) {
   return callWebMcp<WorkspaceContext>(page, 'get_workspace_context', {
     workspaceId,
@@ -87,13 +79,9 @@ async function deleteObjects(page: Page, objects: ContextObject[]) {
   }
 }
 
-async function signedOutContext(browser: Browser) {
-  return browser.newContext();
-}
-
-test('1 and 23: protected workspace sends a signed-out browser to WorkOS', async ({ browser }) => {
+test('protected workspace sends a signed-out browser to WorkOS', async ({ browser }) => {
   test.skip(!workspacePath, 'Requires GUILD_E2E_WORKSPACE_PATH.');
-  const context = await signedOutContext(browser);
+  const context = await browser.newContext();
   const page = await context.newPage();
   try {
     await page.goto(workspacePath!);
@@ -476,12 +464,12 @@ test.describe.serial('Guild connected acceptance matrix', () => {
     const team = context.teams.find((candidate) => candidate.name === acceptanceTeamName);
     expect(team).toBeTruthy();
     let runId: string | null = null;
+    const brief = `Concurrent acceptance ${acceptanceKey('brief')}: inspect only; do not edit source.`;
     try {
       const started = await callWebMcp<{ runId: string }>(page, 'run_ai_team', {
         workspaceId,
         teamId: team!._id,
-        brief:
-          'Acceptance exercise only: inspect your assigned Guild canvas region and report progress. Do not edit any source repository.',
+        brief,
         idempotencyKey: acceptanceKey('runner-run'),
       });
       runId = started.runId;
@@ -492,8 +480,11 @@ test.describe.serial('Guild connected acceptance matrix', () => {
               workspaceId,
               runId: started.runId,
             });
-            return current.jobs.every(
-              (job) => job.reservation && ['leased', 'running', 'completed'].includes(job.state),
+            return (
+              current.jobs.length === 2 &&
+              current.jobs.every(
+                (job) => job.reservation && ['leased', 'running'].includes(job.state),
+              )
             );
           },
           { timeout: 120_000 },
@@ -508,7 +499,9 @@ test.describe.serial('Guild connected acceptance matrix', () => {
       const [first, second] = current.jobs;
       expect(first?.reservation).toBeTruthy();
       expect(second?.reservation).toBeTruthy();
-      expect(regionsIntersect(first!.reservation!.bounds, second!.reservation!.bounds)).toBe(false);
+      expect(rectanglesIntersect(first!.reservation!.bounds, second!.reservation!.bounds)).toBe(
+        false,
+      );
     } finally {
       if (runId) {
         const status = await callWebMcp<{ state: string }>(page, 'get_run_status', {
@@ -532,25 +525,15 @@ test.describe.serial('Guild connected acceptance matrix', () => {
       await page.getByRole('button', { name: 'Rename' }).click();
     }
     await page.getByRole('button', { name: 'Runs & Jobs' }).click();
-    await expect(page.getByText('cancelled', { exact: true }).first()).toBeVisible();
+    const runCard = page.getByText(brief, { exact: true }).locator('..');
+    await expect(runCard.getByText('cancelled', { exact: true })).toBeVisible();
   });
 
-  test('19–22: retry/undo controls and direct WebMCP mutations agree with visible UI', async ({
+  test('direct WebMCP mutations reject stale revisions and agree with visible UI', async ({
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name !== 'chromium', 'Control flow runs once on desktop Chromium.');
     await page.goto(workspacePath!);
-    const context = await workspaceContext(page);
-    const failed = context.runs.flatMap((row) => row.jobs).find((job) => job.state === 'failed');
-    if (failed) {
-      const retried = await callWebMcp<{ jobId: string; state: string }>(page, 'retry_job', {
-        workspaceId,
-        jobId: failed._id,
-        idempotencyKey: acceptanceKey('retry'),
-      });
-      expect(retried).toMatchObject({ jobId: failed._id, state: 'queued' });
-    }
-
     const title = `Visible WebMCP ${acceptanceKey('object')}`;
     const created = await callWebMcp<{ changeSetId: string; changedIds: string[] }>(
       page,
@@ -621,9 +604,73 @@ test.describe.serial('Guild connected acceptance matrix', () => {
     }
   });
 
-  test('24: production smoke keeps the canvas useful and console clean', async ({
+  test('retries one explicit failed Job fixture', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'chromium', 'Control flow runs once on desktop Chromium.');
+    test.skip(!failedJobId, 'Requires GUILD_E2E_FAILED_JOB_ID for deterministic retry proof.');
+    await page.goto(workspacePath!);
+    const before = await workspaceContext(page);
+    const failed = before.runs.flatMap((row) => row.jobs).find((job) => job._id === failedJobId);
+    expect(failed).toMatchObject({ state: 'failed' });
+    const retried = await callWebMcp<{ jobId: string; state: string }>(page, 'retry_job', {
+      workspaceId,
+      jobId: failedJobId!,
+      idempotencyKey: acceptanceKey('retry'),
+    });
+    expect(retried).toMatchObject({ jobId: failedJobId, state: 'queued' });
+    const owningRun = before.runs.find((row) => row.jobs.some((job) => job._id === failedJobId));
+    expect(owningRun).toBeTruthy();
+    const status = await callWebMcp<{ state: string }>(page, 'get_run_status', {
+      workspaceId,
+      runId: owningRun!.run._id,
+    });
+    if (status.state === 'active') {
+      await callWebMcp(page, 'stop_run', {
+        workspaceId,
+        runId: owningRun!.run._id,
+        idempotencyKey: acceptanceKey('retry-stop'),
+      });
+    }
+  });
+
+  test('undo preserves a later human edit on an explicit completed-Run fixture', async ({
     page,
   }, testInfo) => {
+    test.skip(testInfo.project.name !== 'chromium', 'Control flow runs once on desktop Chromium.');
+    test.skip(
+      !undoRunId || !undoObjectId,
+      'Requires a completed Run and its pre-existing Worker-edited object fixture.',
+    );
+    await page.goto(workspacePath!);
+    const before = await workspaceContext(page);
+    const object = before.objects.find((candidate) => candidate._id === undoObjectId);
+    const run = before.runs.find((candidate) => candidate.run._id === undoRunId);
+    expect(object).toBeTruthy();
+    expect(run?.run.state).toBe('completed');
+    await callWebMcp(page, 'apply_canvas_changes', {
+      workspaceId,
+      idempotencyKey: acceptanceKey('post-run-human-edit'),
+      changes: [
+        {
+          command: 'update_object',
+          objectId: object!._id,
+          segment: 'content',
+          expectedRevision: object!.contentRevision,
+          patch: { text: `Preserve this human edit ${Date.now()}` },
+        },
+      ],
+    });
+    const result = await callWebMcp<{ skippedConflicts: unknown[] }>(page, 'undo_run', {
+      workspaceId,
+      runId: undoRunId!,
+      idempotencyKey: acceptanceKey('undo-run'),
+    });
+    expect(result.skippedConflicts.length).toBeGreaterThan(0);
+    const after = await workspaceContext(page);
+    const preserved = after.objects.find((candidate) => candidate._id === undoObjectId);
+    expect(preserved?.contentRevision).toBeGreaterThan(object!.contentRevision);
+  });
+
+  test('production smoke keeps the canvas useful and console clean', async ({ page }, testInfo) => {
     test.skip(!process.env.PLAYWRIGHT_BASE_URL, 'Production smoke requires PLAYWRIGHT_BASE_URL.');
     const errors: string[] = [];
     page.on('console', (message) => {
