@@ -12,6 +12,21 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-03 (unrouted visual-comment acceptance repair)
+
+- Production Design Focus exposed a routing edge case: a visual comment on a published screen with
+  neither a Role Profile owner nor a registered external workstream failed with
+  `no_delivery_target`, so the comment and anchor were rolled back.
+- `visualFeedback.createVisualComment` now always records the human comment and immutable visual
+  anchor. It still creates exactly one Runner Job for an owned screen or one pending feedback row
+  for the nearest unique external workstream; when neither target exists, both delivery IDs are
+  explicitly null and the comment remains open for later triage.
+- The compact overlay action now says `Save comment`, which is truthful for both routed and
+  unrouted feedback.
+- Regression evidence: `bun run check` passed 59 files / 186 tests; Runner passed 12 files / 40
+  tests; `bun run runner:build`, Next.js 16.3.4 `bun run build`, and `bun audit` passed. Production
+  deployment and live browser replay remain pending in this batch.
+
 ## Snapshot — 2026-09-03 (complete preview-capture pipeline)
 
 - Runner capture now produces three bounded PNG artifacts per requested viewport: viewport,
