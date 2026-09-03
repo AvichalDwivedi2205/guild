@@ -356,9 +356,11 @@ the user supplies new material design feedback.
 
 ### Browser Controller path
 
-The signed-in Guild page exposes 24 browser WebMCP tools. A WebMCP-capable browser Controller can
-register workstreams, create canvas artifacts, publish designs, read feedback, acknowledge it, and
-report evidence directly.
+The signed-in Guild page exposes 25 browser WebMCP tools. A WebMCP-capable browser Controller can
+register workstreams, create canvas artifacts, publish designs, collect exact canvas or hosted-screen
+annotations with `dispatch_feedback_batch`, read feedback, acknowledge it, and report evidence
+directly. One reviewed batch produces at most one revision request per target agent while preserving
+every exact point or rectangle.
 
 When registering external workstreams, the Controller copies the exact workstream key, role label,
 and engine from the stable identity contract. Guild owns the visual badge and state presentation;

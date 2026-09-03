@@ -32,9 +32,9 @@ The demo depends on these implemented Guild features:
 5. Role Profiles, saved Teams, Jobs, dependencies, claims, reservations, fencing, progress, and
    attribution.
 6. A paired local Runner using authenticated Codex CLI and Claude Code Sonnet clients.
-7. Twenty-four browser WebMCP Controller tools and seven assignment-scoped Worker tools.
+7. Twenty-five browser WebMCP Controller tools and seven assignment-scoped Worker tools.
 8. Immutable hosted design publication, screenshot capture, page-by-page galleries, and Focus mode.
-9. Interactive hosted previews with Interact and Comment modes.
+9. Interactive hosted previews with Interact and Annotate modes.
 10. Point and region visual feedback bound to route, viewport, scroll state, and design revision.
 11. Feedback delivery, acknowledgement, immutable revision comparison, and human approval.
 12. External workstreams with Reported/Stale provenance and bounded implementation evidence.
@@ -134,14 +134,17 @@ almost no gradients, and preserved readability across all six screens.
 
 1. Open one hosted screen in Focus.
 2. Use Interact mode to verify real behavior.
-3. Switch to Comment.
-4. Click a point or drag a region.
-5. Enter one exact requested change.
-6. Submit once and preserve the anchor on the immutable revision.
-7. Show owner and delivery state.
-8. Leave while the external Claude Sonnet workstream updates.
+3. Switch to Annotate; the hosted site remains visible inside the same Guild workspace.
+4. Click a component or drag a region. The cursor and mode banner make the active tool explicit.
+5. Enter one or more exact requested changes. Each note stays local and preserves its canvas or
+   immutable screen anchor until review.
+6. Open `Review & send`, inspect notes grouped by owning agent, and optionally add one overall
+   instruction that is not tied to a component.
+7. Press Send once. Guild creates at most one revision Job or external feedback packet per target
+   agent while preserving every individual anchor.
+8. Show owner and delivery state, then leave while the external Claude Sonnet workstream updates.
 9. Compare Version 1 and Version 2.
-10. Approve, request another change, or leave unresolved.
+10. Approve, request another grouped change, or leave unresolved.
 
 The orchestrator does not invent the user's aesthetic feedback. It forwards the prepared anchored
 comment plus any optional user additions using the packet in `CINEMAVERSE_AGENT_HANDOFF.md`.
@@ -215,7 +218,8 @@ The demo UX is accepted only when:
 - real Codex and Claude Sonnet activity becomes visible without exposing private reasoning;
 - detailed connected artifacts appear in correct canvas regions;
 - the hosted Cinemaverse design is interactive inside Guild;
-- one region comment routes exactly once with immutable revision context;
+- multiple point/region annotations review cleanly and route as one batch per owning agent with
+  immutable revision context;
 - Claude Version 2 addresses the user's feedback;
 - the human can compare and approve the exact revision;
 - real implementation evidence appears with truthful provenance;
