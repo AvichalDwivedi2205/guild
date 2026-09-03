@@ -118,7 +118,7 @@ function mapLiveData(input: {
   comments: readonly Doc<'comments'>[];
   activity: readonly Doc<'activityEvents'>[];
   roles: readonly Doc<'roleProfiles'>[];
-  runners: readonly Doc<'runners'>[];
+  runners: readonly Omit<Doc<'runners'>, 'tokenHash'>[];
   runRows: readonly RunRow[];
   workerSteps: readonly WorkerPresenceRow[];
   presence: readonly PresenceSignal[];
@@ -812,7 +812,7 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
       comments: comments as readonly Doc<'comments'>[],
       activity: activity as readonly Doc<'activityEvents'>[],
       roles: roles as readonly Doc<'roleProfiles'>[],
-      runners: runners as readonly Doc<'runners'>[],
+      runners: runners as readonly Omit<Doc<'runners'>, 'tokenHash'>[],
       runRows: runRows as readonly RunRow[],
       workerSteps: workerSteps as readonly WorkerPresenceRow[],
       presence: presence as readonly PresenceSignal[],
