@@ -7,7 +7,7 @@ import { requireWorkspaceMember } from './lib/auth';
 import { convexAssetStore } from './lib/assetStore';
 import { requireRunner } from './lib/runnerAuth';
 
-const MAX_ASSET_BYTES = 5_000_000;
+export const MAX_ASSET_BYTES = 5_000_000;
 const INTENT_TTL_MS = 15 * 60_000;
 
 const assetKindValidator = v.union(
@@ -18,7 +18,7 @@ const assetKindValidator = v.union(
   v.literal('upload'),
 );
 
-function assertAssetLimits(input: { byteSize: number; width: number; height: number }) {
+export function assertAssetLimits(input: { byteSize: number; width: number; height: number }) {
   if (input.byteSize < 32 || input.byteSize > MAX_ASSET_BYTES) throw new Error('unsafe_asset');
   if (input.width < 1 || input.height < 1 || input.width * input.height > 16_000_000) {
     throw new Error('unsafe_asset');

@@ -12,6 +12,40 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-03 (complete preview-capture pipeline)
+
+- Runner capture now produces three bounded PNG artifacts per requested viewport: viewport,
+  full-page, and a real 480×300 browser-rendered thumbnail. A local Chrome acceptance run against
+  `preview-fixture/` produced all three artifacts successfully.
+- Each upload intent is bound to the exact capture task and expected artifact kind. The server reads
+  the stored bytes, sniffs the actual image header and dimensions, enforces byte/pixel limits,
+  recomputes SHA-256, and only then creates the immutable asset. Cross-task intent swaps and fake
+  HTML uploads are rejected.
+- Pending intents schedule expiry cleanup. Once an uploaded storage object is bound to its intent,
+  abandoned or rejected data can be deleted when the intent expires.
+- Capture work is tracked separately from Worker Jobs, no longer blocks the Runner poll loop, obeys
+  shutdown and lease cancellation, and retries transient capture/upload failures at most three
+  attempts. Terminal safety and browser-availability failures remain visible as failures.
+- Regression evidence: `bun run check` passed 59 files / 185 tests; Runner passed 12 files / 40
+  tests; `bun run runner:build`, Next.js 16.3.4 `bun run build`, and `bun audit` passed. PR, merge,
+  production deployment, and live reprocessing remain pending.
+
+## Snapshot — 2026-09-03 (production preview-capture upload repair)
+
+- Production acceptance exposed a real Phase 4 gap: the Runner leased preview capture tasks and
+  produced successful PNG screenshots, but the success branch never uploaded the bytes or completed
+  the fenced task. Captures therefore remained `leased` until expiry.
+- Runner now uses the task capability, attempt, and fencing token to begin a short-lived upload,
+  sends PNG bytes directly to the Convex signed upload URL without an authorization header, verifies
+  the stored byte count/checksum, creates an immutable Runner-capture asset, and completes the task.
+  No base64 image enters WebMCP or Runner JSON.
+- Capture finalization derives workspace, design revision, and screen revision from the claimed task.
+  Expired leases, reused capabilities, foreign intents, mismatched storage metadata, and stale
+  completion replays fail closed.
+- Regression evidence: `bun run check` passed 59 files / 183 tests; Runner passed 12 files / 38
+  tests; `bun run runner:build`, `bun run build`, and `bun audit` passed. Production deployment and
+  reprocessing of the four queued Cinema fixture captures remain pending PR review/CI/merge.
+
 ## Snapshot — 2026-09-03 (PR #3 acceptance fixes and production backend)
 
 - Fixed merge-blocking authorization and capture boundaries: evidence-link actions now require
@@ -40,9 +74,11 @@ Status vocabulary:
 - Deployed additive schema and functions to both Convex development and production. Production has
   94 functions and reported no index deletion. Deployed the Guild Preview Bridge fixture at
   `https://preview-fixture.vercel.app` and verified HTTP 200.
-- Remaining before merge acceptance: push atomic commits, pass PR CI, verify signed-in production
-  behavior and native WebMCP availability, then merge without squashing only if all available gates
-  pass.
+- PR #3 merged without squashing at `caab7dcafe9d02d5cca7f12dd34052482310325f`; all 30 atomic
+  feature commits were preserved. The merged production workspace loaded 93 objects while signed in,
+  trackpad-style pan, whole-node text editing, presentation mode, Agent dock, and every workspace
+  panel passed live Chrome checks. Chrome truthfully reports WebMCP unavailable because this profile
+  does not expose native `document.modelContext`.
 
 ## Snapshot — 2026-09-03 (Phase 11 skills, matrix, and Codex handoff)
 

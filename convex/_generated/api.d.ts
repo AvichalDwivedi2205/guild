@@ -11,6 +11,7 @@
 import type * as activity from '../activity.js';
 import type * as assets from '../assets.js';
 import type * as canvas from '../canvas.js';
+import type * as captureCleanup from '../captureCleanup.js';
 import type * as captures from '../captures.js';
 import type * as comments from '../comments.js';
 import type * as demoScenario from '../demoScenario.js';
@@ -52,6 +53,7 @@ declare const fullApi: ApiFromModules<{
   activity: typeof activity;
   assets: typeof assets;
   canvas: typeof canvas;
+  captureCleanup: typeof captureCleanup;
   captures: typeof captures;
   comments: typeof comments;
   demoScenario: typeof demoScenario;

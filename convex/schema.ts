@@ -612,6 +612,8 @@ export default defineSchema({
     ),
     expiresAt: v.number(),
     assetId: v.optional(v.id('assets')),
+    captureTaskId: v.optional(v.id('previewCaptureTasks')),
+    storageId: v.optional(v.id('_storage')),
     createdByUserId: v.optional(v.id('users')),
     createdByRunnerId: v.optional(v.id('runners')),
     createdAt: v.number(),

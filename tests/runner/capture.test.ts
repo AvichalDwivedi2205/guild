@@ -16,6 +16,19 @@ import {
 } from '../../packages/runner/src/capture/index.js';
 
 describe('Runner preview capture', () => {
+  it('stops before browser work when capture is cancelled', async () => {
+    const controller = new AbortController();
+    controller.abort('Runner stopping');
+    await expect(
+      capturePreviewScreen({
+        captureUrl: 'https://preview.example.com/',
+        origin: 'https://preview.example.com',
+        viewportKey: 'desktop',
+        signal: controller.signal,
+      }),
+    ).resolves.toEqual({ ok: false, error: 'capture_cancelled' });
+  });
+
   it('rejects unsafe URLs before launching a browser', async () => {
     const result = await capturePreviewScreen({
       captureUrl: 'https://169.254.169.254/latest/meta-data',

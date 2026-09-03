@@ -20,6 +20,30 @@ const completeBody = z.object({
   thumbnailAssetId: z.string().min(1).max(200).optional(),
 });
 
+const captureAuthority = {
+  taskId: z.string().min(1).max(200),
+  capabilityToken: z.string().min(16).max(4_096),
+  attempt: z.number().int().positive(),
+  fencingToken: z.number().int().nonnegative(),
+};
+
+const beginUploadBody = z.object({
+  action: z.literal('begin_upload'),
+  ...captureAuthority,
+  kind: z.enum(['viewport', 'full_page', 'thumbnail']),
+  byteSize: z.number().int().min(32).max(5_000_000),
+});
+
+const completeUploadBody = z.object({
+  action: z.literal('complete_upload'),
+  ...captureAuthority,
+  intentId: z.string().min(1).max(200),
+  storageId: z.string().min(1).max(200),
+  checksum: z.string().regex(/^[a-f0-9]{64}$/u),
+  byteSize: z.number().int().min(32).max(5_000_000),
+  altText: z.string().trim().min(1).max(200),
+});
+
 const failBody = z.object({
   action: z.literal('fail'),
   taskId: z.string().min(1).max(200),
@@ -27,9 +51,16 @@ const failBody = z.object({
   attempt: z.number().int().positive(),
   fencingToken: z.number().int().nonnegative(),
   error: z.string().min(1).max(500),
+  retryable: z.boolean().optional(),
 });
 
-const bodySchema = z.discriminatedUnion('action', [claimBody, completeBody, failBody]);
+const bodySchema = z.discriminatedUnion('action', [
+  claimBody,
+  beginUploadBody,
+  completeUploadBody,
+  completeBody,
+  failBody,
+]);
 
 export async function POST(request: Request) {
   try {
@@ -40,6 +71,33 @@ export async function POST(request: Request) {
       const result = await client.mutation(api.captures.claimPreviewCaptures, {
         runnerToken,
         capacity: body.capacity,
+      });
+      return Response.json(result);
+    }
+    if (body.action === 'begin_upload') {
+      const result = await client.mutation(api.captures.beginPreviewCaptureUpload, {
+        runnerToken,
+        taskId: body.taskId as Id<'previewCaptureTasks'>,
+        capabilityToken: body.capabilityToken,
+        attempt: body.attempt,
+        fencingToken: body.fencingToken,
+        kind: body.kind,
+        byteSize: body.byteSize,
+      });
+      return Response.json(result);
+    }
+    if (body.action === 'complete_upload') {
+      const result = await client.action(api.captures.completePreviewCaptureUpload, {
+        runnerToken,
+        taskId: body.taskId as Id<'previewCaptureTasks'>,
+        capabilityToken: body.capabilityToken,
+        attempt: body.attempt,
+        fencingToken: body.fencingToken,
+        intentId: body.intentId as Id<'assetUploadIntents'>,
+        storageId: body.storageId as Id<'_storage'>,
+        checksum: body.checksum,
+        byteSize: body.byteSize,
+        altText: body.altText,
       });
       return Response.json(result);
     }
@@ -65,6 +123,7 @@ export async function POST(request: Request) {
       attempt: body.attempt,
       fencingToken: body.fencingToken,
       error: body.error,
+      ...(body.retryable !== undefined ? { retryable: body.retryable } : {}),
     });
     return Response.json(result);
   } catch (error) {

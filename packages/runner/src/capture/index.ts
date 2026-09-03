@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import { lookup } from 'node:dns/promises';
 import { assertPublicHttpUrl, assertPublicIpAddress, sniffImageHeader } from '@guild/protocol';
+import type { Browser } from 'playwright-core';
 import { captureLimits, type CaptureViewportKey } from './limits.js';
 
 export { captureLimits };
@@ -11,6 +12,17 @@ export type CaptureTaskInput = {
   origin: string;
   viewportKey: CaptureViewportKey;
   allowLoopback?: boolean;
+  signal?: AbortSignal;
+};
+
+export type CaptureArtifactKind = 'viewport' | 'full_page' | 'thumbnail';
+
+export type CapturedArtifact = {
+  kind: CaptureArtifactKind;
+  mime: 'image/png';
+  width: number;
+  height: number;
+  bytes: Uint8Array;
 };
 
 export type CaptureResult =
@@ -20,6 +32,7 @@ export type CaptureResult =
       width: number;
       height: number;
       bytes: Uint8Array;
+      artifacts: readonly CapturedArtifact[];
     }
   | { ok: false; error: string };
 
@@ -66,6 +79,7 @@ export async function assertSafeCaptureUrl(
 }
 
 export async function capturePreviewScreen(input: CaptureTaskInput): Promise<CaptureResult> {
+  if (input.signal?.aborted) return { ok: false, error: 'capture_cancelled' };
   const allowLoopback = input.allowLoopback === true;
   try {
     const url = assertPublicHttpUrl(input.captureUrl, { allowLoopback });
@@ -98,13 +112,18 @@ export async function capturePreviewScreen(input: CaptureTaskInput): Promise<Cap
   }
 
   let blockedUnsafeRequest = false;
+  let browser: Browser | null = null;
+  const abortCapture = (): void => {
+    void browser?.close().catch(() => undefined);
+  };
+  input.signal?.addEventListener('abort', abortCapture, { once: true });
   try {
     const { chromium } = await import('playwright-core');
     const pinnedAddress =
       validated.addresses.find((address) => /^\d{1,3}(?:\.\d{1,3}){3}$/u.test(address)) ??
       validated.addresses[0]!;
     const resolverTarget = pinnedAddress.includes(':') ? `[${pinnedAddress}]` : pinnedAddress;
-    const browser = await chromium.launch({
+    browser = await chromium.launch({
       executablePath,
       headless: true,
       args: [`--host-resolver-rules=MAP ${validated.url.hostname} ${resolverTarget}`],
@@ -139,28 +158,74 @@ export async function capturePreviewScreen(input: CaptureTaskInput): Promise<Cap
       page.setDefaultNavigationTimeout(captureLimits.navigationTimeoutMs);
       page.setDefaultTimeout(captureLimits.renderTimeoutMs);
       await page.goto(validated.url.toString(), { waitUntil: 'domcontentloaded' });
-      const screenshot = await page.screenshot({ type: 'png', fullPage: false });
+      const viewportBytes = await page.screenshot({
+        type: 'png',
+        fullPage: false,
+        animations: 'disabled',
+      });
+      const fullPageBytes = await page.screenshot({
+        type: 'png',
+        fullPage: true,
+        animations: 'disabled',
+      });
       await context.close();
+      const thumbnailContext = await browser.newContext({
+        viewport: captureLimits.thumbnail,
+        javaScriptEnabled: false,
+        acceptDownloads: false,
+      });
+      const thumbnailPage = await thumbnailContext.newPage();
+      const thumbnailSource = Buffer.from(viewportBytes).toString('base64');
+      await thumbnailPage.setContent(
+        `<style>html,body{width:100%;height:100%;margin:0;background:#fff;display:grid;place-items:center;overflow:hidden}img{display:block;max-width:100%;max-height:100%;object-fit:contain}</style><img alt="" src="data:image/png;base64,${thumbnailSource}">`,
+        { waitUntil: 'load' },
+      );
+      const thumbnailBytes = await thumbnailPage.screenshot({ type: 'png', fullPage: false });
+      await thumbnailContext.close();
+      if (input.signal?.aborted) return { ok: false, error: 'capture_cancelled' };
       if (blockedUnsafeRequest) return { ok: false, error: 'unsafe_url' };
-      if (screenshot.byteLength > captureLimits.maxBytes) {
-        return { ok: false, error: 'capture_too_large' };
+      const captures = [
+        { kind: 'viewport' as const, bytes: viewportBytes },
+        { kind: 'full_page' as const, bytes: fullPageBytes },
+        { kind: 'thumbnail' as const, bytes: thumbnailBytes },
+      ];
+      const artifacts: CapturedArtifact[] = [];
+      for (const capture of captures) {
+        if (capture.bytes.byteLength > captureLimits.maxBytes) {
+          return { ok: false, error: 'capture_too_large' };
+        }
+        const header = sniffImageHeader(capture.bytes);
+        if (header.width * header.height > captureLimits.maxPixels) {
+          return { ok: false, error: 'capture_too_large' };
+        }
+        artifacts.push({
+          kind: capture.kind,
+          mime: 'image/png',
+          width: header.width,
+          height: header.height,
+          bytes: capture.bytes,
+        });
       }
-      const header = sniffImageHeader(screenshot);
+      const viewport = artifacts[0]!;
       return {
         ok: true,
-        mime: 'image/png',
-        width: header.width,
-        height: header.height,
-        bytes: screenshot,
+        mime: viewport.mime,
+        width: viewport.width,
+        height: viewport.height,
+        bytes: viewport.bytes,
+        artifacts,
       };
     } finally {
-      await browser.close();
+      await browser.close().catch(() => undefined);
     }
   } catch (error) {
+    if (input.signal?.aborted) return { ok: false, error: 'capture_cancelled' };
     if (blockedUnsafeRequest) return { ok: false, error: 'unsafe_url' };
     const message = error instanceof Error ? error.message : 'capture_failed';
     if (/executable|browser/iu.test(message))
       return { ok: false, error: 'capture_browser_unavailable' };
     return { ok: false, error: 'capture_failed' };
+  } finally {
+    input.signal?.removeEventListener('abort', abortCapture);
   }
 }
