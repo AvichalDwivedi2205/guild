@@ -12,11 +12,26 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-03 (explicit auth, pairing, and collision gates)
+
+- Added an isolated browser E2E configuration backed by the official WorkOS local emulator. The
+  test drives AuthKit authorization, Guild's real `/callback`, the sealed `wos-session` cookie,
+  authenticated `/workspaces`, and the protected Runner-pairing page. It passed locally without
+  production credentials or live Hosted AuthKit automation.
+- Added a connected Playwright flow that begins a Runner pairing through Guild's public protocol,
+  approves the code through the signed-in UI, exchanges the device secret, polls a real assignment,
+  invokes the assignment-scoped Worker endpoint, and intentionally collides a Worker move with a
+  later human object. The HTTP boundary now preserves the bounded `reservation_collision` code;
+  its red/green unit proof passed. Production execution of the connected flow remains required.
+- Fixed WebMCP comment results to return the persisted routing state. Workspace-level and unowned
+  object comments now report `unassigned`, while routed comments report `queued`; focused Convex,
+  WebMCP, and strict TypeScript checks passed.
+
 ## Snapshot — 2026-09-03 (completion-branch clean gates)
 
 - `bun run check` passed formatting, zero-warning ESLint, strict TypeScript, 59 application test
-  files / 191 tests, protocol build/typecheck, and Runner typecheck after the final review fixes.
-- `bun run --cwd packages/runner test` passed 12 files / 40 tests; the Runner build passed; the Next.js
+  files / 192 tests, protocol build/typecheck, and Runner typecheck after the final review fixes.
+- `bun run --cwd packages/runner test` passed 12 files / 41 tests; the Runner build passed; the Next.js
   16.3.4 production build passed across every application and Runner route; `bun audit` reported no
   vulnerabilities.
 - The public desktop/mobile Playwright gate passed all 8 applicable landing and accessibility tests;
@@ -37,7 +52,8 @@ Status vocabulary:
 - Shared Playwright WebMCP helpers install the standards-shaped page host before application code,
   enumerate native registrations, and execute tools through `document.modelContext`. The older demo
   suite now uses the same helper and correctly reads Convex workspace `_id` values.
-- Static evidence: strict TypeScript passed and Playwright discovered 50 desktop/mobile tests. The
+- Static evidence: strict TypeScript passed and Playwright discovered 52 desktop/mobile tests in the
+  primary configuration plus the isolated AuthKit flow. The
   signed-in matrix intentionally requires an untracked browser storage state; execution against the
   deployed branch remains pending and is not counted as passed yet.
 - The matrix now also drives Role Profile create/edit/remove, saved Team create/remove, reversible
