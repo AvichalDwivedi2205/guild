@@ -28,8 +28,11 @@ Status vocabulary:
   through `apply_canvas_changes`. Verification passed 60 application test files / 199 tests, 12
   Runner files / 42 tests, formatting, zero-warning lint, strict TypeScript, protocol/Runner
   typechecks and builds, the Next.js 16.3.4 production build, and `bun audit` with no
-  vulnerabilities. PR, CI, production deployment, and live browser replay are pending for this
-  batch.
+  vulnerabilities. PR #13 merged at `73168a3`; main CI run `33756231861` passed every application,
+  Runner, build, public Playwright, and authenticated AuthKit job, and the stable Vercel alias is
+  Ready. Production native WebMCP then created a temporary task containing a heading, emphasis,
+  inline code, task list, and table; `search_canvas` returned that Markdown source byte-for-byte.
+  The acceptance object was deleted afterward and a final search confirmed no result remained.
 
 ## Final acceptance snapshot — 2026-09-03
 
