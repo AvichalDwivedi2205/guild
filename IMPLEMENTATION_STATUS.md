@@ -12,6 +12,24 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-03 (complete preview-capture pipeline)
+
+- Runner capture now produces three bounded PNG artifacts per requested viewport: viewport,
+  full-page, and a real 480×300 browser-rendered thumbnail. A local Chrome acceptance run against
+  `preview-fixture/` produced all three artifacts successfully.
+- Each upload intent is bound to the exact capture task and expected artifact kind. The server reads
+  the stored bytes, sniffs the actual image header and dimensions, enforces byte/pixel limits,
+  recomputes SHA-256, and only then creates the immutable asset. Cross-task intent swaps and fake
+  HTML uploads are rejected.
+- Pending intents schedule expiry cleanup. Once an uploaded storage object is bound to its intent,
+  abandoned or rejected data can be deleted when the intent expires.
+- Capture work is tracked separately from Worker Jobs, no longer blocks the Runner poll loop, obeys
+  shutdown and lease cancellation, and retries transient capture/upload failures at most three
+  attempts. Terminal safety and browser-availability failures remain visible as failures.
+- Regression evidence: `bun run check` passed 59 files / 185 tests; Runner passed 12 files / 40
+  tests; `bun run runner:build`, Next.js 16.3.4 `bun run build`, and `bun audit` passed. PR, merge,
+  production deployment, and live reprocessing remain pending.
+
 ## Snapshot — 2026-09-03 (production preview-capture upload repair)
 
 - Production acceptance exposed a real Phase 4 gap: the Runner leased preview capture tasks and
