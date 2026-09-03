@@ -258,7 +258,7 @@ export default function HomePage() {
               and leave visible progress, comments, and Change Sets.
             </p>
           </div>
-          <div className="role-rail">
+          <div className="role-rail" tabIndex={0} aria-label="Worker role profiles">
             {roles.map((role) => (
               <article className="glass-surface role-card" key={role.name}>
                 <div className="role-card-head">

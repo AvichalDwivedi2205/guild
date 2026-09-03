@@ -91,6 +91,10 @@ export type CanvasJob = {
   runnerId: string | null;
   progressMessage: string | null;
   errorMessage: string | null;
+  reservation: {
+    status: 'reserved' | 'completed' | 'released';
+    bounds: { x: number; y: number; width: number; height: number };
+  } | null;
 };
 
 export type CanvasTeamRun = {

@@ -739,6 +739,9 @@ function ActivityPanel({
 
 function OverviewPanel({ data }: { data: CanvasWorkspaceData }) {
   const taskObjects = data.objects.filter((object) => object.type === 'task');
+  const decisions = data.objects.filter((object) =>
+    object.semantics.semanticType?.toLowerCase().includes('decision'),
+  );
   const completeTasks = taskObjects.filter((object) => {
     const status = object.semantics.status?.toLowerCase();
     return status === 'done' || status === 'complete' || status === 'completed';
@@ -761,6 +764,7 @@ function OverviewPanel({ data }: { data: CanvasWorkspaceData }) {
     { label: 'Open comments', value: openComments.length },
     { label: 'Active Jobs', value: activeJobs.length },
     { label: 'Runners online', value: `${onlineRunners.length} / ${data.runners.length}` },
+    { label: 'Decisions', value: decisions.length },
   ];
 
   return (
@@ -794,6 +798,35 @@ function OverviewPanel({ data }: { data: CanvasWorkspaceData }) {
           </div>
         </dl>
       </section>
+      {decisions.length > 0 ? (
+        <section className={styles.panelSection} aria-labelledby="decision-trail-title">
+          <h4 id="decision-trail-title">Decision trail</h4>
+          <ol className={styles.activityList}>
+            {decisions.map((decision) => {
+              const fields = decision.semantics.customFields;
+              const reason = typeof fields?.reason === 'string' ? fields.reason : null;
+              const proposedBy =
+                typeof fields?.proposedBy === 'string' ? fields.proposedBy : 'Project team';
+              const chosenBy = typeof fields?.chosenBy === 'string' ? fields.chosenBy : 'Human';
+              const decidedAt =
+                typeof fields?.decidedAt === 'string' ? fields.decidedAt : decision.updatedAt;
+              return (
+                <li key={decision.id}>
+                  <span className={styles.activityDot} />
+                  <div>
+                    <strong>{decision.title || 'Untitled decision'}</strong>
+                    {reason ? <p>{reason}</p> : null}
+                    <p>
+                      {proposedBy} proposed · {chosenBy} chose
+                    </p>
+                    <time>{displayTime(decidedAt)}</time>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        </section>
+      ) : null}
     </div>
   );
 }
@@ -1085,6 +1118,12 @@ function jobLabel(job: CanvasJob) {
   return labels[job.state];
 }
 
+function regionLabel(job: CanvasJob) {
+  if (!job.reservation) return 'Unavailable';
+  const { x, y, width, height } = job.reservation.bounds;
+  return `Region ${Math.round(x)}, ${Math.round(y)} · ${Math.round(width)} × ${Math.round(height)}`;
+}
+
 function JobsPanel({
   data,
   actions,
@@ -1138,7 +1177,15 @@ function JobsPanel({
             <dl>
               <div>
                 <dt>Target</dt>
-                <dd>{job.targetObjectId || 'Reserved Region'}</dd>
+                <dd>
+                  {data.objects.find((object) => object.id === job.targetObjectId)?.title ||
+                    job.targetObjectId ||
+                    'Workspace'}
+                </dd>
+              </div>
+              <div>
+                <dt>Reserved Region</dt>
+                <dd>{regionLabel(job)}</dd>
               </div>
               <div>
                 <dt>Runner</dt>

@@ -36,7 +36,15 @@ import {
 
 type RunRow = {
   run: Doc<'teamRuns'>;
-  jobs: Array<Doc<'jobs'> & { waitingForRunner: boolean }>;
+  jobs: Array<
+    Doc<'jobs'> & {
+      waitingForRunner: boolean;
+      reservation: {
+        status: Doc<'canvasReservations'>['status'];
+        bounds: Doc<'canvasReservations'>['bounds'];
+      } | null;
+    }
+  >;
   waitingForRunner: boolean;
 };
 
@@ -158,6 +166,7 @@ function mapLiveData(input: {
     runnerId: job.runnerId ?? null,
     progressMessage: job.progressMessage ?? null,
     errorMessage: job.errorMessage ?? null,
+    reservation: job.reservation,
   }));
 
   const canvasRoles: CanvasRoleProfile[] = input.roles.map((role) => {

@@ -12,6 +12,93 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-03 (explicit auth, pairing, and collision gates)
+
+- Added an isolated browser E2E configuration backed by the official WorkOS local emulator. The
+  test drives AuthKit authorization, Guild's real `/callback`, the sealed `wos-session` cookie,
+  authenticated `/workspaces`, and the protected Runner-pairing page. It passed locally without
+  production credentials or live Hosted AuthKit automation and now runs as an independent CI gate;
+  a non-routable Convex test URL prevents the isolated auth test from touching production data.
+- Added a connected Playwright flow that begins a Runner pairing through Guild's public protocol,
+  approves the code through the signed-in UI, exchanges the device secret, polls a real assignment,
+  invokes the assignment-scoped Worker endpoint, and intentionally collides a Worker move with a
+  later human object. The HTTP boundary now preserves the bounded `reservation_collision` code;
+  its red/green unit proof passed. Production execution of the connected flow remains required.
+- Fixed WebMCP comment results to return the persisted routing state. Workspace-level and unowned
+  object comments now report `unassigned`, while routed comments report `queued`; focused Convex,
+  WebMCP, and strict TypeScript checks passed.
+
+## Snapshot — 2026-09-03 (completion-branch clean gates)
+
+- `bun run check` passed formatting, zero-warning ESLint, strict TypeScript, 59 application test
+  files / 192 tests, protocol build/typecheck, and Runner typecheck after the final review fixes.
+- `bun run --cwd packages/runner test` passed 12 files / 41 tests; the Runner build passed; the Next.js
+  16.3.4 production build passed across every application and Runner route; `bun audit` reported no
+  vulnerabilities.
+- The public desktop/mobile Playwright gate passed all 8 applicable landing and accessibility tests;
+  6 signed-in workspace checks skipped because this local run had no untracked storage-state fixture.
+- These are local branch results. PR review, Convex production deploy, Vercel production deploy,
+  authenticated desktop/mobile browser execution, and native WebMCP replay remain required before
+  completion.
+
+## Snapshot — 2026-09-03 (connected browser acceptance matrix)
+
+- Added one serial Playwright matrix for connected acceptance coverage. Temporary objects, roles,
+  teams, and Runner names have explicit cleanup paths; the reusable acceptance workspace and routed
+  comment history intentionally persist as audit evidence. The matrix exercises protected routing,
+  workspace creation, every renderer family and board mode, inline text editing, semantic edges,
+  two authenticated browser contexts, comment routing, saved-team UI, Runner truth, Codex/Claude
+  engine readiness, distinct reserved regions, stop/retry controls, direct WebMCP visibility, a real
+  stale-revision rejection, and production console smoke.
+- Shared Playwright WebMCP helpers install the standards-shaped page host before application code,
+  enumerate native registrations, and execute tools through `document.modelContext`. The older demo
+  suite now uses the same helper and correctly reads Convex workspace `_id` values.
+- Static evidence: strict TypeScript passed and Playwright discovered 52 desktop/mobile tests in the
+  primary configuration plus the isolated AuthKit flow. The
+  signed-in matrix intentionally requires an untracked browser storage state; execution against the
+  deployed branch remains pending and is not counted as passed yet.
+- The matrix now also drives Role Profile create/edit/remove, saved Team create/remove, reversible
+  Runner rename, and remote human cursor/selection visibility in two authenticated browser
+  contexts. Cleanup targets only the temporary owned section and restores the Runner name even
+  when a live-execution assertion fails.
+- This file does not treat the matrix as proof of OAuth sign-in, initial Runner pairing, simultaneous
+  execution, collision rejection, deterministic retry, or conflict-aware Run undo. Those require
+  separate explicit fixtures or connected production evidence and remain completion gates.
+
+## Snapshot — 2026-09-03 (visible reserved-region evidence)
+
+- Run queries now return each Job's server-allocated canvas reservation, limited to its bounds and
+  lifecycle status; Runner secrets, capabilities, and lease data remain excluded.
+- Runs & Jobs shows a readable target and `Region x, y · width × height` for every Job. This makes
+  spatial isolation inspectable in the product and available to WebMCP acceptance instead of
+  requiring a database-only assertion.
+- Red/green evidence: integration coverage first failed while reservations were absent, then proved
+  two Team Run Jobs receive non-overlapping regions; panel coverage first failed while the region
+  was invisible, then passed after the UI exposed it. Full gates and production replay remain
+  pending for this batch.
+
+## Snapshot — 2026-09-03 (executable accessibility gate)
+
+- Added an Axe-powered Playwright gate for WCAG A/AA, keyboard navigation, workspace panel focus,
+  reduced-motion operation, and signed-in canvas scanning. Authenticated checks reuse only an
+  untracked Playwright storage state and never store session material in the repository.
+- The first scan found real landing defects: five small Role Profile initials used insufficiently
+  contrasting white text, and the horizontally scrollable Role Profile rail was unreachable by
+  keyboard in Safari. Initials now use dark ink, and the rail is named and keyboard-focusable.
+- Focused Chromium evidence: the landing Axe scan and keyboard navigation passed; the three
+  authenticated workspace checks skipped honestly until the saved sign-in state is supplied.
+
+## Snapshot — 2026-09-03 (decision-memory retrieval UI)
+
+- The Overview panel now derives a compact decision trail from neutral canvas objects whose
+  semantic type identifies a decision. It shows the durable title, reason, proposer, chooser, and
+  decision time without adding another permanent rail panel or exposing Advanced editing in the
+  normal review path.
+- The decision count and trail are derived from the same live canvas subscription as every other
+  overview metric; no parallel decision store or decorative demo state was added.
+- Focused component evidence: `tests/components/canvas/panels.test.tsx` passed 15 tests and strict
+  TypeScript passed. Full gates and production browser acceptance remain pending for this batch.
+
 ## Snapshot — 2026-09-03 (native WebMCP acceptance and owned-section invariant)
 
 - Production native WebMCP acceptance invoked all 24 registered tools successfully. The matrix
