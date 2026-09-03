@@ -12,6 +12,7 @@ import {
   Link,
   ListChecks,
   MessageSquare,
+  MessageSquarePlus,
   MousePointer2,
   Network,
   PanelTop,
@@ -116,6 +117,16 @@ export function CanvasCreationToolbar({ actions }: { actions: CanvasWorkspaceAct
         ))}
       </div>
       <div className={styles.primaryTools} aria-label="Interaction tools">
+        <button
+          type="button"
+          data-active={tool === 'annotate' || undefined}
+          onClick={() => setTool('annotate')}
+          aria-label="Annotate canvas (A)"
+          title="Annotate canvas (A)"
+        >
+          <MessageSquarePlus size={18} />
+          <span>Annotate</span>
+        </button>
         <button
           type="button"
           data-active={tool === 'select' || undefined}

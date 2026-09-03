@@ -69,6 +69,18 @@ describe('CanvasCreationToolbar', () => {
     expect(useCanvasInteractionStore.getState().connectorRelationship).toBe('verified_by');
   });
 
+  it('enters a dedicated annotation mode without opening the comments panel', () => {
+    render(<CanvasCreationToolbar actions={{}} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Annotate canvas (A)' }));
+
+    expect(useCanvasInteractionStore.getState().tool).toBe('annotate');
+    expect(screen.getByRole('button', { name: 'Annotate canvas (A)' })).toHaveAttribute(
+      'data-active',
+      'true',
+    );
+  });
+
   it('disables creation honestly when no mutation action is available', () => {
     render(<CanvasCreationToolbar actions={{}} />);
 
