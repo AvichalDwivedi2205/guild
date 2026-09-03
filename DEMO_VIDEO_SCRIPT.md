@@ -1,7 +1,6 @@
 # Guild × Cinemaverse final demo video
 
-**Status:** Ready to begin the clean-workspace rehearsal and recording workflow; product
-implementation is complete, but recording still requires two passing rehearsals
+**Status:** Ready for deterministic non-model preflight followed by one real recorded Team Run
 **Target delivery runtime:** 3 minutes 15 seconds  
 **Master runtime:** Record at normal speed; selectively accelerate slow UI transitions only  
 **Format:** 1920×1080, 16:9, H.264 video, AAC audio  
@@ -92,9 +91,9 @@ The source design records identify two real deployments:
 | V1      | `dpl_Cuzm3NvPHjUi11Lm3PoTVh6ujVWo` | `https://cinemaverse-v1.vercel.app` |
 | V2      | `dpl_CuZDhdAMT2iYHRCDQVCagLsz6pfX` | `https://cinemaverse-v2.vercel.app` |
 
-Both version aliases currently inherit Vercel Authentication. Before recording, they must return a
-direct unauthenticated 200 on all six routes without redirecting to Vercel login. Never put a
-Vercel bypass token in Guild metadata or a recording URL. The mutable public alias
+Vercel Authentication is disabled for this demo fixture, and both version aliases returned direct
+unauthenticated 200 responses on all six routes. Recheck them before recording. Never put a Vercel
+bypass token in Guild metadata or a recording URL. The mutable public alias
 `https://cinemaverse-two.vercel.app` serves the current V2, but it cannot represent both sides of
 the V1/V2 comparison.
 
@@ -288,7 +287,9 @@ its immutable revision.
    > Keep the final result easy to scan at presentation zoom. Preserve exact source provenance,
    > explicit failure states, and human-owned decisions.
 
-   Then press Send once.
+   Then press Send once. The unanchored overall instruction is included in both owner packets, so
+   Codex receives it together with the component-linked architecture comment and Claude receives
+   it together with the two hosted-design comments.
 
 9. Show both design anchors, immutable route/viewport/revision, and one grouped revision request per
    target agent—not one Job per annotation.
@@ -428,8 +429,9 @@ These briefs are configured before recording. They should not be typed on camera
 
 ## 7. Pre-recording gates
 
-Do not begin final capture until every item below passes twice consecutively on the exact recorded
-environment.
+Do not begin final capture until every deterministic item below passes once on the exact recorded
+environment. Do not start agents, dispatch feedback, or publish the recording-workspace revisions
+during this preflight.
 
 ### Guild
 
@@ -565,8 +567,8 @@ The final take should not depend on a large live generation completing within se
   record Interact mode separately after the origin issue is resolved.
 - If live research is unstable, use the accepted completed research fixture and run only the final
   bounded selection question live.
-- If a required assertion fails twice, stop recording and fix the product. Do not hide the failure
-  with editing.
+- If a required assertion fails during capture, stop and fix the product. Do not hide the failure
+  with editing; reset and rerecord only when the failed take cannot be used truthfully.
 
 ## 12. Final deliverables
 
@@ -575,7 +577,7 @@ The final take should not depend on a large live generation completing within se
 - `guild-cinemaverse-silent.mp4` — clean product footage;
 - `narration/01-opening` through `08-product-close` — isolated presenter audio;
 - `narration.json` — exact scene timing and final spoken text;
-- `recording-checklist.md` — two-pass assertion record; and
+- `recording-checklist.md` — non-model preflight and capture assertion record; and
 - one thumbnail showing Guild, the Cinemaverse canvas, Codex, Claude Sonnet, and the human control
   point without unreadable small text.
 
@@ -585,6 +587,6 @@ Guild's demo control plane is implemented, production-tested, and deployed. Cine
 working six-route vertical slice, hosted preview, deterministic research fixture, and verified V1
 and V2 checkpoints required by Scenes 5–8. The implementation is ready for the recording workflow.
 
-The next session must still create the separate clean `Cinemaverse` workspace, verify the correct
-Chrome/WebMCP two-surface setup, run the exact route twice, and only then capture the new silent
-master. Those are recording gates, not missing product features.
+The recording operator must verify the correct Chrome/WebMCP two-surface setup without running
+models, then capture the new workspace's first real Team Run, feedback, revision, and approval in
+one take. Those are recording gates, not missing product features.

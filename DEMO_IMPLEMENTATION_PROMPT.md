@@ -10,8 +10,9 @@ real bounded agent runs, grouped feedback dispatch, authenticated approval in th
 recording, and final media assembly. Continue autonomously until the recording deliverables are
 complete or a genuine user-only blocker occurs.
 
-Do not redo the rejected capture. Do not record immediately. First verify the current products,
-create the clean workspace, execute the path twice, and only then record the silent master.
+Do not redo the rejected capture. First verify the current products and create the clean workspace
+without launching any model. The first real Team Run, feedback dispatch, and revision must happen
+during the single recorded take.
 
 ## Read before acting
 
@@ -58,8 +59,8 @@ copy environment-variable values, cookies, tokens, or credentials.
 - The original V2 approval belongs to a prior workspace. The replacement recording must use a new,
   reset-safe workspace and a new approval receipt for its own projected V2 revision.
 - The rejected MP4 and support files were moved to Trash. Never restore, inspect, or reuse them.
-- The only planned work is clean workspace preparation, two rehearsals, capture, assembly, and
-  evidence. Change product code only for a defect reproduced on the exact route.
+- The only planned work is deterministic preflight, the single real capture, assembly, and
+  evidence. Change product code only for a defect reproduced during preflight or capture.
 
 ## Demo claim
 
@@ -171,7 +172,8 @@ Use the exact Role briefs in `CINEMAVERSE_AGENT_HANDOFF.md`. Start one Team Run 
 
 Run the genuine local clients. Configure the Runner to six slots for the bounded initial Run, keep
 the six initial roles dependency-free, and verify all six Jobs reach overlapping active states. The
-Runner supports up to eight, but the recording machine still has to pass the stability rehearsal.
+Runner supports up to eight, but the recording machine still has to pass the non-model capacity
+preflight.
 Do not describe queued Jobs as active or fabricate parallelism. If six slots are unstable, reduce
 the assignment weight or repair the environment and restart the gate. The five Codex
 responsibilities must produce real Guild artifacts. The bounded Claude Sonnet responsibility must
@@ -210,10 +212,10 @@ design, implementation, and verification.
 Resolve the verified source V1/V2 design data through signed-in WebMCP. The source deployment ids
 are `dpl_Cuzm3NvPHjUi11Lm3PoTVh6ujVWo` for V1 and `dpl_CuZDhdAMT2iYHRCDQVCagLsz6pfX` for V2. The
 reserved version aliases are `https://cinemaverse-v1.vercel.app` and
-`https://cinemaverse-v2.vercel.app`, but they currently inherit Vercel Authentication. Do not use
-them until a signed-out request to every route returns a direct 200 with no auth redirect, they
-embed inside Guild, and the Runner can capture them. Never put a deployment-protection bypass token
-in a URL or Guild payload. The mutable stable alias cannot represent both revisions.
+`https://cinemaverse-v2.vercel.app`. Vercel Authentication is disabled for this demo fixture and
+all six routes on both aliases returned direct public 200 responses. Recheck reachability, embed,
+and capture before the take. Never put a deployment-protection bypass token in a URL or Guild
+payload. The mutable stable alias cannot represent both revisions.
 
 Copy only public deployment identity, origin, route, screen key, viewport, and descriptive
 metadata. Never reuse another workspace's object, revision, capture, feedback, or approval IDs.
@@ -279,7 +281,9 @@ Put this in the optional overall textbox:
 > Keep the final result easy to scan at presentation zoom. Preserve exact source provenance,
 > explicit failure states, and human-owned decisions.
 
-Press Send once. Verify that at most one complete request is created per owning agent. Then verify
+This unanchored instruction belongs to both owner packets: Codex receives it with the linked
+architecture note, and Claude receives it with both hosted-design notes. Press Send once. Verify
+that at most one complete request is created per owning agent. Then verify
 both feedback-originated Workers retrieve their complete packet. Runner assignment feedback has no
 separate acknowledgement action; addressed state comes from the revised artifact or design
 publication, so do not narrate a nonexistent acknowledgement step.
@@ -316,14 +320,16 @@ Inside the hosted product:
    > could still block the shoot?
 
 5. show the deterministic cited Markdown answer; and
-6. save it as a connected research artifact only if that path passed rehearsal.
+6. save it as a connected research artifact after the visible answer succeeds.
 
 Exit Focus and return to `Full project`. End on all six agent-owned regions, their detailed output,
 semantic connections, human approval, activity, and reversible history.
 
-## Rehearsal gate
+## Preflight gate — no model execution
 
-Run the complete path twice consecutively from the exact clean baseline. A pass requires:
+Run one deterministic, non-model preflight from the exact clean baseline. Do not start the Team
+Run, dispatch feedback, publish the recording-workspace design revisions, or consume Claude/Codex
+credits. Preflight requires:
 
 - correct account and new workspace;
 - clean Guild production load and browser console;
@@ -331,13 +337,11 @@ Run the complete path twice consecutively from the exact clean baseline. A pass 
 - realtime Controller-to-Chrome sync;
 - Runner online, Codex ready, and Claude Code Sonnet ready;
 - six readable regions, stable colors, engine glyphs, and status dots;
-- real progress and detailed artifacts in the correct regions;
+- six empty owned regions ready to receive real work during capture;
 - no unsolicited Inspector or unreadable rounded-node text;
 - six screen cards, working embedded Interact mode, and correct routes;
 - distinct public version-pinned origins with direct unauthenticated 200 responses on all routes;
-- canvas and design annotations, local drafts, grouping, one-send routing, and Worker retrieval;
-- exactly one Codex note and two Claude notes, with the two Claude notes in one revision request;
-- addressed architecture note, immutable V2, compare, and new-workspace human approval;
+- annotation controls, local draft review, and owner grouping proven without pressing Send;
 - working selection-scoped cited answer inside Guild;
 - saved camera framing with no clipped content; and
 - no secrets, personal information, notifications, unrelated tabs, or broken state.
@@ -347,10 +351,10 @@ keep WebMCP control in the hidden in-app browser. Source-control evidence may sh
 private repository and baseline commit `a0d2339`, but must not imply that commit was produced during
 the recorded Run.
 
-If either pass fails, fix or restage the cause and restart the pass count at one. If a Guild code
+If preflight fails, fix or restage the cause before capture. If a Guild code
 defect is reproduced, implement the smallest fix, read the relevant Next.js 16.3.4 guide first,
 update `IMPLEMENTATION_STATUS.md`, run the full relevant checks, commit atomically, push, open a PR,
-merge only after CI and preview pass, verify production, and then repeat both rehearsals. Do not
+merge only after CI and preview pass, verify production, and then repeat the non-model preflight. Do not
 change Cinemaverse source unless the defect is genuinely in that separate product.
 
 ## Record the silent master
@@ -383,7 +387,7 @@ defines an ignored media location. Deliver:
 - `guild-cinemaverse-silent.mp4` — edited silent product story;
 - `guild-cinemaverse-demo.mp4` — final composite after presenter media exists;
 - `narration.json` — exact scene timing and narration;
-- `recording-checklist.md` — both rehearsal results and capture assertions;
+- `recording-checklist.md` — non-model preflight results and capture assertions;
 - representative QA frames; and
 - a thumbnail source frame.
 
@@ -398,7 +402,7 @@ Report concisely:
 - the real agents run and artifacts created;
 - WebMCP and Runner evidence;
 - grouped feedback, Worker retrieval, revision, comparison, and approval receipts;
-- two rehearsal outcomes;
+- the non-model preflight outcome;
 - screen recording and media verification results;
 - any code changes, checks, commits, PR, merge, and deployments;
 - output file links; and

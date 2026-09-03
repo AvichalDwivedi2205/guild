@@ -4,13 +4,13 @@
 
 The Guild functionality required by the demo is implemented, tested, merged, and deployed. The
 Cinemaverse six-route vertical slice and its verified Version 1 and Version 2 design checkpoints
-also exist. No new product feature is planned before recording unless the two rehearsal passes
-expose a reproducible defect.
+also exist. No new product feature is planned before recording unless deterministic non-model
+preflight exposes a reproducible defect.
 
 The remaining work is recording preparation and the replacement demo. The private Cinemaverse
-source repository now exists at baseline `a0d2339`. Its V1/V2 version aliases are reserved, but they
-must be made publicly embeddable before fresh Guild captures can pass. The recording then uses a
-new Cinemaverse workspace and the workflow in `DEMO_VIDEO_SCRIPT.md`.
+source repository now exists at baseline `a0d2339`. Its V1/V2 aliases are public and returned 200
+on all six routes; reachability, embedding, and captures are rechecked immediately before use. The
+recording uses a new Cinemaverse workspace and the workflow in `DEMO_VIDEO_SCRIPT.md`.
 
 ## Product boundary
 
@@ -187,4 +187,5 @@ Codex. A separate status dot displays queued, active, waiting, blocked, failed, 
 - Review groups drafts correctly and one Send routes one packet per owner.
 - V1/V2 comparison and authenticated human approval work in the clean workspace.
 - Cinemaverse's selected-context question returns a deterministic cited answer inside Guild.
-- The complete path passes twice with a clean console and no secrets or personal data on screen.
+- Non-model preflight passes with a clean console and no secrets or personal data on screen; the
+  first real agent path is captured once.

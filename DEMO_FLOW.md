@@ -90,7 +90,7 @@ Guild landing page with presenter
 
 ## Ready-to-record gate
 
-The implementation is complete. Recording begins only after the new workspace is prepared and the
-exact route passes twice consecutively with readable framing, clean console, working WebMCP,
-online Runner, correct agents, correct design links, grouped annotation routing, and no secrets or
-personal browser UI visible.
+The implementation is complete. Recording begins after the clean workspace passes deterministic
+non-model preflight with readable framing, clean console, working WebMCP, online Runner, correct
+agents, correct design links, annotation controls, and no secrets or personal browser UI visible.
+The first real Team Run, feedback Send, and revision happen in the single captured take.

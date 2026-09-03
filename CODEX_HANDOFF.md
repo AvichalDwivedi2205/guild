@@ -8,8 +8,8 @@ V1/V2 design checkpoints exist. The current implementation and production eviden
 `IMPLEMENTATION_STATUS.md`.
 
 The rejected demo capture is not a deliverable and must never be reused. The remaining task is to
-create a new Guild workspace titled `Cinemaverse`, rehearse the approved route twice, record a new
-silent master, and assemble the final video after presenter media is available.
+finish non-model preflight for the new Guild workspace titled `Cinemaverse`, record its first real
+Team Run and revision flow once, and assemble the final video after presenter media is available.
 
 ## Canonical handoff
 
@@ -36,8 +36,8 @@ The recording must preserve these decisions:
 - the private Cinemaverse source repository is available at verified baseline `a0d2339`;
 - pull-request evidence, when present, is read inside Guild Evidence Focus with branch, commit,
   changed files, checks, and provenance; do not leave Guild to show GitHub during the take;
-- the reserved V1/V2 aliases remain blocked by Vercel Authentication until direct signed-out 200
-  and iframe/capture checks pass; never use a bypass token in Guild metadata;
+- the reserved V1/V2 aliases are public; recheck direct signed-out 200 and iframe/capture behavior,
+  and never use a bypass token in Guild metadata;
 - an absent optional Preview Bridge uses revision/route/viewport/coordinate anchors and is not
   presented as a failure or stable DOM-element tracking;
 - Chrome automation is disconnected before recording so its debugging banner is absent;
@@ -49,8 +49,9 @@ The recording must preserve these decisions:
 
 Paste the fenced prompt from `HANDOFF_PROMPT.md`, or attach this repository and say:
 
-> Execute `DEMO_IMPLEMENTATION_PROMPT.md` completely. Prepare the new Cinemaverse workspace,
-> rehearse twice, and record the replacement Guild demo. Do not reuse the rejected capture.
+> Execute `DEMO_IMPLEMENTATION_PROMPT.md` completely. Finish non-model preflight for the new
+> Cinemaverse workspace, then record its first real Team Run as the replacement Guild demo. Do not
+> reuse the rejected capture.
 
 ## Completion
 

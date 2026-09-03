@@ -644,6 +644,13 @@ function RoleEditor({
           <option value="claude">Claude Code</option>
         </select>
       </Field>
+      <Field label="Agent color">
+        <input
+          type="color"
+          value={draft.color}
+          onChange={(event) => setDraft({ ...draft, color: event.target.value })}
+        />
+      </Field>
       <Field label="Owned section">
         <select
           value={draft.ownedSectionId}

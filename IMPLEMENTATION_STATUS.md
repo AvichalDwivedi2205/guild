@@ -12,6 +12,36 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-04 (single-take recording baseline)
+
+- Created a new production Guild workspace titled `Cinemaverse` with id
+  `ms7e2a4mt99vg0ge66s08ge3xs8dq0kp`. Signed-in WebMCP verified that it is distinct from
+  `Guild Judge Workspace` and started with no objects, roles, teams, Runs, or Runner grants.
+- Staged only the honest pre-run baseline: one detailed expandable Cinemaverse PRD, six empty
+  760×560 owned regions in a non-overlapping 2×3 grid, six stable Role Profiles, and one saved
+  `Cinemaverse Build Team`. No Claude/Codex execution, design publication, feedback dispatch,
+  approval, completed output, or fake activity has occurred in this workspace.
+- The six roles are Product & Visual Designer on Claude Code with explicit Sonnet-only instructions,
+  plus Agentic Systems Architect, Search & Evidence Engineer, Backend & Data Engineer, Canvas &
+  Frontend Engineer, and QA, Security & Evaluation Lead on Codex. Each instruction requires
+  concrete Cinemaverse artifacts and detailed expandable Markdown inside its owned region.
+- Replaced the obsolete two-rehearsal contract across every demo and handoff document. Preparation
+  is now one deterministic non-model preflight; the first real Team Run, feedback Send, revision,
+  and approval occur during the single captured take so model credits are not spent twice and the
+  audience sees work appear live.
+- Added the missing Role Profile color input and synchronized a changed role color to its owned
+  section border. Added named presentation-camera capture so the recording can use the documented
+  `Opening`, `Architecture`, `Design`, `Evidence`, and `Full project` views instead of anonymous
+  `View N` entries.
+- Disabled Vercel Authentication for the Cinemaverse demo fixture project. Both immutable aliases,
+  `cinemaverse-v1.vercel.app` and `cinemaverse-v2.vercel.app`, returned direct public 200 responses
+  for all six routes; the demo documents now record this resolved state and still require a final
+  reachability/embed/capture check before publication into the new workspace.
+- Local verification after the recording-readiness changes passed formatting, zero-warning lint,
+  strict TypeScript, 66 application test files / 219 tests, protocol build/typecheck, and Runner
+  typecheck. Production deployment, named-camera creation, distinct role-color assignment, Runner
+  pairing, and the single recorded Run remain the next execution steps.
+
 ## Snapshot — 2026-09-04 (replacement-demo loophole audit and evidence Focus)
 
 - Reconciled every demo and handoff document around the final accepted story. The replacement uses

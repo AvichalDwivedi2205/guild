@@ -74,7 +74,7 @@ The user's Chrome profile is the visible recording surface. The in-app browser c
 the WebMCP Controller because the external Chrome profile may not expose `document.modelContext`.
 Both surfaces must be signed into the same Guild account and opened to the new workspace.
 
-Before rehearsal:
+Before the single take:
 
 1. call `list_workspaces` and resolve the new workspace by title and id;
 2. call `get_workspace_context` and verify six regions, Role Profiles, Team, Runner, placement, and
@@ -145,9 +145,9 @@ Guild; the secondary GitHub link is not clicked during the take.
 The source workspace already contains verified V1 and V2 design records. V1 maps to deployment
 `dpl_Cuzm3NvPHjUi11Lm3PoTVh6ujVWo`; V2 maps to `dpl_CuZDhdAMT2iYHRCDQVCagLsz6pfX`. Their reserved
 aliases are `https://cinemaverse-v1.vercel.app` and `https://cinemaverse-v2.vercel.app`, but both
-currently inherit Vercel Authentication. Before recording, make both aliases publicly embeddable
-without a bypass token. Verify each route returns a direct unauthenticated 200 and can be captured
-by the Runner. The mutable stable alias serves current V2 only and cannot back both revisions.
+are now publicly reachable because Vercel Authentication is disabled for the demo fixture. Recheck
+that every route returns a direct unauthenticated 200 and can be captured by the Runner. Never use a
+bypass token. The mutable stable alias serves current V2 only and cannot back both revisions.
 
 Resolve both with signed-in WebMCP and verify every route and capture before using them. Copy only
 verified public deployment identity, origin, route, screen key, viewport, and descriptive metadata.
@@ -247,7 +247,7 @@ human approval, activity, and reversible history—not on Cinemaverse alone.
 
 Any failed control blocks recording. Do not hide it with editing.
 
-## 13. Verification and rehearsals
+## 13. Deterministic preflight
 
 Before recording, verify:
 
@@ -266,8 +266,9 @@ Before recording, verify:
 - Cinemaverse selection-scoped answer and citations; and
 - zero secrets, personal data, notification banners, or unrelated windows in frame.
 
-Run the complete timed route twice consecutively from the reset-safe baseline. If either pass fails,
-fix or restage the problem and restart the two-pass count.
+Do not run the complete agent route before capture. Perform one deterministic preflight that does
+not launch Claude/Codex, dispatch feedback, publish recording-workspace revisions, or approve a
+design. If preflight fails, fix or restage the problem before starting the single take.
 
 ## 14. Capture and assembly
 
@@ -288,7 +289,7 @@ The rejected recording and its support files are not source material.
 The recording task is complete only when:
 
 - the new Cinemaverse workspace is preserved with its real evidence;
-- both rehearsals passed;
+- the non-model preflight passed;
 - the clean silent master exists and passes visual inspection;
 - the final edit follows the approved story and keeps Guild primary;
 - all shown work and provenance are truthful;
