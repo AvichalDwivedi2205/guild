@@ -67,6 +67,10 @@ describe('EvidenceFocus', () => {
     expect(screen.getByText('2 changed files')).toBeVisible();
     expect(screen.getByText('Browser acceptance')).toBeVisible();
     expect(screen.queryByText('Other evidence')).not.toBeInTheDocument();
+    expect(useQueryMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ evidenceId: 'evidence-pr' }),
+    );
     expect(screen.getByRole('link', { name: 'Open pull request externally' })).toHaveAttribute(
       'target',
       '_blank',

@@ -44,6 +44,7 @@ export function EvidenceFocus({
 }) {
   const evidence = useQuery(api.evidence.listImplementationEvidence, {
     workspaceId,
+    ...(focus.evidenceId ? { evidenceId: focus.evidenceId as Id<'implementationEvidence'> } : {}),
     ...(focus.workstreamKey ? { workstreamKey: focus.workstreamKey } : {}),
     limit: 25,
   });
