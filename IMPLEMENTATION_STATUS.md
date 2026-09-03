@@ -65,8 +65,8 @@ Status vocabulary:
 - The remaining recording work is to resolve the public immutable V1/V2 origins, create the clean
   workspace, pass the complete route twice, record and inspect the silent master, then assemble the
   final composite after presenter media exists.
-- Local verification passed the focused Focus suite (2 files / 3 tests), the full Guild gate
-  (66 application files / 218 tests, formatting, zero-warning lint, strict TypeScript,
+- Local verification passed the focused Focus/evidence suite (3 files / 6 tests), the full Guild
+  gate (66 application files / 219 tests, formatting, zero-warning lint, strict TypeScript,
   protocol build/typecheck, and Runner typecheck), 12 Runner files / 42 tests, the Runner build,
   the Next.js 16.3.4 production build, and the public Playwright suite (8 passed; 46 authenticated
   cases truthfully skipped without its test session). Pull-request, merge, and production smoke
