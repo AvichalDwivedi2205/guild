@@ -199,7 +199,7 @@ export function VisualOverlay({
             />
           </label>
           {error ? <p>{error}</p> : null}
-          <button type="submit">Send to owner</button>
+          <button type="submit">Save comment</button>
         </form>
       ) : null}
     </div>

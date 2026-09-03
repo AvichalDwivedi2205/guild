@@ -220,4 +220,77 @@ describe('Convex visual feedback', () => {
     const runs = await asOwner.query(api.runs.list, { workspaceId, limit: 10 });
     expect(runs.flatMap((row) => row.jobs)).toHaveLength(0);
   });
+
+  it('saves an anchored comment when the screen has no delivery target', async () => {
+    const t = convexTest(schema, modules);
+    const asOwner = t.withIdentity(identity);
+    const workspaceId = await asOwner.mutation(api.workspaces.create, {
+      title: 'Unrouted visual workspace',
+      boardMode: 'diagram',
+    });
+    await asOwner.mutation(api.design.publishDesignPreview, {
+      workspaceId,
+      source: 'ui',
+      idempotencyKey: 'design:publish:visual:0003',
+      designSetKey: 'unrouted-home',
+      title: 'Unrouted home',
+      stage: 'visual',
+      deploymentId: 'dep_unrouted_v1',
+      deploymentUrl: 'https://preview.example.com/unrouted',
+      origin: 'https://preview.example.com',
+      screens: [
+        {
+          screenKey: 'home',
+          name: 'Home',
+          route: '/',
+          order: 0,
+          viewports: ['desktop'],
+        },
+      ],
+    });
+    const design = await asOwner.query(api.design.getDesignSet, {
+      workspaceId,
+      designSetKey: 'unrouted-home',
+    });
+    const screen = design?.screens[0];
+    const screenRevision = design?.screenRevisions[0];
+    expect(screen && screenRevision).toBeTruthy();
+
+    const args = {
+      workspaceId,
+      source: 'ui' as const,
+      idempotencyKey: 'visual:comment:0003',
+      body: 'Increase spacing above the title.',
+      targetObjectId: screen!.canvasObjectId,
+      reference: {
+        screenRevisionId: screenRevision!.id,
+        screenKey: 'home',
+        route: '/',
+        viewportKey: 'desktop' as const,
+        viewportWidth: 1440,
+        viewportHeight: 900,
+        scrollX: 0,
+        scrollY: 0,
+        kind: 'point' as const,
+        point: { x: 0.4, y: 0.2 },
+      },
+    };
+    const created = await asOwner.mutation(api.visualFeedback.createVisualComment, args);
+
+    expect(created.jobId).toBeNull();
+    expect(created.feedbackId).toBeNull();
+    const anchors = await asOwner.query(api.visualFeedback.listVisualAnchors, {
+      workspaceId,
+      designScreenRevisionId: screenRevision!.id,
+    });
+    expect(anchors).toHaveLength(1);
+    expect(anchors[0]?.commentId).toBe(created.commentId);
+
+    const replay = await asOwner.mutation(api.visualFeedback.createVisualComment, args);
+    expect(replay.idempotentReplay).toBe(true);
+    expect(replay.commentId).toBe(created.commentId);
+    expect(replay.anchorId).toBe(created.anchorId);
+    expect(replay.jobId).toBeNull();
+    expect(replay.feedbackId).toBeNull();
+  });
 });
