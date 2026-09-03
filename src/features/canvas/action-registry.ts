@@ -19,11 +19,11 @@ export function primaryAction(
   if (object.type === 'text' || object.type === 'sticky' || object.type === 'annotation') {
     return 'inline-edit';
   }
+  if (object.semantics.semanticType === 'designScreen') return 'focus-design';
+  if (object.semantics.semanticType === 'implementationEvidence') return 'focus-evidence';
   if (object.type === 'section' || object.type === 'stack' || object.type === 'wireframeFrame') {
     return 'fit';
   }
-  if (object.semantics.semanticType === 'designScreen') return 'focus-design';
-  if (object.semantics.semanticType === 'implementationEvidence') return 'focus-evidence';
   return 'quick-edit';
 }
 

@@ -6,6 +6,9 @@ describe('canvas action registry', () => {
   it('keeps text and containers on canvas, and focuses rich artifacts', () => {
     expect(primaryAction({ type: 'text', semantics: {} })).toBe('inline-edit');
     expect(primaryAction({ type: 'section', semantics: {} })).toBe('fit');
+    expect(
+      primaryAction({ type: 'wireframeFrame', semantics: { semanticType: 'designScreen' } }),
+    ).toBe('focus-design');
     expect(primaryAction({ type: 'task', semantics: {} })).toBe('quick-edit');
     expect(primaryAction({ type: 'image', semantics: { semanticType: 'designScreen' } })).toBe(
       'focus-design',
