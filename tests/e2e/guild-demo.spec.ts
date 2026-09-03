@@ -2,6 +2,8 @@ import { existsSync } from 'node:fs';
 
 import { expect, test } from '@playwright/test';
 
+import { callWebMcp, installWebMcpHost, registeredWebMcpToolNames } from './helpers/webmcp';
+
 const storageState = process.env.GUILD_E2E_STORAGE_STATE;
 const workspacePath = process.env.GUILD_E2E_WORKSPACE_PATH;
 const designSetKey = process.env.GUILD_E2E_DESIGN_SET_KEY;
@@ -93,50 +95,18 @@ test.describe('Guild authenticated demo path', () => {
   test('registers all WebMCP tools and executes authenticated read through page service', async ({
     page,
   }) => {
-    await page.addInitScript(() => {
-      const registered = new Map<string, { name: string; execute: (input: unknown) => unknown }>();
-      Object.defineProperty(document, 'modelContext', {
-        configurable: true,
-        value: {
-          async registerTool(tool: { name: string; execute: (input: unknown) => unknown }) {
-            if (registered.has(tool.name))
-              throw new DOMException('Duplicate tool', 'InvalidStateError');
-            registered.set(tool.name, tool);
-          },
-          async getTools() {
-            return [...registered.values()];
-          },
-          async executeTool(tool: { execute: (input: unknown) => unknown }, input: unknown) {
-            return JSON.stringify(await tool.execute(input));
-          },
-        },
-      });
-    });
+    await installWebMcpHost(page);
     await page.goto(workspacePath!);
 
-    await expect
-      .poll(() =>
-        page.evaluate(async () =>
-          ((await document.modelContext?.getTools?.()) ?? []).map(
-            (tool: { name: string }) => tool.name,
-          ),
-        ),
-      )
-      .toEqual(toolNames);
+    await expect.poll(() => registeredWebMcpToolNames(page)).toEqual(toolNames);
 
-    const result = await page.evaluate(async () => {
-      const modelContext = document.modelContext;
-      if (!modelContext?.getTools || !modelContext.executeTool)
-        throw new Error('WebMCP host missing');
-      const tools = await modelContext.getTools();
-      const registered = tools.find((tool: { name: string }) => tool.name === 'list_workspaces');
-      if (!registered) throw new Error('list_workspaces missing');
-      return JSON.parse(await modelContext.executeTool(registered, {})) as {
-        workspaces: Array<{ id: string }>;
-      };
-    });
+    const result = await callWebMcp<{ workspaces: Array<{ _id: string }> }>(
+      page,
+      'list_workspaces',
+      {},
+    );
     expect(
-      result.workspaces.some((workspace) => workspace.id === workspacePath!.split('/').at(-1)),
+      result.workspaces.some((workspace) => workspace._id === workspacePath!.split('/').at(-1)),
     ).toBe(true);
   });
 

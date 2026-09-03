@@ -12,6 +12,20 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-03 (connected browser acceptance matrix)
+
+- Added one serial, cleanup-safe Playwright matrix for the 24-point final acceptance flow. It now
+  exercises protected routing, workspace creation, every renderer family and board mode, inline text
+  editing, semantic edges, two authenticated browser contexts, comment routing, saved-team UI,
+  Runner truth, Codex/Claude engine readiness, distinct reserved regions, stop/retry controls,
+  direct WebMCP visibility, a real stale-revision rejection, and production console smoke.
+- Shared Playwright WebMCP helpers install the standards-shaped page host before application code,
+  enumerate native registrations, and execute tools through `document.modelContext`. The older demo
+  suite now uses the same helper and correctly reads Convex workspace `_id` values.
+- Static evidence: strict TypeScript passed and Playwright discovered 46 desktop/mobile tests. The
+  signed-in matrix intentionally requires an untracked browser storage state; execution against the
+  deployed branch remains pending and is not counted as passed yet.
+
 ## Snapshot — 2026-09-03 (visible reserved-region evidence)
 
 - Run queries now return each Job's server-allocated canvas reservation, limited to its bounds and
