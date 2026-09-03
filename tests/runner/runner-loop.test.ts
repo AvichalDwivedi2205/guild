@@ -34,6 +34,7 @@ describe('Runner loop', () => {
       attempt: 1,
       fencingToken: 2,
       capabilityToken: 'capture_capability_token',
+      expiresAt: Date.now() + 60_000,
     };
     capturePreviewScreen.mockResolvedValueOnce({
       ok: true,
@@ -41,6 +42,15 @@ describe('Runner loop', () => {
       width: 1440,
       height: 900,
       bytes: new Uint8Array([137, 80, 78, 71]),
+      artifacts: [
+        {
+          kind: 'viewport',
+          mime: 'image/png',
+          width: 1440,
+          height: 900,
+          bytes: new Uint8Array([137, 80, 78, 71]),
+        },
+      ],
     });
     let captureSent = false;
     const uploadCapture = vi.fn(async () => {
@@ -87,6 +97,7 @@ describe('Runner loop', () => {
       origin: captureTask.origin,
       viewportKey: captureTask.viewportKey,
       allowLoopback: true,
+      signal: expect.any(AbortSignal),
     });
     expect(uploadCapture).toHaveBeenCalledWith(
       `runner_${'r'.repeat(48)}`,
@@ -97,6 +108,77 @@ describe('Runner loop', () => {
         height: 900,
         bytes: expect.any(Uint8Array),
       }),
+      expect.any(AbortSignal),
+    );
+  });
+
+  it('keeps polling while a capture runs and cancels it during shutdown', async () => {
+    const controller = new AbortController();
+    const captureTask = {
+      taskId: 'capture_nonblocking',
+      workspaceId: 'workspace_1',
+      designRevisionId: 'revision_1',
+      designScreenRevisionId: 'screen_revision_1',
+      screenKey: 'landing',
+      route: '/',
+      captureUrl: 'https://preview.example.com/',
+      origin: 'https://preview.example.com',
+      viewportKey: 'desktop' as const,
+      viewport: { width: 1440, height: 900 },
+      attempt: 1,
+      fencingToken: 2,
+      capabilityToken: 'capture_capability_token',
+      expiresAt: Date.now() + 60_000,
+    };
+    capturePreviewScreen.mockImplementationOnce(
+      async ({ signal }: { signal?: AbortSignal }) =>
+        await new Promise((resolve) => {
+          signal?.addEventListener(
+            'abort',
+            () => resolve({ ok: false, error: 'capture_cancelled' }),
+            { once: true },
+          );
+        }),
+    );
+    let polls = 0;
+    let captureSent = false;
+    const cloud = {
+      poll: vi.fn(async (): Promise<PollResponse> => {
+        polls += 1;
+        if (polls === 2) controller.abort('test complete');
+        return {
+          serverTime: new Date().toISOString(),
+          activeRun: false,
+          assignments: [],
+          cancellations: [],
+          leaseRenewals: [],
+        };
+      }),
+      claimCaptures: vi.fn(async () => {
+        if (captureSent) return { tasks: [] };
+        captureSent = true;
+        return { tasks: [captureTask] };
+      }),
+      uploadCapture: vi.fn(),
+      failCapture: vi.fn(),
+    } as unknown as GuildCloudClient;
+    const runner = new GuildRunner({
+      config: createRunnerConfig({
+        cloudUrl: 'https://guild.test',
+        runnerName: 'Test Runner',
+        concurrency: 1,
+      }),
+      cloud,
+      runnerToken: `runner_${'r'.repeat(48)}`,
+      engines: [],
+      schedule: { nextDelay: () => 1, reset: () => undefined } as unknown as AdaptivePollSchedule,
+    });
+
+    await runner.run(controller.signal);
+
+    expect(polls).toBeGreaterThanOrEqual(2);
+    expect(capturePreviewScreen).toHaveBeenCalledWith(
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
   });
 

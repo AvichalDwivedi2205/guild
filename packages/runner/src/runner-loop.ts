@@ -6,6 +6,7 @@ import { errorMessage, safeStatusMessage } from './redaction.js';
 import {
   assignmentKey,
   type Assignment,
+  type CaptureAssignment,
   type EngineReport,
   type ProgressPhase,
   type WorkerProgress,
@@ -19,6 +20,12 @@ type ActiveAssignment = {
   leaseExpiresAt: string;
   leaseTimer: NodeJS.Timeout;
   done: Promise<void>;
+};
+
+type ActiveCapture = {
+  controller: AbortController;
+  done: Promise<void>;
+  leaseTimer: NodeJS.Timeout;
 };
 
 function publicEngineReport(report: EngineReport): EngineReport {
@@ -40,6 +47,7 @@ export class GuildRunner {
   readonly #schedule: AdaptivePollSchedule;
   readonly #log: RunnerLog;
   readonly #active = new Map<string, ActiveAssignment>();
+  readonly #activeCaptures = new Map<string, ActiveCapture>();
   readonly #progress: WorkerProgress[] = [];
   #progressSequence = 0;
   #cloudHasActiveRun = false;
@@ -69,7 +77,10 @@ export class GuildRunner {
           {
             runnerVersion: RUNNER_VERSION,
             configuredConcurrency: this.#config.concurrency,
-            freeCapacity: Math.max(0, this.#config.concurrency - this.#active.size),
+            freeCapacity: Math.max(
+              0,
+              this.#config.concurrency - this.#active.size - this.#activeCaptures.size,
+            ),
             engines: this.#engines.map(publicEngineReport),
             activeAssignments: [...this.#active.values()].map((active) => ({
               jobId: active.assignment.jobId,
@@ -90,7 +101,10 @@ export class GuildRunner {
         await this.#claimCaptures(signal);
 
         const active =
-          this.#active.size > 0 || this.#cloudHasActiveRun || response.assignments.length > 0;
+          this.#active.size > 0 ||
+          this.#activeCaptures.size > 0 ||
+          this.#cloudHasActiveRun ||
+          response.assignments.length > 0;
         await abortableDelay(
           this.#schedule.nextDelay({
             active,
@@ -113,38 +127,92 @@ export class GuildRunner {
     }
 
     for (const active of this.#active.values()) active.controller.abort('Runner shutting down');
-    await Promise.allSettled([...this.#active.values()].map((active) => active.done));
+    for (const active of this.#activeCaptures.values())
+      active.controller.abort('Runner shutting down');
+    await Promise.allSettled([
+      ...[...this.#active.values()].map((active) => active.done),
+      ...[...this.#activeCaptures.values()].map((active) => active.done),
+    ]);
   }
 
   async #claimCaptures(signal: AbortSignal): Promise<void> {
     if (signal.aborted) return;
-    const free = Math.max(0, Math.min(2, this.#config.concurrency - this.#active.size));
+    const free = Math.max(
+      0,
+      Math.min(
+        2 - this.#activeCaptures.size,
+        this.#config.concurrency - this.#active.size - this.#activeCaptures.size,
+      ),
+    );
     if (free < 1) return;
     try {
-      const claimed = await this.#cloud.claimCaptures(this.#runnerToken, free);
-      for (const task of claimed.tasks) {
-        const { capturePreviewScreen } = await import('./capture/index.js');
-        const result = await capturePreviewScreen({
-          captureUrl: String(task.captureUrl ?? ''),
-          origin: String(task.origin ?? ''),
-          viewportKey: task.viewportKey === 'mobile' ? 'mobile' : 'desktop',
-          allowLoopback: process.env.NODE_ENV !== 'production',
-        });
-        if (!result.ok) {
-          await this.#cloud.failCapture(this.#runnerToken, {
-            taskId: task.taskId,
-            capabilityToken: task.capabilityToken,
-            attempt: task.attempt,
-            fencingToken: task.fencingToken,
-            error: result.error,
-          });
-          continue;
-        }
-        await this.#cloud.uploadCapture(this.#runnerToken, task, result);
-      }
+      const claimed = await this.#cloud.claimCaptures(this.#runnerToken, free, signal);
+      for (const task of claimed.tasks) this.#startCapture(task);
     } catch (error) {
       this.#log('warn', `Capture poll failed: ${errorMessage(error, [this.#runnerToken])}`);
     }
+  }
+
+  #startCapture(task: CaptureAssignment): void {
+    if (this.#activeCaptures.has(task.taskId)) return;
+    const controller = new AbortController();
+    const leaseTimer = setTimeout(
+      () => controller.abort('Capture lease expired'),
+      Math.max(0, task.expiresAt - Date.now()),
+    );
+    const authority = {
+      taskId: task.taskId,
+      capabilityToken: task.capabilityToken,
+      attempt: task.attempt,
+      fencingToken: task.fencingToken,
+    };
+    const done = import('./capture/index.js')
+      .then(async ({ capturePreviewScreen }) => {
+        const result = await capturePreviewScreen({
+          captureUrl: task.captureUrl,
+          origin: task.origin,
+          viewportKey: task.viewportKey,
+          allowLoopback: process.env.NODE_ENV !== 'production',
+          signal: controller.signal,
+        });
+        if (controller.signal.aborted) return;
+        if (!result.ok) {
+          await this.#cloud.failCapture(this.#runnerToken, {
+            ...authority,
+            error: result.error,
+            retryable: result.error === 'capture_failed',
+          });
+          return;
+        }
+        try {
+          await this.#cloud.uploadCapture(this.#runnerToken, task, result, controller.signal);
+        } catch (error) {
+          if (controller.signal.aborted) return;
+          this.#log(
+            'warn',
+            `Capture upload failed: ${errorMessage(error, [this.#runnerToken, task.capabilityToken])}`,
+          );
+          await this.#cloud.failCapture(this.#runnerToken, {
+            ...authority,
+            error: 'capture_upload_failed',
+            retryable: true,
+          });
+        }
+      })
+      .catch((error: unknown) => {
+        if (!controller.signal.aborted) {
+          this.#log(
+            'warn',
+            `Capture failed: ${errorMessage(error, [this.#runnerToken, task.capabilityToken])}`,
+          );
+        }
+      })
+      .finally(() => {
+        clearTimeout(leaseTimer);
+        this.#activeCaptures.delete(task.taskId);
+      });
+    this.#activeCaptures.set(task.taskId, { controller, done, leaseTimer });
+    this.#schedule.reset();
   }
 
   #startAssignment(assignment: Assignment): void {
