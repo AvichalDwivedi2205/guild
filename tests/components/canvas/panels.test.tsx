@@ -119,6 +119,45 @@ describe('CanvasRightPanel', () => {
     expect(within(panel).getByText('Unassigned comments')).toBeVisible();
   });
 
+  it('keeps semantic project decisions visible in the overview', () => {
+    const data = workspaceData();
+    data.objects = [
+      ...data.objects,
+      {
+        id: 'decision-1',
+        workspaceId: 'workspace-1',
+        type: 'sticky',
+        title: 'Use Convex for realtime state',
+        position: { x: 400, y: 0 },
+        size: { width: 300, height: 220 },
+        style: {},
+        semantics: {
+          semanticType: 'architecture-decision',
+          customFields: {
+            reason: 'Durable subscriptions and transactional scheduling.',
+            proposedBy: 'System Architect',
+            chosenBy: 'Avichal',
+            decidedAt: '2026-09-01T12:00:00.000Z',
+          },
+        },
+        locked: false,
+        revisions: { geometry: 0, content: 0, style: 0, semantics: 0, hierarchy: 0 },
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      },
+    ];
+
+    render(<CanvasRightPanel panel="overview" setPanel={vi.fn()} data={data} actions={{}} />);
+
+    const panel = screen.getByRole('complementary', { name: 'Overview' });
+    expect(within(panel).getByText('Decisions')).toBeVisible();
+    expect(within(panel).getByText('Use Convex for realtime state')).toBeVisible();
+    expect(
+      within(panel).getByText('Durable subscriptions and transactional scheduling.'),
+    ).toBeVisible();
+    expect(within(panel).getByText(/System Architect proposed · Avichal chose/)).toBeVisible();
+  });
+
   it('shows queued work as Waiting for Runner without synthetic progress', () => {
     render(
       <CanvasRightPanel panel="runs" setPanel={vi.fn()} data={workspaceData()} actions={{}} />,

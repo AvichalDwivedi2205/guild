@@ -12,6 +12,17 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-03 (decision-memory retrieval UI)
+
+- The Overview panel now derives a compact decision trail from neutral canvas objects whose
+  semantic type identifies a decision. It shows the durable title, reason, proposer, chooser, and
+  decision time without adding another permanent rail panel or exposing Advanced editing in the
+  normal review path.
+- The decision count and trail are derived from the same live canvas subscription as every other
+  overview metric; no parallel decision store or decorative demo state was added.
+- Focused component evidence: `tests/components/canvas/panels.test.tsx` passed 15 tests and strict
+  TypeScript passed. Full gates and production browser acceptance remain pending for this batch.
+
 ## Snapshot — 2026-09-03 (native WebMCP acceptance and owned-section invariant)
 
 - Production native WebMCP acceptance invoked all 24 registered tools successfully. The matrix
