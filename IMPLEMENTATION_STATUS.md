@@ -22,8 +22,16 @@ Status vocabulary:
   Inspector for ordinary reading; Edit reuses the existing revision-aware autosaving editor.
 - The modal traps keyboard focus, restores prior focus, closes with Escape or backdrop click, and
   adapts its action controls for narrow screens. Red/green component coverage passed 4 focused
-  files / 18 tests plus strict TypeScript and zero-warning ESLint. Full gates, PR review, deployment,
-  and signed-in browser acceptance remain pending for this batch.
+  files / 18 tests. Full local gates passed 61 application files / 203 tests, 12 Runner files / 42
+  tests, formatting, zero-warning ESLint, strict TypeScript, protocol/Runner typechecks and builds,
+  the Next.js production build, 8 public Playwright checks with authenticated cases honestly
+  skipped locally, and `bun audit` with no vulnerabilities.
+- PR #15 merged at `6d65b2d`; main CI run `33763807200` passed the full public and authenticated
+  browser suites, including the new complete-task-result path. Vercel production deployment
+  `dpl_6jrQBoYWXsbAZprXqScTwV6wCHEq` reached Ready on the stable alias. Signed-in production native
+  WebMCP created a temporary detailed task containing headings, emphasis, numbered steps, task
+  lists, inline code, a table, and a quote. Double-click rendered the complete formatted result;
+  Edit/View and Escape worked. The proof object was deleted, and `search_canvas` returned no match.
 
 ## Snapshot — 2026-09-03 (rich Markdown canvas content)
 
