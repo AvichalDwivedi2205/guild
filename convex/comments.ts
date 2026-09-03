@@ -6,6 +6,7 @@ import { routeComment } from '../src/domain/comments';
 import { requireWorkspaceMember } from './lib/auth';
 import { createTeamRun } from './lib/runLifecycle';
 import { requireWorkerAuthorization } from './lib/runnerAuth';
+import { routeCommentToExternalWorkstream } from './lib/externalFeedback';
 import { commentStateValidator, workerAuthorizationValidator } from './validators';
 
 const targetArgs = {
@@ -158,11 +159,21 @@ export const add = mutation({
       if (!entry) throw new Error('idempotency_record_incomplete');
       const comment = await ctx.db.get(entry.targetId as Id<'comments'>);
       if (!comment) throw new Error('comment_not_found');
+      if (comment.objectId && comment.state === 'unassigned') {
+        await routeCommentToExternalWorkstream(ctx, {
+          workspaceId: args.workspaceId,
+          commentId: comment._id,
+          targetObjectId: comment.objectId,
+          body: comment.body,
+        });
+      }
+      const currentComment = await ctx.db.get(comment._id);
+      if (!currentComment) throw new Error('comment_not_found');
       return {
-        commentId: comment._id,
-        ...(comment.teamRunId ? { teamRunId: comment.teamRunId } : {}),
-        jobIds: comment.jobIds,
-        state: comment.state,
+        commentId: currentComment._id,
+        ...(currentComment.teamRunId ? { teamRunId: currentComment.teamRunId } : {}),
+        jobIds: currentComment.jobIds,
+        state: currentComment.state,
       };
     }
     const body = args.body.trim();
@@ -217,19 +228,30 @@ export const add = mutation({
       userId: user._id,
       source,
     });
+    const externalFeedbackId =
+      !routed.teamRunId && args.objectId
+        ? await routeCommentToExternalWorkstream(ctx, {
+            workspaceId: args.workspaceId,
+            commentId,
+            targetObjectId: args.objectId,
+            body,
+          })
+        : undefined;
+    const effectiveState = externalFeedbackId ? ('queued' as const) : routed.state;
     await ctx.db.insert('activityEvents', {
       workspaceId: args.workspaceId,
       actorKind: source === 'webmcp' ? 'webmcp' : 'human',
       actorUserId: user._id,
       source,
-      eventType: routed.teamRunId ? 'comment_routed' : 'comment_added',
-      summary: routed.teamRunId ? 'Added and routed comment' : 'Added comment',
+      eventType: routed.teamRunId || externalFeedbackId ? 'comment_routed' : 'comment_added',
+      summary:
+        routed.teamRunId || externalFeedbackId ? 'Added and routed comment' : 'Added comment',
       targetId: commentId,
       changeSetId,
       ...(routed.teamRunId ? { teamRunId: routed.teamRunId } : {}),
       createdAt: now,
     });
-    return { commentId, ...routed };
+    return { commentId, ...routed, state: effectiveState };
   },
 });
 

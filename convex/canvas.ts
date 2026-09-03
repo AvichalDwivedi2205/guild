@@ -169,6 +169,7 @@ const edgeValidator = v.object({
   routing: v.union(v.literal('straight'), v.literal('curve'), v.literal('elbow')),
   style: v.any(),
   revision: v.number(),
+  logicalKey: v.optional(v.string()),
   createdByJobId: v.optional(v.id('jobs')),
   isDeleted: v.boolean(),
   createdAt: v.number(),
