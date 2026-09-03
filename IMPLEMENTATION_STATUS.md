@@ -12,6 +12,30 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-03 (native WebMCP acceptance and owned-section invariant)
+
+- Production native WebMCP acceptance invoked all 24 registered tools successfully. The matrix
+  covered bounded canvas create/update/move/resize/delete, search, routed comments, Team Run
+  queue/status/stop/retry/undo, implementation task claim/result, immutable design publication,
+  external workstream feedback/acknowledgement, and reported implementation evidence. Temporary
+  acceptance objects were soft-deleted after verification.
+- A real revision-bound Cinema Login comment was saved in Design Focus, routed to the registered
+  `cinema-design-claude` workstream, read and acknowledged through native WebMCP, and reflected as
+  one active reported Claude Sonnet workstream. An unrouted production comment also persisted after
+  PR #5 merged and Convex production was deployed.
+- Publishing Cinema design revision v2 queued four Runner captures. With the paired local Runner
+  started, desktop and mobile captures for Home and Login all completed and `captureReady` became
+  true. Runner status reported Codex and Claude Code authenticated and ready; Claude execution
+  remains pinned to Sonnet by the Runner adapter.
+- The matrix exposed live `run_ai_team` failure `owned_section_not_found`: board repopulation had
+  deleted the seven sections still referenced by Role Profiles. Production ownership was repaired
+  through the Team UI by mapping all seven profiles to the canonical Product, Design,
+  Architecture, AI, Data, Testing, and Implementation sections.
+- New deletion invariant rejects removing a section while any Role Profile owns it. The focused
+  integration regression reproduced the old destructive behavior, then passed after adding the
+  `roleProfiles.by_ownedSectionId` index and `owned_section_in_use` guard. Full gate, PR, merge,
+  production deployment, and live rejection replay remain pending for this batch.
+
 ## Snapshot — 2026-09-03 (unrouted visual-comment acceptance repair)
 
 - Production Design Focus exposed a routing edge case: a visual comment on a published screen with
