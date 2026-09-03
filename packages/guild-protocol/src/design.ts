@@ -16,7 +16,8 @@ export const designScreenRequestSchema = z.object({
     .trim()
     .min(1)
     .max(500)
-    .regex(/^\/[A-Za-z0-9._~:/#[\]@!$&'()*+,;=%-]*$/u),
+    .regex(/^\/[A-Za-z0-9._~:/#[\]@!$&'()*+,;=%-]*$/u)
+    .refine((route) => !route.startsWith('//'), 'Route must stay on the declared preview origin'),
   order: z.number().int().min(0).max(200),
   viewports: z.array(viewportKeySchema).min(1).max(2),
   relatedObjectIds: z.array(identifierSchema).max(20).optional(),
@@ -42,6 +43,7 @@ export type PublishDesignPreviewRequest = z.infer<typeof publishDesignPreviewReq
 export const getDesignSetRequestSchema = z.object({
   workspaceId: identifierSchema,
   designSetKey: stableKeySchema,
+  version: z.number().int().positive().optional(),
 });
 
 export const getDesignRevisionStatusRequestSchema = z.object({

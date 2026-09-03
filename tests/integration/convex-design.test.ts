@@ -119,6 +119,36 @@ describe('Convex design publication', () => {
       ),
     ).rejects.toThrow('raw_markup_rejected');
 
+    await expect(
+      asOwner.mutation(
+        api.design.publishDesignPreview,
+        publishArgs(workspaceId, {
+          idempotencyKey: 'design:publish:cinema-home:network-path',
+          designSetKey: 'cinema-network-path',
+          screens: [
+            {
+              screenKey: 'landing',
+              name: 'Landing',
+              route: '//evil.example/landing',
+              order: 0,
+              viewports: ['desktop'],
+            },
+          ],
+        }),
+      ),
+    ).rejects.toThrow();
+
+    await expect(
+      asOwner.mutation(
+        api.design.publishDesignPreview,
+        publishArgs(workspaceId, {
+          idempotencyKey: 'design:publish:cinema-home:origin-mismatch',
+          designSetKey: 'cinema-origin-mismatch',
+          deploymentUrl: 'https://evil.example/cinema',
+        }),
+      ),
+    ).rejects.toThrow('origin_mismatch');
+
     const set = await asOwner.query(api.design.getDesignSet, {
       workspaceId,
       designSetKey: 'cinema-home',
@@ -126,13 +156,47 @@ describe('Convex design publication', () => {
     expect(set?.headRevision?.version).toBe(1);
     expect(set?.screens[0]?.key).toBe('landing');
 
+    await t.run(async (ctx) => {
+      const storageId = await ctx.storage.store(
+        new Blob([new Uint8Array([137, 80, 78, 71])], { type: 'image/png' }),
+      );
+      const assetId = await ctx.db.insert('assets', {
+        workspaceId,
+        storageId,
+        kind: 'viewport',
+        mime: 'image/png',
+        byteSize: 4,
+        width: 1440,
+        height: 900,
+        checksum: 'a'.repeat(64),
+        altText: 'Cinema landing desktop',
+        provenance: 'runner_capture',
+        designRevisionId: first.designRevisionId,
+        status: 'ready',
+        createdAt: Date.now(),
+      });
+      const task = await ctx.db.get(first.captureTaskIds[0]!);
+      if (!task) throw new Error('capture task missing');
+      await ctx.db.patch(task._id, {
+        state: 'completed',
+        viewportAssetId: assetId,
+        updatedAt: Date.now(),
+      });
+      await ctx.db.patch(task.designScreenRevisionId, { captureReady: true });
+    });
+    const capturedSet = await asOwner.query(api.design.getDesignSet, {
+      workspaceId,
+      designSetKey: 'cinema-home',
+    });
+    expect(capturedSet?.screenRevisions[0]?.captures[0]?.viewportUrl).toMatch(/^https?:\/\//u);
+
     const status = await asOwner.query(api.design.getDesignRevisionStatus, {
       workspaceId,
       designSetKey: 'cinema-home',
     });
     expect(status?.version).toBe(1);
-    expect(status?.captureReady).toBe(false);
-    expect(status?.captures[0]?.state).toBe('queued');
+    expect(status?.captureReady).toBe(true);
+    expect(status?.captures[0]?.state).toBe('completed');
 
     const second = await asOwner.mutation(
       api.design.publishDesignPreview,
@@ -146,6 +210,15 @@ describe('Convex design publication', () => {
     expect(second.version).toBe(2);
     expect(second.designSetId).toBe(first.designSetId);
     expect(second.galleryObjectId).toBe(first.galleryObjectId);
+    const firstRevision = await asOwner.query(api.design.getDesignSet, {
+      workspaceId,
+      designSetKey: 'cinema-home',
+      version: 1,
+    });
+    expect(firstRevision?.headRevision?.version).toBe(2);
+    expect(firstRevision?.selectedRevision?.version).toBe(1);
+    expect(firstRevision?.screenRevisions[0]?.route).toBe('/');
+    expect(firstRevision?.revisionHistory.map((revision) => revision.version)).toEqual([2, 1]);
   });
 
   it('rejects unauthenticated publication and cross-workspace related objects', async () => {

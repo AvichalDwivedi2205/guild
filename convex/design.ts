@@ -7,6 +7,7 @@ import { v } from 'convex/values';
 
 import type { Doc, Id } from './_generated/dataModel';
 import { mutation, query, type MutationCtx } from './_generated/server';
+import { convexAssetStore } from './lib/assetStore';
 import { requireWorkspaceMember } from './lib/auth';
 import {
   appendActivity,
@@ -515,8 +516,9 @@ export const publishDesignPreview = mutation({
       ...(args.addressedCommentIds ? { addressedCommentIds: args.addressedCommentIds } : {}),
     });
     assertNoRawMarkup(request.title, 'title');
-    assertHttpUrl(request.deploymentUrl, 'deploymentUrl');
+    const deploymentUrl = assertHttpUrl(request.deploymentUrl, 'deploymentUrl');
     const origin = assertHttpUrl(request.origin, 'origin');
+    if (deploymentUrl.origin !== origin.origin) throw new Error('origin_mismatch');
     for (const screen of request.screens) {
       assertNoRawMarkup(screen.name, 'screen.name');
       assertNoRawMarkup(screen.route, 'screen.route');
@@ -571,6 +573,7 @@ export const getDesignSet = query({
   args: {
     workspaceId: v.id('workspaces'),
     designSetKey: v.string(),
+    version: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     getDesignSetRequestSchema.parse(args);
@@ -587,12 +590,83 @@ export const getDesignSet = query({
       .withIndex('by_designSetId_and_order', (query) => query.eq('designSetId', designSet._id))
       .take(40);
     const head = designSet.headRevisionId ? await ctx.db.get(designSet.headRevisionId) : null;
-    const screenRevisions = head
+    const selected =
+      args.version !== undefined
+        ? await ctx.db
+            .query('designRevisions')
+            .withIndex('by_designSetId_and_version', (query) =>
+              query.eq('designSetId', designSet._id).eq('version', args.version!),
+            )
+            .unique()
+        : head;
+    const screenRevisions = selected
       ? await ctx.db
           .query('designScreenRevisions')
-          .withIndex('by_revision_and_screen', (query) => query.eq('designRevisionId', head._id))
+          .withIndex('by_revision_and_screen', (query) =>
+            query.eq('designRevisionId', selected._id),
+          )
           .take(40)
       : [];
+    const revisions = await ctx.db
+      .query('designRevisions')
+      .withIndex('by_designSetId_and_version', (query) => query.eq('designSetId', designSet._id))
+      .order('desc')
+      .take(20);
+    const assetStore = convexAssetStore(ctx);
+    const projectedScreenRevisions = await Promise.all(
+      screenRevisions.map(async (revision) => {
+        const tasks = await ctx.db
+          .query('previewCaptureTasks')
+          .withIndex('by_designScreenRevisionId', (query) =>
+            query.eq('designScreenRevisionId', revision._id),
+          )
+          .take(4);
+        const captures = await Promise.all(
+          tasks.map(async (task) => {
+            const urlFor = async (assetId?: Id<'assets'>) => {
+              if (!assetId) return null;
+              const asset = await ctx.db.get(assetId);
+              if (!asset || asset.workspaceId !== args.workspaceId || asset.status !== 'ready') {
+                return null;
+              }
+              return assetStore.getUrl(asset.storageId);
+            };
+            return {
+              id: task._id,
+              viewportKey: task.viewportKey,
+              state: task.state,
+              error: task.error ?? null,
+              viewportAssetId: task.viewportAssetId ?? null,
+              viewportUrl: await urlFor(task.viewportAssetId),
+              fullPageAssetId: task.fullPageAssetId ?? null,
+              fullPageUrl: await urlFor(task.fullPageAssetId),
+              thumbnailAssetId: task.thumbnailAssetId ?? null,
+              thumbnailUrl: await urlFor(task.thumbnailAssetId),
+            };
+          }),
+        );
+        return {
+          id: revision._id,
+          designScreenId: revision.designScreenId,
+          route: revision.route,
+          viewports: revision.viewports,
+          captureReady: revision.captureReady,
+          captures,
+        };
+      }),
+    );
+    const projectRevision = (revision: Doc<'designRevisions'> | null) =>
+      revision
+        ? {
+            id: revision._id,
+            version: revision.version,
+            stage: revision.stage,
+            deploymentId: revision.deploymentId,
+            deploymentUrl: revision.deploymentUrl,
+            origin: revision.origin,
+            createdAt: revision.createdAt,
+          }
+        : null;
     return {
       designSet: {
         id: designSet._id,
@@ -609,24 +683,10 @@ export const getDesignSet = query({
         order: screen.order,
         canvasObjectId: screen.canvasObjectId,
       })),
-      headRevision: head
-        ? {
-            id: head._id,
-            version: head.version,
-            stage: head.stage,
-            deploymentId: head.deploymentId,
-            deploymentUrl: head.deploymentUrl,
-            origin: head.origin,
-            createdAt: head.createdAt,
-          }
-        : null,
-      screenRevisions: screenRevisions.map((revision) => ({
-        id: revision._id,
-        designScreenId: revision.designScreenId,
-        route: revision.route,
-        viewports: revision.viewports,
-        captureReady: revision.captureReady,
-      })),
+      headRevision: projectRevision(head),
+      selectedRevision: projectRevision(selected),
+      revisionHistory: revisions.map((revision) => projectRevision(revision)!),
+      screenRevisions: projectedScreenRevisions,
     };
   },
 });

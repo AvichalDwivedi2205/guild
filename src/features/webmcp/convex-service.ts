@@ -516,6 +516,7 @@ export function createConvexWebMcpService(client: ConvexReactClient): GuildWebMc
       return client.query(api.design.getDesignSet, {
         workspaceId: workspaceId(input.workspaceId),
         designSetKey: input.designSetKey,
+        ...(input.version !== undefined ? { version: input.version } : {}),
       });
     },
     async getDesignRevisionStatus(input) {
