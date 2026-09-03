@@ -14,6 +14,7 @@ export const guildWebMcpToolNames = [
   'search_canvas',
   'apply_canvas_changes',
   'add_comment',
+  'dispatch_feedback_batch',
   'run_ai_team',
   'get_run_status',
   'get_runner_status',
@@ -45,6 +46,8 @@ const descriptions = {
   apply_canvas_changes:
     'Apply up to 25 idempotent visible canvas commands as WebMCP Controller. Node style may only set palette to paper, amber, peach, mint, lilac, rose, or ink. Never send fill, color, or hex. Omit style to use the type default.',
   add_comment: 'Add and deterministically route a workspace, section, or object comment.',
+  dispatch_feedback_batch:
+    'Send up to 50 exact canvas or hosted-design annotations as one batch. Guild creates at most one revision Job per target agent and preserves every anchor.',
   run_ai_team: 'Queue one deterministic Team Run; local Guild Runner performs all AI execution.',
   get_run_status: 'Read truthful Job, dependency, Runner capacity, progress, and failure state.',
   get_runner_status: 'Read real paired Guild Runner availability and compatible local engines.',
@@ -114,6 +117,9 @@ function createTools(service: GuildWebMcpService): ModelContextTool[] {
       service.applyCanvasChanges(input),
     ),
     tool('add_comment', guildWebMcpInputSchemas.add_comment, (input) => service.addComment(input)),
+    tool('dispatch_feedback_batch', guildWebMcpInputSchemas.dispatch_feedback_batch, (input) =>
+      service.dispatchFeedbackBatch(input),
+    ),
     tool('run_ai_team', guildWebMcpInputSchemas.run_ai_team, (input) => service.runAiTeam(input)),
     tool('get_run_status', guildWebMcpInputSchemas.get_run_status, (input) =>
       service.getRunStatus(input),

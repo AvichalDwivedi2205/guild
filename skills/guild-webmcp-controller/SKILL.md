@@ -21,7 +21,7 @@ model inference.
 
 ## Start every operation
 
-1. Inspect the discovered tool list. The current Controller surface contains 24 tools.
+1. Inspect the discovered tool list. The current Controller surface contains 25 tools.
 2. Call `list_workspaces`; select the exact workspace from its returned id and title.
 3. Call `get_workspace_context` before writing. Use its live object revisions, semantic graph,
    teams, Runs, Runner state, `placementGuide`, and `colorGuide`.
@@ -52,6 +52,8 @@ model inference.
 - Use only palette ids returned by `colorGuide`; never send raw fill, text color, or hex values.
 - Report phase changes, not token streams, chain-of-thought, hidden subagent messages, or invented
   activity.
+- Use `dispatch_feedback_batch` for revision requests: preserve each exact anchor and send all
+  notes for one owner together. One batch creates at most one revision Job per target agent.
 - Keep credentials, cookies, absolute local paths, raw logs, image bytes, and HTML out of tool
   payloads. Design publication accepts hosted HTTPS identity and screen metadata.
 - Label external status and checks as **Reported**. A reachable public link may become

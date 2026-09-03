@@ -299,7 +299,7 @@ function createAssignmentServer(
     'get_assignment_feedback',
     {
       description:
-        'Read the visual comment, revision identity, and optional crop image for this assignment.',
+        'Read the complete feedback batch, exact anchors and revision identities, overall instruction, and optional crop image for this assignment.',
       inputSchema: {},
       annotations: { readOnlyHint: true, openWorldHint: false },
     },

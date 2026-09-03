@@ -1,6 +1,7 @@
 import {
   canvasObjectTypeSchema,
   completeWorkstreamRequestSchema,
+  dispatchFeedbackBatchRequestSchema,
   getDesignRevisionStatusRequestSchema,
   getDesignSetRequestSchema,
   identifierSchema,
@@ -199,6 +200,7 @@ export const guildWebMcpInputSchemas = {
   search_canvas: searchCanvasInput,
   apply_canvas_changes: applyCanvasChangesInput,
   add_comment: addCommentInput,
+  dispatch_feedback_batch: dispatchFeedbackBatchRequestSchema,
   run_ai_team: runAiTeamInput,
   get_run_status: getRunStatusInput,
   get_runner_status: getRunnerStatusInput,

@@ -17,6 +17,7 @@ const toolNames = [
   'search_canvas',
   'apply_canvas_changes',
   'add_comment',
+  'dispatch_feedback_batch',
   'run_ai_team',
   'get_run_status',
   'get_runner_status',
@@ -135,7 +136,7 @@ test.describe('Guild authenticated demo path', () => {
 
     await expect(page.getByLabel('Design focus')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Interact' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Comment' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Annotate' })).toBeVisible();
     await expect(page.getByRole('button', { name: /Approve v\d+/ })).toBeVisible();
     await page.getByRole('button', { name: 'Exit Focus' }).click();
     await expect(page.getByLabel(/infinite canvas/i)).toBeVisible();
