@@ -1,417 +1,224 @@
-# Guild demo features and simplified UI/UX plan
-
-## Purpose
-
-This document records only the capabilities still required for the Cinema demo and the final UI/UX
-direction. Existing MVP foundations remain documented in `IMPLEMENTATION_STATUS.md`.
-
-Nothing in this document is accepted merely because a schema or static screen exists. A capability
-is complete only after its UI, command path, persistence, authorization, realtime behavior, and
-relevant browser acceptance flow pass.
-
-## Product decisions
-
-1. Guild displays agent work, not agent chain-of-thought or conversation.
-2. Codex may coordinate internal subagents, but Guild shows stable logical workstreams rather than
-   provider-specific internal topology.
-3. Hosted previews are the primary high-fidelity design artifact.
-4. A visual comment is durable project state, not temporary prompt context.
-5. Human approval is one contextual action on an immutable revision, not a separate workflow app.
-6. The canvas remains primary. Side panels appear only when explicitly requested.
-7. Advanced metadata stays available without dominating ordinary editing and review.
-8. Guild is implemented here; Cinema is implemented and designed in separate Codex/Claude
-   environments and reports into Guild through WebMCP.
-9. Guild does not edit, test, commit, merge, or deploy the Cinema repository.
-
-## Existing foundations to reuse
-
-The following already exist and should be extended rather than rebuilt:
-
-- WorkOS authentication and workspace membership;
-- Convex persistence and realtime subscriptions;
-- infinite canvas, neutral object types, sections, stacks, and semantic connectors;
-- WebMCP workspace reads, searches, mutations, comments, team runs, status, retry, stop, and undo;
-- local Guild Runner using Codex CLI and Claude Code Sonnet;
-- Role Profiles, Teams, Jobs, dependencies, Work Claims, Reserved Regions, and fencing;
-- progress, activity, comments, attribution, Change Sets, and conflict-aware undo;
-- light/dark theme-safe semantic palettes.
-
-## Missing P0 capabilities
-
-### 1. Contextual canvas interaction
-
-Replace the current Inspector-first experience.
-
-Required behavior:
-
-- single click selects without opening a large panel;
-- double-click edits text or opens the primary editor for the selected artifact;
-- `C` begins a comment;
-- `Enter` submits and `Escape` cancels;
-- a small toolbar exposes `Comment`, `Ask agent`, `Approve`, `Color`, and `More`;
-- `More` opens an advanced details drawer containing metadata, ownership, relationships, revisions,
-  and destructive actions;
-- the advanced drawer never opens automatically for basic text, design review, or commenting.
-
-Acceptance:
-
-- common editing, assignment, commenting, and approval paths never require the advanced drawer;
-- the canvas stays pannable while the contextual toolbar is present;
-- keyboard and pointer paths produce the same persisted commands.
-
-### 2. Design preview publishing module
-
-Create a deep module with one small publishing interface shared by WebMCP and assignment-scoped MCP
-adapters.
-
-Primary operation:
-
-```text
-publish_design_preview
-```
-
-Input concepts:
-
-- stable design-set and screen keys;
-- hosted deployment URL and immutable deployment identity;
-- route per screen;
-- requested desktop/mobile viewports;
-- stage: wireframe or visual;
-- prior revision;
-- addressed comment IDs.
-
-The module hides:
-
-- authorization and assignment checks;
-- screenshot capture;
-- asset storage;
-- object creation and placement;
-- immutable revision creation;
-- semantic relationships;
-- Change Set attribution;
-- realtime publication;
-- idempotency and stale-revision rejection.
-
-Do not accept arbitrary HTML for injection into the Guild page.
-
-### 3. Page-by-page design gallery
-
-Add a design-set view containing versioned screen cards.
-
-Each card shows:
-
-- screenshot thumbnail;
-- screen name and route;
-- desktop/mobile availability;
-- owner;
-- review state;
-- immutable revision;
-- unresolved-comment count;
-- Updated indicator.
-
-Double-clicking a card opens the focused preview. A screen card remains a neutral canvas artifact
-with design-specific semantics rather than a disconnected data model.
-
-### 4. Focused interactive preview
-
-The preview occupies most of the viewport and provides:
-
-- sandboxed hosted-site frame;
-- previous/next screen navigation;
-- route and revision identity;
-- desktop/mobile viewport switch;
-- `Interact | Comment` segmented control;
-- Compare, Request changes, Approve, and Open externally actions;
-- a clear fallback screenshot when iframe embedding is unavailable.
-
-Interact mode sends input to the hosted application. Comment mode places a review overlay above the
-application.
-
-### 5. Guild Preview Bridge
-
-Add an optional bridge script to Guild-controlled preview deployments. It communicates with the
-parent through a validated `postMessage` protocol.
-
-The bridge reports:
-
-- route changes;
-- scroll position;
-- viewport dimensions;
-- preview revision;
-- stable element IDs when present.
-
-The universal fallback is geometric annotation. The enhanced bridge adds semantic element identity.
-Origins, message shape, and preview token must be validated.
-
-### 6. Codex-style visual annotation
-
-Support both point pins and dragged regions.
-
-The stored selection reference includes:
-
-- screen object and immutable design revision;
-- route;
-- viewport name and dimensions;
-- normalized point or rectangle;
-- scroll position;
-- screenshot crop asset;
-- optional stable element ID.
-
-After selection, show one anchored textbox with an optional role mention and a submit action. Posting
-the comment must route exactly once using the existing comment ownership rules.
-
-The selected region remains visible with author, status, Worker owner, and thread count. Old pins
-remain attached to their original revision.
-
-### 7. Design revisions and comparison
-
-Publishing never overwrites an accepted visual state. It creates an immutable revision.
-
-Required UI:
-
-- Version 1 / Version 2 selector;
-- side-by-side comparison;
-- before/after slider;
-- changed-screen indicator;
-- addressed and unresolved comments;
-- previous-version restoration through a normal attributable command.
-
-Comments that cannot be mapped to a later revision remain valid on the original revision and are
-marked detached rather than silently moved.
-
-### 8. Simple human approval
-
-The focused preview exposes only:
-
-```text
-Request changes    Approve
-```
-
-Request changes starts the same visual-comment interaction. Approve records the authenticated human,
-timestamp, and exact immutable revision. A model may mark work ready for review but cannot approve
-its own output.
-
-### 9. Compact orchestration dock
-
-Replace agent-oriented form density with a compact, collapsible dock.
-
-Show:
-
-- engine and Role Profile;
-- logical workstream;
-- current objective;
-- source and status provenance;
-- latest model-authored progress summary;
-- last report time and stale state for external workstreams;
-- target section or artifact;
-- dependency count;
-- produced-artifact count;
-- elapsed time and actionable error;
-- stop or retry for authoritative Runner Jobs, or Ask agent for external workstreams.
-
-Do not show chain-of-thought, internal prompts, raw event streams, token usage, or agent debates.
-
-Selecting a workstream highlights its canvas target and artifacts. The collapsed state shows only
-active, blocked, or review-needed counts.
-
-### 10. Guild agent protocol and skills
-
-Create a model-independent Guild Agent Protocol and adapters for Codex and Claude.
-
-The protocol must define:
-
-- context-reading order;
-- progress phases and update frequency;
-- stable logical artifact keys;
-- placement and ownership rules;
-- design-preview publication;
-- relationship creation;
-- visual-comment handling;
-- blocker reporting;
-- final result summaries with artifact IDs;
-- claims agents must never make without evidence.
-
-Package the behavior as a `guild-canvas-worker` skill. A Codex plugin may bundle the skill and MCP
-configuration for manual sessions, while Runner-launched Workers receive the same protocol through
-their assignment prompt.
-
-Model-authored progress is descriptive. Guild and the Runner remain authoritative for Runner-backed
-Job state. External Codex/Claude sessions report their own state through WebMCP, and the UI labels
-it Reported or Stale rather than presenting it as observed process state.
-
-### 11. Asset ingestion and screenshot storage
-
-Add controlled import and storage for:
-
-- preview screenshots;
-- comment-region crops;
-- image designs;
-- logos and supporting design assets;
-- thumbnails.
-
-Persist content type, dimensions, alt text, provenance, immutable revision reference, and checksum.
-Enforce type, size, URL, authorization, and workspace ownership limits. Existing URL-only image nodes
-are insufficient for durable review artifacts.
-
-### 12. External workstream and implementation reporting
-
-Cinema implementation happens outside Guild. Codex and Claude use browser WebMCP to make the work
-visible without granting Guild source-tree or deployment access.
-
-Required capabilities:
-
-- stable logical workstreams for architecture, backend, frontend, design, and verification;
-- authenticated, idempotent, monotonically sequenced phase updates;
-- Reported provenance, Guild receipt time, and derived Stale state;
-- targeted feedback that an active external Controller can retrieve and acknowledge;
-- bounded changed-file, test, commit/PR, and hosted-preview metadata;
-- safe public HTTPS link validation and clear Link-verified/Unavailable states;
-- links from implementation evidence to requirements, designs, architecture, tasks, and comments.
-
-Guild must not add repository bindings, worktrees, file/shell tools, Git operations, merge flows,
-Cinema deployment, or Cinema credentials. The current Runner remains canvas-only.
-
-### 13. Implementation evidence view
-
-Link approved screens to real engineering evidence:
-
-```text
-Requirement → Screen → Component → Endpoint → Data → Test → Preview
-```
-
-The focused evidence view shows changed files, bounded diff summary, reported test result,
-commit/PR link, hosted preview, responsible Controller, and related comments. Every item is labeled
-Reported, Link verified, or Unavailable. Link reachability must not be shown as proof that Guild ran
-a test or inspected a commit.
-
-### 14. Presentation mode
-
-Add a demo-safe mode that:
-
-- hides advanced editing chrome;
-- saves named camera positions;
-- moves smoothly between project sections;
-- follows an active Worker or newly published artifact when requested;
-- preserves a clear Escape path back to normal mode;
-- never fakes work or uses prototype-only state.
-
-### 15. Deterministic Cinema reset and preflight
-
-Provide a safe reset for the dedicated demo workspace and a preflight report covering:
-
-- signed-in presenter;
-- WebMCP availability;
-- Runner authorization, online state, and capacity;
-- local Codex and Claude Code authentication;
-- Claude Sonnet selection;
-- external Codex/Claude Controller reporting readiness;
-- real hosted Cinema preview reachability;
-- preview origin and bridge readiness;
-- screenshot and asset storage readiness.
-
-Reset must target only the dedicated demo workspace and recover from a known checkpoint.
-
-## Simplified navigation model
-
-Guild should have four primary surfaces, not a collection of always-open panels.
+# Guild × Cinemaverse demo features and UX contract
+
+## Purpose and current state
+
+This document defines the product capabilities and navigation that the final Cinemaverse demo uses.
+The detailed implementation history and evidence live in `IMPLEMENTATION_STATUS.md`; the timed
+recording and narration live in `DEMO_VIDEO_SCRIPT.md`.
+
+The prior version described capabilities as missing and used an obsolete movie-discovery concept.
+Guild's control-plane capabilities are now implemented and production-tested. The remaining product
+work is the separate Cinemaverse vertical slice and its hosted design revisions.
+
+## Product boundary
+
+- **Guild** is the visual control plane for AI work.
+- **Cinemaverse** is a separate screenplay-to-location research application.
+- Guild displays workstreams, canvas artifacts, designs, comments, approvals, and bounded evidence.
+- Cinemaverse owns screenplay ingestion, web research, its domain canvas, and its application code.
+- Guild Runner Workers are canvas-only and do not edit or deploy the Cinemaverse repository.
+- External Codex and Claude Code sessions perform authorized Cinemaverse source work. A browser
+  Controller reports it into Guild with explicit provenance.
+
+## Demo-facing Guild capabilities
+
+The demo depends on these implemented Guild features:
+
+1. WorkOS-authenticated workspaces and membership checks.
+2. Realtime infinite canvas with pan, trackpad navigation, zoom, minimap, sections, and semantic
+   connectors.
+3. Compact selection actions and double-click reading/editing without opening the large Inspector.
+4. Detailed rich Markdown artifacts with expandable reading views.
+5. Role Profiles, saved Teams, Jobs, dependencies, claims, reservations, fencing, progress, and
+   attribution.
+6. A paired local Runner using authenticated Codex CLI and Claude Code Sonnet clients.
+7. Twenty-four browser WebMCP Controller tools and seven assignment-scoped Worker tools.
+8. Immutable hosted design publication, screenshot capture, page-by-page galleries, and Focus mode.
+9. Interactive hosted previews with Interact and Comment modes.
+10. Point and region visual feedback bound to route, viewport, scroll state, and design revision.
+11. Feedback delivery, acknowledgement, immutable revision comparison, and human approval.
+12. External workstreams with Reported/Stale provenance and bounded implementation evidence.
+13. Activity, Change Sets, stop/retry, and conflict-aware undo.
+14. Presentation views, safe demo reset, preflight, and theme-safe semantic palettes.
+
+These capabilities should be reused. Demo preparation should change Guild code only when rehearsal
+finds a reproducible defect in this path.
+
+## Final Guild navigation model
+
+Guild has four primary surfaces.
 
 ### Canvas
 
-The default project surface. Users pan, zoom, select, connect, and see all project artifacts.
+The default project surface. It holds the Cinemaverse PRD, agent workstreams, requirements,
+architecture, evidence, designs, decisions, and implementation links.
 
 ### Focus
 
-Opened by double-clicking a rich artifact. Used for interactive design previews, version comparison,
-implementation-evidence review, and other content that needs most of the viewport.
+Opened by double-clicking a rich artifact. It is used for detailed Markdown, hosted screen previews,
+revision comparison, visual feedback, and implementation evidence.
 
 ### Agent dock
 
-A compact, collapsible view of active, blocked, and review-ready workstreams. It is for navigation and
-control, not conversation.
+A compact view of active, blocked, stale, and review-ready workstreams. It shows responsibility and
+progress, not conversation or chain-of-thought.
 
 ### Advanced details
 
-An explicitly opened drawer for metadata, ownership, relationships, revisions, and destructive
-actions. It is never the default editing experience.
+An explicitly opened drawer for ownership, relationships, revisions, metadata, and destructive
+actions. It never opens automatically during reading, commenting, or design review.
 
-Conceptual layout:
+## Interaction contract
 
-```text
-┌ Workspace · Mode · Undo/Zoom · Active Workers · Runner ┐
-├───────┬───────────────────────────────────────┬─────────┤
-│ Tools │                                       │ Agents  │
-│       │              Canvas                   │ compact │
-│       │                                       │ dock    │
-├───────┴───────────────────────────────────────┴─────────┤
-│ Selection: Comment · Ask agent · Approve · Color · More│
-└─────────────────────────────────────────────────────────┘
-```
+- Single click selects.
+- Double-click edits simple text or opens Focus for a rich artifact.
+- Space plus drag pans; trackpad scroll pans; pinch zooms.
+- `C` starts a comment; `Enter` submits; `Escape` cancels or leaves Focus.
+- A compact toolbar exposes Comment, Ask agent, Approve, Color, and More.
+- Selecting a workstream highlights its target and produced artifacts.
+- Newly created artifacts appear without stealing focus unless Follow is enabled.
+- New content uses server-guided, collision-free placement inside the correct section.
+- Every material write has attribution, revision state, and a receipt.
+- Color is semantic and never the sole status signal.
 
-## Interaction rules
+## Cinemaverse canvas information architecture inside Guild
 
-- Single click selects; it does not change navigation context unexpectedly.
-- Double-click performs the object's primary action: edit simple text or focus a rich artifact.
-- Space plus pointer drag temporarily pans; trackpad scroll pans and pinch zooms.
-- `C` starts a comment, `Enter` submits, `Escape` cancels or leaves Focus.
-- Newly created artifacts appear without stealing focus unless Follow Worker is enabled.
-- Badges use text and shape as well as color.
-- A user never edits internal IDs in the primary experience.
-- Empty states explain the next useful action in one sentence.
-- Destructive actions remain behind More and include their exact target.
-
-## Canvas information architecture for Cinema
-
-Use a readable left-to-right project story:
+The Guild workspace is arranged for the build, not for Cinemaverse end-user research.
 
 ```text
-Product intent
-    ↓
-Journeys and flows
-    ↓
-Wireframes
-    ↓
-Visual designs
-    ↓
-Architecture and contracts
-    ↓
-Implementation
-    ↓
-Tests and deployment evidence
+Product brief and PRD
+        |
+        +--> Product & Design — Claude Sonnet
+        |       user journey → wireframes → hosted V1 → feedback → hosted V2 → approval
+        |
+        +--> Agentic Architecture — Codex
+        |       ingestion → scene decomposition → parallel research → synthesis → human decision
+        |
+        +--> Search & Evidence — Codex
+        |       sources → claims → freshness → contradictions → evaluations
+        |
+        +--> Backend & Data — Codex
+        |       project graph → research jobs → APIs → persistence → recovery
+        |
+        +--> Canvas & Frontend — Codex
+        |       domain canvas → selection context → dossiers → comparisons → export
+        |
+        +--> QA & Security — Codex
+                privacy → prompt injection → citation checks → E2E → deployment evidence
 ```
 
-Workers may operate in parallel even though the visual story reads linearly. Cross-links express
-dependencies without requiring agent conversation.
+Cards have short titles and detailed bodies. Semantic edges connect requirements to screens,
+architecture, implementation tasks, checks, and preview evidence.
 
-## Delivery sequence
+## Cinemaverse screen set shown in Guild
 
-1. Contextual editing and simplified navigation.
-2. Preview publishing module, screenshots, and screen gallery.
-3. Focused interactive preview and Preview Bridge.
-4. Visual annotation and comment routing.
-5. Immutable revisions, comparison, and approval.
-6. Compact orchestration dock and Guild Agent Protocol.
-7. External workstream/evidence reporting, safe links, and hosted Cinema preview navigation.
-8. Presentation mode, Cinema reset, and full end-to-end rehearsal.
+Claude publishes these stable screens:
 
-The sequence keeps each vertical slice testable through its user-facing interface. Do not build all
-schemas first and postpone the visible workflow until the end.
+| Stable key             | Screen               | Required visible behavior                                              |
+| ---------------------- | -------------------- | ---------------------------------------------------------------------- |
+| `project-setup`        | Project Setup        | Screenplay, production constraints, research depth and scope           |
+| `script-review`        | Script Review        | Parsed scenes, extraction warnings, corrections and excluded scenes    |
+| `research-canvas`      | Research Canvas      | Scenes, research branches, candidates, evidence and selection-aware AI |
+| `location-dossier`     | Location Dossier     | Fit, imagery, permits, logistics, risks, confidence and citations      |
+| `candidate-comparison` | Candidate Comparison | Weighted criteria, hard blockers, assumptions and decisions            |
+| `export-brief`         | Export Brief         | Scene matrix, dossiers, checklists, risks, sources and freshness       |
 
-## Final acceptance
+Version 1 is a real hosted preview. The user reviews it. Version 2 addresses only captured feedback
+plus required coherence/accessibility changes. Only the human approves a revision.
 
-The missing work is complete only when a signed-in production user can:
+For a clear before/after demo, Version 1 is intentionally neutral and usability-first. The prepared
+human comment asks for restrained liquid glass: translucent surfaces, subtle blur, crisp borders,
+almost no gradients, and preserved readability across all six screens.
 
-1. use WebMCP to initiate the Cinema project;
-2. observe truthful Codex and Claude Sonnet workstreams without agent-chat noise;
-3. review page-by-page wireframes;
-4. open an interactive hosted visual design;
-5. select a point or region and submit a contextual comment;
-6. observe exactly one correctly routed Claude feedback request or Guild Job;
-7. leave the design, inspect Codex artifacts, and return to an updated revision;
-8. compare versions and approve the intended screen set;
-9. inspect externally reported changed-file, test, commit, and preview evidence with explicit
-   provenance, then open the real hosted Cinema preview;
-10. query the resulting state through WebMCP and perform conflict-aware undo;
-11. repeat the complete demo from reset twice without manual database repair.
+## Human design-review UX
 
-Acceptance also requires that Guild contains no Cinema repository editor, worktree, merge, or
-deployment capability.
+1. Open one hosted screen in Focus.
+2. Use Interact mode to verify real behavior.
+3. Switch to Comment.
+4. Click a point or drag a region.
+5. Enter one exact requested change.
+6. Submit once and preserve the anchor on the immutable revision.
+7. Show owner and delivery state.
+8. Leave while the external Claude Sonnet workstream updates.
+9. Compare Version 1 and Version 2.
+10. Approve, request another change, or leave unresolved.
+
+The orchestrator does not invent the user's aesthetic feedback. It forwards the prepared anchored
+comment plus any optional user additions using the packet in `CINEMAVERSE_AGENT_HANDOFF.md`.
+
+## Codex artifact-review UX
+
+The demo also steers one Codex-owned architecture artifact. The human requests independently
+cancellable scene-research branches, preservation of completed sibling evidence, and a visible
+failure state. Guild routes the comment to Agentic Systems Architect. The later architecture graph
+and evidence view show the addressed change.
+
+One Codex comment is enough. It proves that Guild controls technical work as well as design without
+turning the video into a repetitive review montage.
+
+## External source-work UX
+
+The Agent dock combines Runner Jobs and external workstreams but always exposes provenance.
+
+For external Codex or Claude work, show:
+
+- engine and logical responsibility;
+- current reported phase and last update;
+- target section and related artifacts;
+- fresh or stale state;
+- bounded changed files and check outcomes;
+- branch, commit, PR, and hosted preview when they really exist; and
+- Reported, Link verified, or Unavailable evidence labels.
+
+Guild never represents link reachability as proof that it ran a test or inspected a commit.
+
+## Cinemaverse vertical slice required outside Guild
+
+Before recording, the separate Cinemaverse application must provide:
+
+- deterministic loading of the original four-scene screenplay fixture;
+- screenplay, sequence, scene, and requirement artifacts;
+- meaningful parallel research states;
+- candidate locations, sources, permits, logistics, risks, and confidence;
+- a pannable, zoomable, searchable domain canvas;
+- readable expandable artifacts;
+- single- and multi-selection context;
+- one bounded cited AI answer;
+- a location dossier and candidate comparison;
+- a credible export state;
+- persistence across refresh;
+- automated tests and a production build; and
+- a reachable hosted preview.
+
+The vertical slice may use accepted deterministic research data for recording reliability, but it
+must clearly distinguish fixture data from a live web-search result. Run one small follow-up action
+live.
+
+## Remaining demo preparation
+
+1. Initialize and implement the separate Cinemaverse repository.
+2. Configure the six stable Guild workstreams and clean baseline.
+3. Have Claude Sonnet publish hosted design Version 1.
+4. Pause for the user's visual review.
+5. Forward exact feedback to Claude and publish Version 2.
+6. Pause for human approval.
+7. Let Codex integrate the approved design and finish the vertical slice.
+8. Report bounded implementation evidence into Guild.
+9. Verify both applications and the complete route twice.
+10. Record according to `DEMO_VIDEO_SCRIPT.md`.
+
+## Acceptance
+
+The demo UX is accepted only when:
+
+- one team instruction creates the six intended logical responsibilities;
+- real Codex and Claude Sonnet activity becomes visible without exposing private reasoning;
+- detailed connected artifacts appear in correct canvas regions;
+- the hosted Cinemaverse design is interactive inside Guild;
+- one region comment routes exactly once with immutable revision context;
+- Claude Version 2 addresses the user's feedback;
+- the human can compare and approve the exact revision;
+- real implementation evidence appears with truthful provenance;
+- the separate Cinemaverse vertical slice works on camera;
+- trackpad, selection, reading, Focus, comments, approval, and undo remain easy to navigate; and
+- the route passes twice with no secret, personal information, fake progress, or hidden repair.
