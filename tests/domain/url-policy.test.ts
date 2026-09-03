@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { assertPublicHttpUrl } from '@guild/protocol';
+import { assertPublicHttpUrl, assertPublicIpAddress } from '@guild/protocol';
 
 describe('URL policy', () => {
   it('accepts public HTTPS and rejects private, credentialed, and unsafe URLs', () => {
@@ -16,5 +16,24 @@ describe('URL policy', () => {
     expect(assertPublicHttpUrl('http://127.0.0.1:4173/', { allowLoopback: true }).port).toBe(
       '4173',
     );
+  });
+
+  it('rejects private resolved IPv4, IPv6, and IPv4-mapped addresses', () => {
+    expect(assertPublicIpAddress('93.184.216.34')).toBe('93.184.216.34');
+    expect(assertPublicIpAddress('2606:4700:4700::1111')).toBe('2606:4700:4700::1111');
+    for (const address of [
+      '10.0.0.1',
+      '127.0.0.1',
+      '169.254.169.254',
+      '192.168.1.2',
+      '::',
+      '::1',
+      'fc00::1',
+      'fd00::1',
+      'fe80::1',
+      '::ffff:127.0.0.1',
+    ]) {
+      expect(() => assertPublicIpAddress(address)).toThrow('unsafe_url');
+    }
   });
 });

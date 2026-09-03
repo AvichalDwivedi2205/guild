@@ -63,7 +63,7 @@ export {
   type ImageHeader,
   type SniffableImageMime,
 } from './image-header.js';
-export { assertPublicHttpUrl, type UrlPolicyOptions } from './url-policy.js';
+export { assertPublicHttpUrl, assertPublicIpAddress, type UrlPolicyOptions } from './url-policy.js';
 export {
   evidenceKindSchema,
   evidenceKinds,

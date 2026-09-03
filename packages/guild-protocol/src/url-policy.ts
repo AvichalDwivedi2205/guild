@@ -12,6 +12,7 @@ const BLOCKED_HOSTS = new Set([
 function isIpv4(hostname: string): number[] | null {
   const parts = hostname.split('.');
   if (parts.length !== 4) return null;
+  if (parts.some((part) => !/^\d{1,3}$/u.test(part))) return null;
   const octets = parts.map((part) => Number.parseInt(part, 10));
   if (octets.some((octet) => !Number.isInteger(octet) || octet < 0 || octet > 255)) return null;
   return octets;
@@ -26,7 +27,12 @@ function isPrivateIpv4(octets: number[]): boolean {
   if (a === 169 && b === 254) return true;
   if (a === 172 && b >= 16 && b <= 31) return true;
   if (a === 192 && b === 168) return true;
+  if (a === 192 && b === 0) return true;
   if (a === 100 && b >= 64 && b <= 127) return true;
+  if (a === 198 && (b === 18 || b === 19)) return true;
+  if (a === 198 && b === 51) return true;
+  if (a === 203 && b === 0) return true;
+  if (a >= 224) return true;
   return false;
 }
 
@@ -39,6 +45,38 @@ function isLoopbackHost(hostname: string): boolean {
 
 function isIpv6Literal(hostname: string): boolean {
   return hostname.includes(':') || hostname.startsWith('[');
+}
+
+function isPrivateIpv6(address: string): boolean {
+  const lower = address.replace(/^\[|\]$/gu, '').toLowerCase();
+  if (!lower || lower.includes('%')) return true;
+  if (lower === '::' || lower === '::1') return true;
+  if (/^f[cd]/u.test(lower)) return true;
+  if (/^fe[89ab]/u.test(lower)) return true;
+  if (lower.startsWith('ff')) return true;
+  const mapped = lower.match(/^(?:::ffff:)(\d{1,3}(?:\.\d{1,3}){3})$/u)?.[1];
+  if (mapped) {
+    const octets = isIpv4(mapped);
+    return !octets || isPrivateIpv4(octets);
+  }
+  return false;
+}
+
+export function assertPublicIpAddress(
+  value: string,
+  options: Pick<UrlPolicyOptions, 'allowLoopback'> = {},
+): string {
+  const address = value.replace(/^\[|\]$/gu, '').toLowerCase();
+  const ipv4 = isIpv4(address);
+  if (ipv4) {
+    const loopback = ipv4[0] === 127;
+    if (isPrivateIpv4(ipv4) && !(loopback && options.allowLoopback)) {
+      throw new Error('unsafe_url');
+    }
+    return value;
+  }
+  if (!isIpv6Literal(address) || isPrivateIpv6(address)) throw new Error('unsafe_url');
+  return value;
 }
 
 function defaultPort(protocol: string): number {
@@ -70,15 +108,7 @@ export function assertPublicHttpUrl(value: string, options: UrlPolicyOptions = {
     throw new Error('unsafe_url');
   }
   if (isIpv6Literal(hostname) && !loopback) {
-    const lowered = hostname.toLowerCase();
-    if (
-      lowered === '::' ||
-      lowered.startsWith('fc') ||
-      lowered.startsWith('fd') ||
-      lowered.startsWith('fe80')
-    ) {
-      throw new Error('unsafe_url');
-    }
+    assertPublicIpAddress(hostname, options);
   }
 
   const port = parsed.port ? Number.parseInt(parsed.port, 10) : defaultPort(parsed.protocol);
