@@ -26,6 +26,7 @@ export function VisualOverlay({
   screenKey,
   route,
   viewportKey,
+  viewport,
 }: {
   workspaceId: Id<'workspaces'>;
   targetObjectId: Id<'canvasObjects'>;
@@ -33,6 +34,13 @@ export function VisualOverlay({
   screenKey: string;
   route: string;
   viewportKey: 'desktop' | 'mobile';
+  viewport: {
+    width: number;
+    height: number;
+    scrollX: number;
+    scrollY: number;
+    stableElementId: string | undefined;
+  };
 }) {
   const createVisualComment = useMutation(api.visualFeedback.createVisualComment);
   const anchors = useQuery(api.visualFeedback.listVisualAnchors, {
@@ -45,6 +53,7 @@ export function VisualOverlay({
     point?: { x: number; y: number };
     rectangle?: { x: number; y: number; width: number; height: number };
     client: { x: number; y: number };
+    bounds: { width: number; height: number };
   } | null>(null);
   const [body, setBody] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -64,6 +73,7 @@ export function VisualOverlay({
         ? { point: normalizePoint(drag.start, viewport) }
         : { rectangle: normalizeRectangle(drag.start, end, viewport) }),
       client: { x: event.clientX - bounds.left, y: event.clientY - bounds.top },
+      bounds: { width: bounds.width, height: bounds.height },
     });
     setDrag(null);
   };
@@ -83,10 +93,11 @@ export function VisualOverlay({
           screenKey,
           route,
           viewportKey,
-          viewportWidth: 1440,
-          viewportHeight: 900,
-          scrollX: 0,
-          scrollY: 0,
+          viewportWidth: viewport.width,
+          viewportHeight: viewport.height,
+          scrollX: viewport.scrollX,
+          scrollY: viewport.scrollY,
+          ...(viewport.stableElementId ? { stableElementId: viewport.stableElementId } : {}),
           kind: draft.kind,
           ...(draft.point ? { point: draft.point } : {}),
           ...(draft.rectangle ? { rectangle: draft.rectangle } : {}),
@@ -105,8 +116,8 @@ export function VisualOverlay({
         y: draft.client.y,
         width: 240,
         height: 140,
-        viewportWidth: 1440,
-        viewportHeight: 900,
+        viewportWidth: draft.bounds.width,
+        viewportHeight: draft.bounds.height,
       })
     : { flipX: false, flipY: false };
 
@@ -116,6 +127,7 @@ export function VisualOverlay({
       style={{ position: 'absolute', inset: 0 }}
       onPointerDown={(event) => {
         const bounds = event.currentTarget.getBoundingClientRect();
+        event.currentTarget.setPointerCapture(event.pointerId);
         setDraft(null);
         setDrag({
           start: { x: event.clientX - bounds.left, y: event.clientY - bounds.top },
@@ -131,6 +143,7 @@ export function VisualOverlay({
         });
       }}
       onPointerUp={finish}
+      onPointerCancel={() => setDrag(null)}
     >
       {(anchors ?? []).map((anchor) => (
         <span
@@ -162,10 +175,28 @@ export function VisualOverlay({
             event.preventDefault();
             void submit();
           }}
+          onPointerDown={(event) => event.stopPropagation()}
         >
           <label>
             Visual comment
-            <textarea value={body} onChange={(event) => setBody(event.target.value)} required />
+            <textarea
+              autoFocus
+              value={body}
+              onChange={(event) => setBody(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') {
+                  event.preventDefault();
+                  setDraft(null);
+                  setBody('');
+                  return;
+                }
+                if (event.key === 'Enter' && !event.shiftKey) {
+                  event.preventDefault();
+                  void submit();
+                }
+              }}
+              required
+            />
           </label>
           {error ? <p>{error}</p> : null}
           <button type="submit">Send to owner</button>

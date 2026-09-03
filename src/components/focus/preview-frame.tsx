@@ -33,7 +33,12 @@ function PreviewFrameInner({
   onBridgeMessage?: (message: PreviewBridgeMessage) => void;
 }) {
   const frameRef = useRef<HTMLIFrameElement>(null);
+  const onBridgeMessageRef = useRef(onBridgeMessage);
   const [state, setState] = useState<FrameState>('loading');
+
+  useEffect(() => {
+    onBridgeMessageRef.current = onBridgeMessage;
+  }, [onBridgeMessage]);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -49,14 +54,14 @@ function PreviewFrameInner({
       });
       if (!parsed) return;
       setState('ready');
-      onBridgeMessage?.(parsed);
+      onBridgeMessageRef.current?.(parsed);
     };
     window.addEventListener('message', onMessage);
     return () => {
       window.clearTimeout(timeout);
       window.removeEventListener('message', onMessage);
     };
-  }, [designRevisionId, onBridgeMessage, origin, screenKey, sessionNonce]);
+  }, [designRevisionId, origin, screenKey, sessionNonce]);
 
   const showFallback =
     mode === 'comment' ||

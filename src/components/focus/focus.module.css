@@ -59,15 +59,40 @@
   box-shadow: var(--shadow-1);
 }
 
+.reviewComposer {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.reviewComposer label {
+  display: grid;
+  gap: 4px;
+}
+
+.reviewComposer textarea {
+  min-width: 260px;
+  min-height: 56px;
+}
+
 .compare {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto 1fr;
   min-height: 0;
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow: auto;
+  background: var(--paper-strong, #fffdf7);
+}
+
+.compare > header {
+  grid-column: 1 / -1;
 }
 
 .compare[data-mode='slider'] {
   grid-template-columns: 1fr;
-  position: relative;
 }
 
 .evidenceChain {
