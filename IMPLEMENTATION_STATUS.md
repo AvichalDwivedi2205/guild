@@ -12,7 +12,7 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
-## Planning snapshot — 2026-09-04 (replacement recording contract synchronized)
+## Snapshot — 2026-09-04 (replacement-demo loophole audit and evidence Focus)
 
 - Reconciled every demo and handoff document around the final accepted story. The replacement uses
   a brand-new Guild workspace titled `Cinemaverse`, never `Guild Judge Workspace`, a prior
@@ -24,24 +24,53 @@ Status vocabulary:
   responsibilities and one bounded Claude Sonnet responsibility fill those regions with detailed,
   expandable, Cinemaverse-specific artifacts. The Agent dock is only a brief secondary status
   proof, and agent-to-agent dialogue/private reasoning is excluded.
-- The human-control sequence is fixed: create one Codex architecture annotation and one hosted
-  design annotation, review both grouped by owner, add one overall instruction, Send once, show one
-  complete request per owner, then show the addressed architecture and immutable V2 design,
-  compare revisions, and record a new-workspace approval receipt.
+- The human-control sequence is fixed: create one Codex architecture annotation and two hosted
+  design annotations, review all three grouped into one packet per owner, add one overall
+  instruction, Send once, then show the addressed architecture and immutable V2 design, compare
+  revisions, and record a new-workspace approval receipt. The two Claude notes separately cover the
+  visual system and evidence readability.
 - The visible capture must use Chrome signed into `avichaldwivedi2005@gmail.com`, never Harshita's
   profile. A hidden signed-in in-app browser may provide WebMCP control while Chrome receives the
   same realtime state; this two-surface setup must be proven before recording.
 - Existing verified V1/V2 deployments are deterministic checkpoints and may be projected into the
   clean workspace to conserve Claude Pro credits. The script forbids implying that they were
   generated during the edited wait. Claude remains Sonnet-only; Fable is forbidden.
+- The source design audit resolved the real screen key as `setup`, not `project-setup`, and fixed the
+  six canonical routes throughout the handoff. V1 is deployment
+  `dpl_Cuzm3NvPHjUi11Lm3PoTVh6ujVWo`; V2 is `dpl_CuZDhdAMT2iYHRCDQVCagLsz6pfX`. The reserved
+  `cinemaverse-v1.vercel.app` and `cinemaverse-v2.vercel.app` aliases still inherit Vercel
+  Authentication, so recording is blocked until they return direct public 200 responses and pass
+  iframe/capture checks. No protection-bypass secret may enter Guild metadata.
+- Workspace identity, cross-workspace identity, duplicate-agent rows, Runner feedback semantics,
+  truthful six-slot overlap, optional Preview Bridge behavior, source-control provenance, and
+  recording contamination now have explicit failure controls. The new workspace is captured by id
+  at creation; only public design metadata crosses workspaces; the six Runner Jobs are authoritative;
+  and addressed state comes from revised output rather than a fabricated acknowledgement action.
+- Guild's optional Preview Bridge absence no longer places a warning over an otherwise interactive
+  hosted design. Coordinate feedback remains truthfully anchored to immutable revision, screen,
+  route, viewport, scroll, and point or rectangle when no bridge is installed.
+- Implementation Evidence Focus now makes pull requests legible without leaving Guild: kind,
+  repository, summary, branch, commit, changed files, checks, provenance, and link state render on
+  the canvas-native surface. External GitHub navigation remains an explicit secondary action and is
+  excluded from the recorded route.
+- The separate private repository
+  [AvichalDwivedi2205/cinemaverse](https://github.com/AvichalDwivedi2205/cinemaverse) now exists at
+  baseline `a0d2339`. Its initial main branch passed formatting, lint, typecheck, four unit tests,
+  the production build for all six routes, and seven Playwright checks with one documented mobile
+  accessibility skip. This baseline is prior evidence and must not be narrated as live generation.
 - `DEMO_IMPLEMENTATION_PROMPT.md` is now the in-depth new-session recording contract.
   `HANDOFF_PROMPT.md` is its copyable launcher. `DEMO_VIDEO_SCRIPT.md`, `DEMO_FLOW.md`,
   `DEMO_FEATURES_AND_UX_PLAN.md`, `DEMO_IMPLEMENTATION_PLAN.md`,
   `CINEMAVERSE_AGENT_HANDOFF.md`, and `CODEX_HANDOFF.md` agree with that contract.
-- This batch changes documentation only. Product code and deployments are unchanged. The remaining
-  unchecked work is to create the clean workspace, pass the complete route twice, record and inspect
-  the silent master, then assemble the final composite after presenter media exists.
-- Documentation verification passed the repository-wide Prettier check and `git diff --check`.
+- The remaining recording work is to resolve the public immutable V1/V2 origins, create the clean
+  workspace, pass the complete route twice, record and inspect the silent master, then assemble the
+  final composite after presenter media exists.
+- Local verification passed the focused Focus suite (2 files / 3 tests), the full Guild gate
+  (66 application files / 218 tests, formatting, zero-warning lint, strict TypeScript,
+  protocol build/typecheck, and Runner typecheck), 12 Runner files / 42 tests, the Runner build,
+  the Next.js 16.3.4 production build, and the public Playwright suite (8 passed; 46 authenticated
+  cases truthfully skipped without its test session). Pull-request, merge, and production smoke
+  evidence remain pending.
 
 ## Snapshot — 2026-09-04 (canvas-native annotation review and grouped agent dispatch)
 

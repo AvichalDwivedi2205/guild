@@ -37,7 +37,8 @@ contracts above.
 - Guild repository: `/Users/avichaldwivedi/dev/guild`
 - Cinemaverse repository: `/Users/avichaldwivedi/dev/cinemaverse`
 - Guild production: `https://guild-rose-two.vercel.app`
-- Cinemaverse stable preview: `https://cinemaverse-two.vercel.app`
+- Cinemaverse current V2 alias: `https://cinemaverse-two.vercel.app`
+- Cinemaverse source repository: private `AvichalDwivedi2205/cinemaverse`, baseline `a0d2339`
 - Visible recording browser: Chrome signed into `avichaldwivedi2005@gmail.com`
 - WebMCP controller: a supported signed-in browser surface on the same workspace
 - Local engines: authenticated Codex CLI and Claude Code Sonnet; never Fable
@@ -48,9 +49,11 @@ reported into Guild. This distinction stays visible.
 
 ## 4. Workspace strategy
 
-Create one new production workspace named `Cinemaverse`. Resolve its returned identifier and record
-it in an untracked recording manifest. Prove that it is different from every prior workspace,
-especially `Guild Judge Workspace` and the rejected recording workspace.
+Create one new production workspace named `Cinemaverse` through the authenticated UI. Capture its
+identifier from the resulting route and record it in an untracked recording manifest. Prove that it
+is different from every prior workspace, especially `Guild Judge Workspace` and the rejected
+recording workspace. After creation, identify it by id rather than title so duplicate display names
+cannot redirect Controller writes.
 
 Prepare a reset-safe baseline containing only:
 
@@ -95,10 +98,12 @@ Start one Team Run from the exact master instruction in `DEMO_VIDEO_SCRIPT.md`. 
 - Canvas & Frontend Engineer — Codex; and
 - QA, Security & Evaluation Lead — Codex.
 
-Each role owns one section and has the detailed assignment in `CINEMAVERSE_AGENT_HANDOFF.md`.
-Runner capacity, dependencies, and duration must be verified before recording. If capacity is lower
-than six, jobs may queue truthfully; parallel activity must still be visible. Do not manufacture
-simultaneous state.
+Each role owns one section and has the detailed assignment in `CINEMAVERSE_AGENT_HANDOFF.md`. The
+Runner supports up to eight slots. Configure six for the bounded initial Run, keep these six Jobs
+dependency-free, and verify all six reach overlapping active states without exhausting the
+recording machine. The prior production proof used capacity two, so this is an explicit preflight
+change rather than an assumption. If capacity six is unstable, do not record or describe queued
+Jobs as active; reduce task weight, fix the environment, and repeat the gate.
 
 Capture one master canvas recording rather than six competing screen recordings. A 4K source may
 be cropped to individual regions in editing, and short per-region backup clips may be recorded
@@ -110,6 +115,11 @@ The five Codex jobs create real detailed canvas artifacts and semantic edges. Th
 creates the design journey and publishes the verified Version 1 hosted-screen metadata into its
 region. Every write uses stable logical keys, server placement, safe palette tokens, revision
 checks, and receipts.
+
+These six visible teammates are authoritative Runner Jobs. Do not also register six external
+workstreams with the same Role names; that would duplicate the Agent dock and make feedback routing
+ambiguous. Existing Cinemaverse source evidence can be reported through WebMCP against the stable
+workstream keys without registering mirrored workstream rows.
 
 Required visible outputs:
 
@@ -125,17 +135,31 @@ Required visible outputs:
 Cards must meet the two-level content contract. The six regions and agent badges remain legible at
 the full-project camera. The Agent dock is never the only place where work is visible.
 
+When real pull-request evidence exists, report it against the owning stable workstream key with its
+repository label, branch, commit, concise diff summary, changed files, checks, and public PR URL.
+Open it through Guild's canvas-native Evidence Focus during the demo. The readable proof stays in
+Guild; the secondary GitHub link is not clicked during the take.
+
 ## 8. Design checkpoint strategy
 
-The source workspace already contains verified immutable V1 and V2 design metadata. Resolve both
-with signed-in WebMCP and verify every route and capture before using them. In the new workspace:
+The source workspace already contains verified V1 and V2 design records. V1 maps to deployment
+`dpl_Cuzm3NvPHjUi11Lm3PoTVh6ujVWo`; V2 maps to `dpl_CuZDhdAMT2iYHRCDQVCagLsz6pfX`. Their reserved
+aliases are `https://cinemaverse-v1.vercel.app` and `https://cinemaverse-v2.vercel.app`, but both
+currently inherit Vercel Authentication. Before recording, make both aliases publicly embeddable
+without a bypass token. Verify each route returns a direct unauthenticated 200 and can be captured
+by the Runner. The mutable stable alias serves current V2 only and cannot back both revisions.
+
+Resolve both with signed-in WebMCP and verify every route and capture before using them. Copy only
+verified public deployment identity, origin, route, screen key, viewport, and descriptive metadata.
+Never copy source-workspace object, revision, capture, feedback, or approval IDs. Keep the design
+set title neutral across versions. In the new workspace:
 
 1. publish V1 only when the Claude workstream reaches its design-publication phase;
 2. show all six screen cards inside Claude's region;
 3. interact with Research Canvas inside Guild;
 4. collect the real human feedback packet;
 5. route the packet to the same Claude Sonnet identity;
-6. acknowledge the packet;
+6. have the feedback-originated Worker retrieve the complete packet;
 7. publish V2 as a new immutable revision in the new workspace; and
 8. compare and approve the new-workspace V2 revision.
 
@@ -146,40 +170,50 @@ verified version; otherwise do not spend credits regenerating accepted work.
 
 ## 9. Batched human feedback
 
-Create one Codex annotation and one Claude annotation before opening review.
+Create one Codex annotation and two Claude annotations before opening review.
 
 Codex architecture note:
 
 > Make every scene research branch independently cancellable, preserve completed evidence when a
 > sibling branch fails, and show the failed or blocked state on the canvas.
 
-Claude design note:
+Claude visual-system note:
 
 > Move this toward a restrained liquid-glass system: translucent surfaces, subtle blur, crisp
-> borders, and almost no gradients. Apply it consistently across all six screens while keeping
-> text, confidence, source freshness, and unresolved risks highly readable.
+> borders, and almost no gradients. Apply it consistently across all six screens.
+
+Claude evidence-readability note:
+
+> Increase contrast and hierarchy here. Confidence, citation provenance, retrieval date, source
+> freshness, and unresolved risk must remain readable at presentation zoom and must never rely on
+> color alone.
 
 Optional overall instruction:
 
 > Keep the final result easy to scan at presentation zoom. Preserve exact source provenance,
 > explicit failure states, and human-owned decisions.
 
-Open `Review & send`, verify the exact anchors and owner grouping, then press Send once. Confirm
-that Guild creates no more than one request for each owner. Adding drafts alone must not start an
-agent.
+Open `Review & send`, verify the exact three anchors and owner grouping, then press Send once.
+Confirm that the two design notes remain in one Claude packet and Guild creates no more than one
+request for each owner. Adding drafts alone must not start an agent.
 
 ## 10. Update and approval proof
 
 After dispatch:
 
-- the Codex architecture job reads the complete feedback batch, acknowledges it, revises the same
+- the Codex architecture job retrieves the complete feedback batch, revises the same
   stable artifact, adds the cancellation/failure path, and marks the note addressed;
-- the Claude workstream reads the complete design packet, acknowledges it, publishes immutable V2,
+- the Claude Job retrieves the complete design packet, publishes immutable V2,
   and identifies addressed feedback; and
 - the human compares V1/V2 and approves V2 through Guild's authenticated decision UI.
 
 Approval is never inferred from a comment, an agent message, or a successful capture. The exact
 new-workspace approval receipt must exist.
+
+When Cinemaverse does not expose Guild's optional Preview Bridge, Guild keeps the hosted site
+interactive without displaying an error. Design feedback is then anchored to immutable revision,
+screen key, route, viewport, scroll offset, and normalized point or rectangle. The recording must
+not claim stable DOM-element tracking.
 
 ## 11. Product proof inside Guild
 
@@ -195,7 +229,25 @@ Keep Guild chrome and Focus controls visible. Exercise the embedded Cinemaverse 
 Exit Focus back to Guild's full-project camera. The video ends on the six regions, semantic graph,
 human approval, activity, and reversible history—not on Cinemaverse alone.
 
-## 12. Verification and rehearsals
+## 12. Failure-mode audit
+
+| Risk                             | Required control                                                                                                                           |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Duplicate workspace titles       | Capture the new id from the creation route and use only that id afterward.                                                                 |
+| Cross-workspace identity leakage | Copy public deployment metadata only; create fresh revisions, captures, feedback, and approval.                                            |
+| Mutable or protected previews    | Use distinct public version-pinned origins; reject auth redirects and the shared stable alias for comparison.                              |
+| Duplicate agent rows             | Use the six Runner Jobs as authoritative; do not mirror them as external workstreams.                                                      |
+| Ambiguous feedback routing       | Review one Codex packet and one Claude packet containing both design notes before Send.                                                    |
+| False acknowledgement            | Show Worker retrieval and addressed revisions; do not invent a Runner acknowledgement action.                                              |
+| False parallelism                | Preflight six stable Runner slots and require overlapping active states.                                                                   |
+| Optional preview bridge          | Use revision/route/viewport/coordinate anchors and make no DOM-element claim.                                                              |
+| Misleading source control        | Show verified baseline `a0d2339`; do not imply it was created during the recorded Run.                                                     |
+| PR opens another product         | Keep the PR summary, branch, commit, changed files, checks, and state in Guild Evidence Focus; leave the external GitHub action untouched. |
+| Recording contamination          | Hide personal tabs, disconnect Chrome automation, and keep the Controller in the hidden in-app browser.                                    |
+
+Any failed control blocks recording. Do not hide it with editing.
+
+## 13. Verification and rehearsals
 
 Before recording, verify:
 
@@ -206,16 +258,18 @@ Before recording, verify:
 - Claude engine pinned to Sonnet;
 - six region geometry, readable content, stable colors, glyphs, and state dots;
 - detailed Markdown reader and no unsolicited Inspector;
-- V1/V2 routes, iframe/bridge interaction, desktop and mobile captures;
+- distinct public V1/V2 origins, direct unauthenticated 200 routes, iframe interaction, and fresh
+  desktop/mobile captures;
 - annotation cursor, point/rectangle anchors, draft review, owner grouping, and one-send routing;
-- feedback acknowledgement, addressed state, comparison, approval, activity, and undo;
+- exactly one Codex draft and two Claude drafts, with both Claude notes delivered together;
+- feedback retrieval, addressed state, comparison, approval, activity, and undo;
 - Cinemaverse selection-scoped answer and citations; and
 - zero secrets, personal data, notification banners, or unrelated windows in frame.
 
 Run the complete timed route twice consecutively from the reset-safe baseline. If either pass fails,
 fix or restage the problem and restart the two-pass count.
 
-## 13. Capture and assembly
+## 14. Capture and assembly
 
 1. Record a clean 1920×1080 or 4K, 30 fps, normal-speed silent master.
 2. Follow the eight scenes and saved cameras in `DEMO_VIDEO_SCRIPT.md`.
@@ -229,7 +283,7 @@ fix or restage the problem and restart the two-pass count.
 
 The rejected recording and its support files are not source material.
 
-## 14. Completion
+## 15. Completion
 
 The recording task is complete only when:
 
