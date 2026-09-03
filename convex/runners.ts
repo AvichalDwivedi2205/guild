@@ -91,6 +91,25 @@ async function expireRunnerLeases(ctx: MutationCtx, runner: Doc<'runners'>): Pro
   }
 }
 
+function publicRunner(runner: Doc<'runners'>) {
+  return {
+    _id: runner._id,
+    _creationTime: runner._creationTime,
+    ownerUserId: runner.ownerUserId,
+    name: runner.name,
+    allowedWorkspaceIds: runner.allowedWorkspaceIds,
+    engines: runner.engines,
+    status: runner.status,
+    configuredConcurrency: runner.configuredConcurrency,
+    activeJobCount: runner.activeJobCount,
+    lastHeartbeatAt: runner.lastHeartbeatAt,
+    tokenExpiresAt: runner.tokenExpiresAt,
+    ...(runner.revokedAt !== undefined ? { revokedAt: runner.revokedAt } : {}),
+    createdAt: runner.createdAt,
+    updatedAt: runner.updatedAt,
+  };
+}
+
 async function hasClaimConflict(ctx: MutationCtx, job: Doc<'jobs'>): Promise<boolean> {
   const now = Date.now();
   const claims = await ctx.db
@@ -334,10 +353,11 @@ export const list = query({
   returns: v.array(v.any()),
   handler: async (ctx) => {
     const user = await requireCurrentUser(ctx);
-    return await ctx.db
+    const runners = await ctx.db
       .query('runners')
       .withIndex('by_ownerUserId_and_status', (index) => index.eq('ownerUserId', user._id))
       .take(100);
+    return runners.map(publicRunner);
   },
 });
 
@@ -356,7 +376,9 @@ export const getStatus = query({
         ),
       )
     ).flat();
-    return runners.filter((runner) => runner.allowedWorkspaceIds.includes(args.workspaceId));
+    return runners
+      .filter((runner) => runner.allowedWorkspaceIds.includes(args.workspaceId))
+      .map(publicRunner);
   },
 });
 

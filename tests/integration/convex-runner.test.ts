@@ -72,6 +72,18 @@ async function setupRunnerAssignment() {
 }
 
 describe('Convex Runner integration', () => {
+  it('never exposes Runner token hashes through human-facing queries', async () => {
+    const { asOwner, workspaceId } = await setupRunnerAssignment();
+
+    const ownedRunners = await asOwner.query(api.runners.list, {});
+    const workspaceRunners = await asOwner.query(api.runners.getStatus, { workspaceId });
+
+    expect(ownedRunners).toHaveLength(1);
+    expect(workspaceRunners).toHaveLength(1);
+    expect(ownedRunners[0]).not.toHaveProperty('tokenHash');
+    expect(workspaceRunners[0]).not.toHaveProperty('tokenHash');
+  });
+
   it('pairs, claims, writes, reports, completes, rejects stale authority, and revokes', async () => {
     const { t, asOwner, workspaceId, run, runnerId, runnerToken } = await setupRunnerAssignment();
     const polled = await t.mutation(api.runners.poll, {
