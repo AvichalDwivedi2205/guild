@@ -138,6 +138,35 @@ describe('Convex visual feedback', () => {
       title: 'External visual workspace',
       boardMode: 'diagram',
     });
+    const { designOwnerObjectId, unrelatedObjectId } = await t.run(async (ctx) => {
+      const now = Date.now();
+      const createObject = (title: string) =>
+        ctx.db.insert('canvasObjects', {
+          workspaceId,
+          type: 'annotation' as const,
+          title,
+          x: 0,
+          y: 0,
+          width: 320,
+          height: 200,
+          hierarchyPath: [],
+          locked: false,
+          style: {},
+          semantics: {},
+          geometryRevision: 0,
+          contentRevision: 0,
+          styleRevision: 0,
+          semanticsRevision: 0,
+          hierarchyRevision: 0,
+          isDeleted: false,
+          createdAt: now,
+          updatedAt: now,
+        });
+      return {
+        designOwnerObjectId: await createObject('Claude product design'),
+        unrelatedObjectId: await createObject('Architecture'),
+      };
+    });
     await asOwner.mutation(api.design.publishDesignPreview, {
       workspaceId,
       source: 'ui',
@@ -155,6 +184,7 @@ describe('Convex visual feedback', () => {
           route: '/login',
           order: 0,
           viewports: ['desktop'],
+          relatedObjectIds: [designOwnerObjectId],
         },
       ],
     });
@@ -175,7 +205,7 @@ describe('Convex visual feedback', () => {
         lastSequence: 0,
         lastEventTime: now,
         lastReceivedAt: now,
-        targetObjectId: design!.designSet.gallerySectionId,
+        targetObjectId: unrelatedObjectId,
         createdAt: now,
         updatedAt: now,
       });
@@ -189,7 +219,7 @@ describe('Convex visual feedback', () => {
         lastSequence: 0,
         lastEventTime: now,
         lastReceivedAt: now,
-        targetObjectId: design!.screens[0]!.canvasObjectId,
+        targetObjectId: designOwnerObjectId,
         createdAt: now,
         updatedAt: now,
       });

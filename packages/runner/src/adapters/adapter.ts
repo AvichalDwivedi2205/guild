@@ -35,8 +35,13 @@ export function buildAssignmentPrompt(assignment: Assignment): string {
     '',
     'Use only assignment-scoped Guild MCP tools to read context and change canvas artifacts.',
     'Do not inspect, create, edit, or execute local files. Do not run shell commands or browse web.',
-    'Read workspace context before writing. Keep each apply_canvas_changes call at 25 commands or fewer.',
+    'Call get_workspace_context before writing. If this assignment came from visual feedback, call get_assignment_feedback before changing the design.',
+    'Use search_canvas only when bounded context is missing a required object or relationship.',
+    'Use stable logical keys so retries update the same artifacts. Keep each apply_canvas_changes call at 25 commands or fewer.',
     'When setting node style, use only style.palette from the color guide. Never send fill, color, or hex.',
-    'Report concise progress. Never create Jobs or mention another Worker.',
+    'Write detailed Markdown artifacts and connect them with semantic relationships. Publish hosted designs through publish_design_preview; never send HTML or image bytes.',
+    'Report reading_context, working, writing, and finishing only at meaningful phase changes.',
+    'Trust Guild receipts before claiming a write, publication, addressed comment, or approval exists.',
+    'Never create Jobs, mention another Worker, expose chain-of-thought, or claim completion without visible Guild artifacts.',
   ].join('\n');
 }

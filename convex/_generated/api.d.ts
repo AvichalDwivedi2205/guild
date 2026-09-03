@@ -24,6 +24,7 @@ import type * as lib_auth from '../lib/auth.js';
 import type * as lib_commands from '../lib/commands.js';
 import type * as lib_content from '../lib/content.js';
 import type * as lib_crypto from '../lib/crypto.js';
+import type * as lib_externalFeedback from '../lib/externalFeedback.js';
 import type * as lib_geometry from '../lib/geometry.js';
 import type * as lib_jobLifecycle from '../lib/jobLifecycle.js';
 import type * as lib_policies from '../lib/policies.js';
@@ -67,6 +68,7 @@ declare const fullApi: ApiFromModules<{
   'lib/commands': typeof lib_commands;
   'lib/content': typeof lib_content;
   'lib/crypto': typeof lib_crypto;
+  'lib/externalFeedback': typeof lib_externalFeedback;
   'lib/geometry': typeof lib_geometry;
   'lib/jobLifecycle': typeof lib_jobLifecycle;
   'lib/policies': typeof lib_policies;

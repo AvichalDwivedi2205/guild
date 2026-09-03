@@ -12,6 +12,7 @@ import {
 } from './lib/commands';
 import { hashWorkspaceRequest, recordWorkspaceMutation } from './lib/recorder';
 import { createTeamRun } from './lib/runLifecycle';
+import { routeCommentToExternalWorkstream } from './lib/externalFeedback';
 
 export const createVisualComment = mutation({
   args: {
@@ -166,40 +167,14 @@ async function applyVisualComment(
     }
   }
   if (!jobId) {
-    const streams = await ctx.db
-      .query('externalWorkstreams')
-      .withIndex('by_workspaceId_and_state', (query) =>
-        query.eq('workspaceId', input.workspaceId).eq('state', 'reported'),
-      )
-      .take(20);
-    const targetDistance = new Map<string, number>([[object._id, 0]]);
-    let parentId = object.parentId;
-    for (let distance = 1; parentId && distance <= 8; distance += 1) {
-      const parent = await ctx.db.get(parentId);
-      if (!parent || parent.workspaceId !== input.workspaceId || parent.isDeleted) break;
-      targetDistance.set(parent._id, distance);
-      parentId = parent.parentId;
-    }
-    const candidates = streams
-      .filter((stream) => stream.targetObjectId && targetDistance.has(stream.targetObjectId))
-      .map((stream) => ({ stream, distance: targetDistance.get(stream.targetObjectId!)! }))
-      .sort((left, right) => left.distance - right.distance);
-    const bestDistance = candidates[0]?.distance;
-    const best = candidates.filter((candidate) => candidate.distance === bestDistance);
-    if (best.length > 1) throw new Error('ambiguous_delivery_target');
-    const stream = best[0]?.stream;
-    if (stream) {
-      feedbackId = await ctx.db.insert('externalWorkstreamFeedback', {
-        workspaceId: input.workspaceId,
-        workstreamId: stream._id,
-        sourceCommentId: commentId,
-        visualAnchorId: anchorId,
-        state: 'pending',
-        body: input.body.trim(),
-        ...(input.cropAssetId ? { cropAssetId: input.cropAssetId } : {}),
-        createdAt: now,
-      });
-    }
+    feedbackId = await routeCommentToExternalWorkstream(ctx, {
+      workspaceId: input.workspaceId,
+      commentId,
+      targetObjectId: input.targetObjectId,
+      body: input.body.trim(),
+      visualAnchorId: anchorId,
+      ...(input.cropAssetId ? { cropAssetId: input.cropAssetId } : {}),
+    });
   }
   if (jobId && feedbackId) throw new Error('duplicate_delivery');
 

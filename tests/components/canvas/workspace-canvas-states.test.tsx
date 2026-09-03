@@ -195,6 +195,70 @@ describe('WorkspaceCanvas state surfaces', () => {
     expect(screen.getByRole('status')).toHaveTextContent('WebMCP ready');
   });
 
+  it('separates agent, engine, and execution status identities', () => {
+    const live = data('ready');
+    live.roleProfiles = [
+      {
+        id: 'role-design',
+        name: 'Product Designer',
+        handle: 'design',
+        responsibility: 'Own visual design.',
+        instructions: 'Design the interface.',
+        engine: 'claude',
+        color: '#db2777',
+        ownedSectionId: null,
+        capabilities: [],
+        dependencyRoleProfileIds: [],
+        state: 'working',
+        currentJobId: 'job-design',
+      },
+      {
+        id: 'role-architecture',
+        name: 'System Architect',
+        handle: 'architecture',
+        responsibility: 'Own system design.',
+        instructions: 'Design the system.',
+        engine: 'codex',
+        color: '#2563eb',
+        ownedSectionId: null,
+        capabilities: [],
+        dependencyRoleProfileIds: [],
+        state: 'queued',
+        currentJobId: 'job-architecture',
+      },
+    ];
+    live.jobs = live.roleProfiles.map((role, index) => ({
+      id: role.currentJobId!,
+      runId: 'run-agents',
+      roleProfileId: role.id,
+      roleName: role.name,
+      engine: role.engine,
+      state: index === 0 ? ('running' as const) : ('queued' as const),
+      waitingForRunner: index === 1,
+      targetObjectId: null,
+      dependencyJobIds: [],
+      runnerId: null,
+      progressMessage: index === 0 ? 'Building the screen system.' : null,
+      errorMessage: null,
+      reservation: null,
+    }));
+
+    render(<WorkspaceCanvas data={live} actions={{}} />);
+    fireEvent.click(screen.getByLabelText('Agent dock'));
+
+    expect(screen.getByText('Product Designer')).toBeVisible();
+    expect(screen.getByText('System Architect')).toBeVisible();
+    expect(screen.getByLabelText('Claude Sonnet')).toBeVisible();
+    expect(screen.getByLabelText('Codex')).toBeVisible();
+    expect(screen.getByText('running')).toBeVisible();
+    expect(screen.getByText('waiting for runner')).toBeVisible();
+    expect(screen.getAllByText('Local Runner')).toHaveLength(2);
+
+    const rows = screen.getAllByRole('listitem');
+    expect(rows[0]).toHaveStyle('--agent-color: #db2777');
+    expect(rows[1]).toHaveStyle('--agent-color: #2563eb');
+  });
+
   it('shows a bounded loading surface while live state connects', () => {
     render(<WorkspaceCanvas data={data('loading')} actions={{}} />);
 

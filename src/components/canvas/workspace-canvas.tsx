@@ -39,7 +39,7 @@ import type { CanvasObject } from '@/domain/canvas';
 import { NODE_PALETTE, resolvePaletteId } from '@/domain/palette';
 import { absoluteObjectRectangle } from '@/domain/geometry';
 import { primaryAction } from '@/features/canvas/action-registry';
-import { AgentDock } from '@/components/canvas/agent-dock';
+import { AgentDock, AgentEngineIcon } from '@/components/canvas/agent-dock';
 import { PresentationMode } from '@/components/canvas/presentation-mode';
 import { CanvasCreationToolbar, ToolbarModeIcon } from '@/components/canvas/canvas-toolbar';
 import { canvasEdgeTypes } from '@/components/canvas/connector-edge';
@@ -346,9 +346,14 @@ function CollaboratorPresence({
                   }}
                 >
                   {index === 0 ? (
-                    <span style={{ background: collaborator.color }}>
-                      {collaborator.name}
-                      {collaborator.state === 'editing' ? ' · editing' : ''}
+                    <span style={{ borderColor: collaborator.color }}>
+                      {collaborator.kind === 'worker' && collaborator.engine ? (
+                        <AgentEngineIcon engine={collaborator.engine} />
+                      ) : null}
+                      <span>
+                        {collaborator.name}
+                        {collaborator.state === 'editing' ? ' · editing' : ''}
+                      </span>
                     </span>
                   ) : null}
                 </div>
@@ -364,11 +369,16 @@ function CollaboratorPresence({
                 }}
               >
                 <MousePointer2 size={20} fill="currentColor" />
-                <span style={{ background: collaborator.color }}>
-                  {collaborator.name}
-                  {collaborator.kind === 'worker' && collaborator.engine
-                    ? ` · ${collaborator.engine === 'claude' ? 'Claude Code' : 'Codex CLI'}`
-                    : ''}
+                <span style={{ borderColor: collaborator.color }}>
+                  {collaborator.kind === 'worker' && collaborator.engine ? (
+                    <AgentEngineIcon engine={collaborator.engine} />
+                  ) : null}
+                  <span>
+                    {collaborator.name}
+                    {collaborator.kind === 'worker' && collaborator.engine
+                      ? ` · ${collaborator.engine === 'claude' ? 'Claude Sonnet' : 'Codex'}`
+                      : ''}
+                  </span>
                 </span>
               </div>
             ) : null}

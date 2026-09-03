@@ -15,6 +15,14 @@ describe('canvas node palette styles', () => {
       expect(stylesheet).toContain(`.node[data-palette='${token}']`);
     }
     expect(stylesheet).toContain(":global(html[data-theme='dark']) .workspaceCanvas");
-    expect(stylesheet).toContain('color-mix(in srgb, currentColor 55%, transparent)');
+    expect(stylesheet).toContain('color-mix(in srgb, currentColor 82%, transparent)');
+  });
+
+  it('keeps rounded node copy inside a readable centered safe area', () => {
+    expect(stylesheet).toContain(".node[data-node-type='shape'][data-variant='pill']");
+    expect(stylesheet).toContain(".node[data-node-type='shape'][data-variant='circle']");
+    expect(stylesheet).toContain(".node[data-node-type='mindMapNode'] .nodeTitle");
+    expect(stylesheet).toContain('padding-inline: clamp(40px, 14%, 140px)');
+    expect(stylesheet).toContain('-webkit-line-clamp: 6');
   });
 });

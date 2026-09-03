@@ -1,6 +1,10 @@
 import { v } from 'convex/values';
 
-import { engineLabel, projectRunnerWorkstream } from '../src/domain/workstreams';
+import {
+  engineLabel,
+  projectRunnerWorkstream,
+  workstreamIdentityColor,
+} from '../src/domain/workstreams';
 import { deriveExternalWorkstreamStatus } from '../src/domain/workstream-staleness';
 import { requireWorkspaceMember } from './lib/auth';
 import { limits } from './lib/policies';
@@ -13,7 +17,9 @@ export const list = query({
       id: v.string(),
       source: v.union(v.literal('runner_job'), v.literal('webmcp_controller')),
       roleName: v.string(),
+      engine: v.union(v.literal('codex'), v.literal('claude')),
       engineLabel: v.string(),
+      identityColor: v.string(),
       objective: v.string(),
       status: v.string(),
       provenance: v.union(v.literal('authoritative'), v.literal('reported')),
@@ -56,6 +62,7 @@ export const list = query({
           dependencyJobIds: job.dependencyJobIds,
           artifactCount: artifacts.filter((object) => !object.isDeleted).length,
           updatedAt: job.updatedAt,
+          ...(role?.color ? { identityColor: role.color } : {}),
         }),
       );
     }
@@ -69,7 +76,9 @@ export const list = query({
         id: stream._id,
         source: 'webmcp_controller' as const,
         roleName: stream.roleLabel,
+        engine: stream.engineLabel,
         engineLabel: stream.engineLabel === 'claude' ? 'Claude Sonnet' : 'Codex',
+        identityColor: workstreamIdentityColor(stream.engineLabel, stream.roleLabel),
         objective: stream.objective,
         status: deriveExternalWorkstreamStatus({
           state: stream.state,
