@@ -93,9 +93,6 @@ function PreviewFrameInner({
       ) : null}
       {state === 'timeout' ? <p>Preview timed out.</p> : null}
       {state === 'blocked' ? <p>This preview blocked embedding.</p> : null}
-      {state === 'bridge-unavailable' && mode === 'interact' ? (
-        <p>Preview Bridge unavailable. Interact continues without route reporting.</p>
-      ) : null}
     </div>
   );
 }

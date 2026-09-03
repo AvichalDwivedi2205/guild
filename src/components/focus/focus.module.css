@@ -158,6 +158,94 @@
   background: var(--glass-quiet, #f3efe4);
 }
 
+.evidenceBody {
+  min-height: 0;
+  overflow: auto;
+}
+
+.evidenceList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  align-content: start;
+  gap: 14px;
+  margin: 0;
+  padding: 16px;
+  list-style: none;
+}
+
+.evidenceCard {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--hairline, #d8d3c8);
+  border-radius: 16px;
+  background: var(--paper-strong, #fffdf7);
+  box-shadow: var(--shadow-1);
+}
+
+.evidenceCard > header {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.evidenceCard > header > div {
+  display: grid;
+  gap: 3px;
+  margin-right: auto;
+}
+
+.evidenceCard > header span,
+.evidenceCard dt,
+.evidenceCard li > span {
+  color: var(--muted-ink, #716d64);
+  font-size: 12px;
+}
+
+.evidenceCard p,
+.evidenceCard dl,
+.evidenceCard ul {
+  margin: 0;
+}
+
+.evidenceCard dl,
+.evidenceCard dl > div {
+  display: grid;
+  gap: 5px;
+}
+
+.evidenceCard dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.evidenceCard details ul,
+.evidenceCard > ul {
+  display: grid;
+  gap: 7px;
+  padding: 8px 0 0 18px;
+}
+
+.evidenceCard > ul > li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.evidenceCard code {
+  overflow-wrap: anywhere;
+}
+
+.evidenceCard > a {
+  justify-self: start;
+  color: inherit;
+  font-weight: 700;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .focus,
   .preview,
