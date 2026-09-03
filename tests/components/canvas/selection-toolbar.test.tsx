@@ -64,16 +64,21 @@ const data = {
 describe('SelectionToolbar', () => {
   it('does not open Advanced details until More is chosen', () => {
     const onMore = vi.fn();
+    const onOpen = vi.fn();
     const onComment = vi.fn();
     render(
       <SelectionToolbar
         object={object}
         data={data}
         actions={{}}
+        onOpen={onOpen}
         onComment={onComment}
         onMore={onMore}
       />,
     );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open expanded view' }));
+    expect(onOpen).toHaveBeenCalledOnce();
 
     fireEvent.click(screen.getByRole('button', { name: 'Comment (C)' }));
     expect(onComment).toHaveBeenCalledOnce();

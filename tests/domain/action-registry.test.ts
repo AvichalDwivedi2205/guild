@@ -20,12 +20,14 @@ describe('canvas action registry', () => {
 
   it('exposes contextual actions without embedding renderer policy', () => {
     expect(contextActions({ type: 'sticky', semantics: {} })).toEqual([
+      'open',
       'comment',
       'ask-agent',
       'color',
       'more',
     ]);
     expect(contextActions({ type: 'image', semantics: { semanticType: 'designScreen' } })).toEqual([
+      'open',
       'comment',
       'ask-agent',
       'approve',

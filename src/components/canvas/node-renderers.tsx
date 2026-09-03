@@ -75,7 +75,13 @@ function NodeChrome({
       data-selected={selected || undefined}
       data-locked={object.locked || undefined}
       aria-label={`${object.title || object.type} canvas object`}
-      title={onDoubleClick ? 'Double-click to edit' : undefined}
+      title={
+        onDoubleClick
+          ? 'Double-click to edit'
+          : object.type === 'icon'
+            ? undefined
+            : 'Double-click to open'
+      }
       onDoubleClick={
         onDoubleClick
           ? (event) => {

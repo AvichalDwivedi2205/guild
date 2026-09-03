@@ -43,6 +43,7 @@ import { AgentDock } from '@/components/canvas/agent-dock';
 import { PresentationMode } from '@/components/canvas/presentation-mode';
 import { CanvasCreationToolbar, ToolbarModeIcon } from '@/components/canvas/canvas-toolbar';
 import { canvasEdgeTypes } from '@/components/canvas/connector-edge';
+import { ExpandedObjectDialog } from '@/components/canvas/expanded-object-dialog';
 import { canvasNodeTypes } from '@/components/canvas/node-renderers';
 import { CanvasRightPanel, type CanvasPanel } from '@/components/canvas/canvas-panels';
 import { SelectionToolbar } from '@/components/canvas/selection-toolbar';
@@ -420,6 +421,26 @@ function CanvasViewport({
   const flowRegionRef = useRef<HTMLElement | null>(null);
   const [panel, setPanel] = useState<CanvasPanel | null>(null);
   const [inspectorEditingObjectId, setInspectorEditingObjectId] = useState<string | null>(null);
+  const [expandedObjectId, setExpandedObjectId] = useState<string | null>(null);
+  const expandedObject = data.objects.find((object) => object.id === expandedObjectId) ?? null;
+  const setExpandedEditing = useCallback(
+    (editing: boolean) => setInspectorEditingObjectId(editing ? expandedObjectId : null),
+    [expandedObjectId],
+  );
+  const openObject = useCallback(
+    (object: CanvasObject) => {
+      const action = primaryAction(object);
+      if (action === 'focus-design' || action === 'focus-evidence') {
+        onOpenFocus?.(object);
+        return;
+      }
+      if (object.type === 'icon') return;
+      selectOnly(object.id);
+      setPanel(null);
+      setExpandedObjectId(object.id);
+    },
+    [onOpenFocus, selectOnly],
+  );
 
   const publishViewport = useCallback((viewport: { x: number; y: number; zoom: number }) => {
     const bounds = flowRegionRef.current?.getBoundingClientRect();
@@ -435,13 +456,13 @@ function CanvasViewport({
       interactingNodeIds.size === 1 ? ([...interactingNodeIds][0] ?? null) : null;
     const editing =
       interactingObjectId ??
-      (panel === 'inspector' &&
+      ((panel === 'inspector' || expandedObjectId === inspectorEditingObjectId) &&
       inspectorEditingObjectId &&
       selectedNodeIds.includes(inspectorEditingObjectId)
         ? inspectorEditingObjectId
         : null);
     useCanvasInteractionStore.getState().setEditingObjectId(editing);
-  }, [inspectorEditingObjectId, interactingNodeIds, panel, selectedNodeIds]);
+  }, [expandedObjectId, inspectorEditingObjectId, interactingNodeIds, panel, selectedNodeIds]);
 
   useEffect(() => {
     const region = flowRegionRef.current;
@@ -494,6 +515,10 @@ function CanvasViewport({
         useCanvasInteractionStore.getState().setTool('connect');
       if (event.key === 'c' || event.key === 'C') setPanel('comments');
       if (event.key === 'Escape') {
+        if (expandedObjectId) {
+          setExpandedObjectId(null);
+          return;
+        }
         if (panel) {
           setPanel(null);
           return;
@@ -519,7 +544,7 @@ function CanvasViewport({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [actions, data.objects, panel, selectOnly, selectedNodeIds]);
+  }, [actions, data.objects, expandedObjectId, panel, selectOnly, selectedNodeIds]);
 
   return (
     <div className={styles.workspaceCanvas} data-tool={tool}>
@@ -541,10 +566,8 @@ function CanvasViewport({
           onNodeDragStop={dragStop}
           onNodeClick={() => undefined}
           onNodeDoubleClick={(_event, node) => {
-            const action = primaryAction(node.data.object);
-            if (action === 'focus-design' || action === 'focus-evidence') {
-              onOpenFocus?.(node.data.object);
-            }
+            if (node.data.object.type === 'text') return;
+            openObject(node.data.object);
           }}
           onPaneClick={() => selectOnly(null)}
           onPointerMove={(event) => {
@@ -610,6 +633,7 @@ function CanvasViewport({
                   object={selected}
                   data={data}
                   actions={actions}
+                  onOpen={() => openObject(selected)}
                   onComment={() => setPanel('comments')}
                   onMore={() => setPanel('inspector')}
                 />
@@ -625,6 +649,23 @@ function CanvasViewport({
           actions={actions}
           onEditingObjectChange={setInspectorEditingObjectId}
         />
+        {expandedObject ? (
+          <ExpandedObjectDialog
+            object={expandedObject}
+            bodyStatus={data.selectedObjectBodyStatus}
+            updateContent={actions.updateContent}
+            onClose={() => setExpandedObjectId(null)}
+            onComment={() => {
+              setExpandedObjectId(null);
+              setPanel('comments');
+            }}
+            onAdvanced={() => {
+              setExpandedObjectId(null);
+              setPanel('inspector');
+            }}
+            onEditingChange={setExpandedEditing}
+          />
+        ) : null}
         <StatusNotice data={data} actions={actions} />
         {data.status === 'loading' ? <LoadingOverlay /> : null}
         {data.status === 'ready' && data.objects.length === 0 ? (

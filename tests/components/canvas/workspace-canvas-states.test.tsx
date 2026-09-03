@@ -7,6 +7,7 @@ import type { PropsWithChildren, ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { WorkspaceCanvas } from '@/components/canvas/workspace-canvas';
+import type { CanvasObject } from '@/domain/canvas';
 import type { CanvasWorkspaceData } from '@/features/canvas/types';
 
 vi.mock('@xyflow/react', () => ({
@@ -16,13 +17,17 @@ vi.mock('@xyflow/react', () => ({
   Panel: ({ children }: PropsWithChildren) => <div>{children}</div>,
   ReactFlow: ({
     children,
+    nodes,
     onNodeClick,
+    onNodeDoubleClick,
     panOnScroll,
     zoomOnPinch,
     zoomOnScroll,
   }: {
     children: ReactNode;
+    nodes?: Array<{ data: { object: CanvasObject } }>;
     onNodeClick?: (event: unknown, node: { data: { object: { type: 'task' | 'text' } } }) => void;
+    onNodeDoubleClick?: (event: unknown, node: { data: { object: CanvasObject } }) => void;
     panOnScroll?: boolean;
     zoomOnPinch?: boolean;
     zoomOnScroll?: boolean;
@@ -40,6 +45,9 @@ vi.mock('@xyflow/react', () => ({
       <button onClick={() => onNodeClick?.({}, { data: { object: { type: 'text' } } })}>
         Click text node
       </button>
+      {nodes?.[0] ? (
+        <button onClick={() => onNodeDoubleClick?.({}, nodes[0]!)}>Double-click first node</button>
+      ) : null}
     </div>
   ),
   ReactFlowProvider: ({ children }: PropsWithChildren) => <>{children}</>,
@@ -97,6 +105,22 @@ function data(status: CanvasWorkspaceData['status']): CanvasWorkspaceData {
   };
 }
 
+const detailedTask: CanvasObject = {
+  id: 'task-detail',
+  workspaceId: 'workspace-states',
+  type: 'task',
+  title: 'Detailed agent result',
+  content: { description: '## Architecture\n\nComplete implementation detail.' },
+  position: { x: 0, y: 0 },
+  size: { width: 320, height: 220 },
+  style: { palette: 'paper' },
+  semantics: { semanticType: 'architecture', status: 'ready' },
+  locked: false,
+  revisions: { geometry: 0, content: 0, style: 0, semantics: 0, hierarchy: 0 },
+  createdAt: '2026-09-03T00:00:00.000Z',
+  updatedAt: '2026-09-03T00:00:00.000Z',
+};
+
 beforeEach(() => {
   class MockResizeObserver {
     observe() {}
@@ -130,6 +154,26 @@ describe('WorkspaceCanvas state surfaces', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Click text node' }));
     expect(screen.getByTestId('workspace-panels')).toHaveAttribute('data-panel', 'closed');
+  });
+
+  it('opens ordinary content in a focused reader on double-click', () => {
+    render(
+      <WorkspaceCanvas
+        data={{
+          ...data('ready'),
+          objects: [detailedTask],
+          selectedObjectBodyStatus: 'ready',
+        }}
+        actions={{}}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Double-click first node' }));
+    expect(screen.getByRole('dialog', { name: 'Detailed agent result' })).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'Architecture' })).toBeVisible();
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.queryByRole('dialog', { name: 'Detailed agent result' })).not.toBeInTheDocument();
   });
 
   it('pans with trackpad scrolling while preserving pinch zoom', () => {
