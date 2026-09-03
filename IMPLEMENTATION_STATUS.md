@@ -46,6 +46,13 @@ Status vocabulary:
   selection-aware cited answer, and save-to-canvas paths. The only intentionally pending demo
   decision is the authenticated human approval of one immutable design revision; the agent did not
   fabricate that decision.
+- The complete batch merged through
+  [PR #17](https://github.com/AvichalDwivedi2205/guild/pull/17) as six cohesive commits after GitHub
+  quality run
+  [33796286025](https://github.com/AvichalDwivedi2205/guild/actions/runs/33796286025)
+  and the Vercel preview both passed. Merge-triggered production deployment
+  `dpl_ATYxby6wcREPha1gdADnTn1Qb1z2` reached Ready and claimed the stable Guild alias; public landing
+  and signed-in workspace smoke checks passed afterward.
 
 ## Snapshot — 2026-09-03 (recording-quality copy and rounded-node readability)
 
