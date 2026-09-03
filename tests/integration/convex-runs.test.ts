@@ -180,6 +180,65 @@ describe('Convex Run integration', () => {
     ).rejects.toThrow();
   });
 
+  it('refuses Team Run undo when a worker-created section is now Role-owned', async () => {
+    const { t, asOwner, workspaceId, builderId } = await setupWorkspace();
+    const role = await t.run(async (ctx) => ctx.db.get(builderId));
+    if (!role) throw new Error('role_not_created');
+    const run = await asOwner.mutation(api.runs.assign, {
+      workspaceId,
+      roleProfileId: builderId,
+      targetObjectId: role.ownedSectionId,
+      brief: 'Create an implementation section.',
+      idempotencyKey: 'assignment:protected-run-undo:0001',
+      source: 'ui',
+    });
+    const created = await asOwner.mutation(api.canvas.executeCommands, {
+      workspaceId,
+      source: 'ui',
+      idempotencyKey: 'canvas:protected-run-undo:create:0001',
+      summary: 'Worker-created section fixture',
+      commands: [
+        {
+          type: 'create_object',
+          objectType: 'section',
+          title: 'Implementation',
+          position: { x: 900, y: 0 },
+          size: { width: 440, height: 320 },
+        },
+      ],
+    });
+    const sectionId = created.changed[0]!.targetId as Id<'canvasObjects'>;
+    await t.run(async (ctx) => {
+      await ctx.db.patch(created.changeSetId, {
+        teamRunId: run.runId,
+        jobId: run.jobId,
+        source: 'worker',
+      });
+    });
+    await asOwner.mutation(api.roleProfiles.update, {
+      roleProfileId: builderId,
+      handle: role.handle,
+      name: role.name,
+      responsibility: role.responsibility,
+      instructions: role.instructions,
+      engine: role.engine,
+      ownedSectionId: sectionId,
+      capabilities: role.capabilities,
+      expectedArtifactTypes: role.expectedArtifactTypes,
+      staticDependencyRoleProfileIds: role.staticDependencyRoleProfileIds,
+      color: role.color,
+    });
+
+    await expect(
+      asOwner.mutation(api.runs.undo, { teamRunId: run.runId, source: 'ui' }),
+    ).rejects.toThrow('owned_section_in_use');
+
+    const context = await asOwner.query(api.canvas.getWorkspaceContext, { workspaceId });
+    expect(context.objects.find((object) => object._id === sectionId)).toMatchObject({
+      isDeleted: false,
+    });
+  });
+
   it('@Role routes one Job to the commented object even when the role has dependencies', async () => {
     const { t, asOwner, workspaceId, builderId } = await setupWorkspace();
     const targetObjectId = await t.run(async (ctx) => {

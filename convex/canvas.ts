@@ -22,6 +22,7 @@ import {
 } from './lib/geometry';
 import { requireWorkspaceMember } from './lib/auth';
 import { createContentPreview, createContentSnapshot } from './lib/content';
+import { assertCanvasObjectCanBeDeleted } from './lib/roleOwnership';
 import { normalizeNodeStyle } from '../src/domain/palette';
 import { boundedText, limits } from './lib/policies';
 import {
@@ -672,13 +673,7 @@ async function executeCanvasCommand(
     const object = await requireObject(ctx, workspaceId, command.objectId);
     assertWorkerCanModifyObject(principal, object);
     assertRevision(object.hierarchyRevision, command.expectedRevision);
-    if (object.type === 'section') {
-      const owner = await ctx.db
-        .query('roleProfiles')
-        .withIndex('by_ownedSectionId', (index) => index.eq('ownedSectionId', object._id))
-        .first();
-      if (owner) throw new Error('owned_section_in_use');
-    }
+    await assertCanvasObjectCanBeDeleted(ctx, object);
     const activeChildren = await ctx.db
       .query('canvasObjects')
       .withIndex('by_workspaceId_and_parentId_and_isDeleted', (index) =>

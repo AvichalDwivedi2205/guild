@@ -340,6 +340,55 @@ describe('Convex canvas command integration', () => {
     });
   });
 
+  it('refuses to undo creation after the section becomes Role-owned', async () => {
+    const t = convexTest(schema, modules);
+    const asOwner = t.withIdentity(identity);
+    const workspaceId = await asOwner.mutation(api.workspaces.create, {
+      title: 'Protected undo section',
+    });
+    const created = await asOwner.mutation(api.canvas.executeCommands, {
+      workspaceId,
+      source: 'ui',
+      idempotencyKey: 'canvas:owned-section:undo-create:0001',
+      summary: 'Create section before assigning it',
+      commands: [
+        {
+          type: 'create_object',
+          objectType: 'section',
+          title: 'Architecture',
+          position: { x: 0, y: 0 },
+          size: { width: 440, height: 320 },
+        },
+      ],
+    });
+    const sectionId = created.changed[0]!.targetId;
+    await asOwner.mutation(api.roleProfiles.create, {
+      workspaceId,
+      handle: 'architect',
+      name: 'System Architect',
+      responsibility: 'Own architecture.',
+      instructions: 'Keep architecture constraints visible.',
+      engine: 'codex',
+      ownedSectionId: sectionId as never,
+      capabilities: ['read_workspace', 'write_owned_section'],
+      expectedArtifactTypes: ['sticky', 'text'],
+      staticDependencyRoleProfileIds: [],
+      color: '#7c3aed',
+    });
+
+    await expect(
+      asOwner.mutation(api.undo.changeSet, {
+        changeSetId: created.changeSetId,
+        source: 'ui',
+      }),
+    ).rejects.toThrow('owned_section_in_use');
+
+    const context = await asOwner.query(api.canvas.getWorkspaceContext, { workspaceId });
+    expect(context.objects.find((object) => object._id === sectionId)).toMatchObject({
+      isDeleted: false,
+    });
+  });
+
   it('normalizes hex style writes to a palette token', async () => {
     const t = convexTest(schema, modules);
     const asOwner = t.withIdentity(identity);

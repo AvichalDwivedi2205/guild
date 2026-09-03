@@ -4,6 +4,7 @@ import type { Doc, Id } from './_generated/dataModel';
 import { mutation, query } from './_generated/server';
 import { requireWorkspaceMember } from './lib/auth';
 import { createContentPreview, parseContentSnapshot } from './lib/content';
+import { assertCanvasObjectCanBeDeleted } from './lib/roleOwnership';
 import { canConflictAwareRestore } from '../src/domain/history';
 
 type Segment = Doc<'changeEntries'>['segment'];
@@ -151,6 +152,9 @@ export const changeSet = mutation({
         const revision = entry.postRevision + 1;
         if (entry.segment === 'lifecycle') {
           const before = entry.beforeValue as { isDeleted?: boolean } | null;
+          if (before?.isDeleted ?? true) {
+            await assertCanvasObjectCanBeDeleted(ctx, object);
+          }
           await ctx.db.patch(object._id, {
             isDeleted: before?.isDeleted ?? true,
             hierarchyRevision: revision,
