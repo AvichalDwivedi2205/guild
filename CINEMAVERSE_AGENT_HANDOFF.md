@@ -71,6 +71,26 @@ The machine values are `engineLabel: "claude"` for the Product & Visual Designer
 Claude Sonnet or Codex glyph and label. Prompts must not rename a role, generate a new key for a
 retry, or overload the Role accent with running/blocked/review status.
 
+## Recording workspace contract
+
+The replacement video uses a brand-new Guild workspace titled `Cinemaverse`. It does not reuse
+`Guild Judge Workspace`, the source design workspace, or the rejected recording workspace. The six
+workstreams own six large canvas regions in a readable 2×3 grid. Their detailed outputs appear
+inside those regions as work progresses; the Agent dock is only a compact secondary status view.
+
+The recording uses two synchronized surfaces when needed:
+
+- Chrome signed into `avichaldwivedi2005@gmail.com` is the visible recording surface; and
+- a hidden signed-in in-app browser is the WebMCP Controller if Chrome does not expose
+  `document.modelContext`.
+
+Both surfaces resolve the new workspace by title and returned id. Controller writes must become
+visible in Chrome through realtime state before the first rehearsal is accepted. Harshita's Chrome
+profile, account-selection screens, callback pages, and Controller UI must never enter the capture.
+
+Guild stays on screen after the landing-page opening. Hosted Cinemaverse screens open inside Guild
+Design Focus; the demo does not navigate into a standalone Cinemaverse tab.
+
 ## Recording-quality artifact contract
 
 Every artifact shown during the recording has two levels of detail:
@@ -137,6 +157,20 @@ comparison-ready summary. It proposes options but never chooses the final filmin
 Other workstreams must match this level of specificity for their own responsibility. Keep the
 visible summary concise; put the full explanation in the expandable body rather than shrinking text
 to fit everything on the canvas.
+
+Each responsibility must produce these minimum recording artifacts:
+
+| Workstream                     | Minimum detailed artifacts                                                                 |
+| ------------------------------ | ------------------------------------------------------------------------------------------ |
+| Product & Visual Designer      | journey, information architecture, six hosted screen cards, V1/V2 rationale                |
+| Agentic Systems Architect      | decomposition graph, branch lifecycle, cancellation/retry, synthesis and decision boundary |
+| Search & Evidence Engineer     | source hierarchy, claim contract, freshness, contradictions and hostile-source handling    |
+| Backend & Data Engineer        | entity model, job state machine, idempotent APIs, persistence and recovery                 |
+| Canvas & Frontend Engineer     | layout/zoom model, selection context, dossier/comparison flow, accessibility/performance   |
+| QA, Security & Evaluation Lead | threat model, evaluation matrix, browser/security checks and release evidence              |
+
+The workstreams coordinate through shared requirements, semantic relationships, Jobs, and evidence.
+Guild does not render a fake discussion between agents and never exposes chain-of-thought.
 
 ## Codex handoff
 
@@ -352,6 +386,16 @@ verification: signed-in get_design_set WebMCP receipt
 Codex may now consume this packet for final integration. Claude must not create Version 3 unless
 the user supplies new material design feedback.
 
+This packet belongs to the durable source workspace. For the recording, the Controller first
+verifies the source V1 and V2 deployment identities, then projects them into the new workspace as
+new immutable workspace-scoped revisions. The recording creates its own feedback, comparison, and
+approval receipt. It never removes or alters the source approval.
+
+The existing checkpoints keep the take deterministic and conserve Claude Pro credits. Narration
+must not claim that either deployment was generated within the edited seconds. The genuine live
+events are the local Worker execution, canvas publication, WebMCP state changes, human annotations,
+grouped routing, acknowledgement, revision publication, comparison, and approval.
+
 ## How Guild and the coding clients communicate
 
 ### Browser Controller path
@@ -387,19 +431,15 @@ This is an explicit relay, not a fake direct connection.
 
 ## Human checkpoints
 
-The orchestrator stops for the user at exactly these boundaries:
+During ordinary product work, the orchestrator stops for the user at Version 1 review, Version 2
+comparison, approval, unresolved product decisions, credentials, billing, or irreversible external
+actions.
 
-1. Claude Version 1 is hosted and visible inside Guild.
-2. The user has submitted the prepared visual-direction comment and any optional additional
-   comments.
-3. Claude Version 2 is hosted and ready for comparison.
-4. The user approves one exact revision.
-5. A material product or architecture decision is not resolved by the PRD.
-6. Credentials, billing, public deployment, or another irreversible external action requires the
-   user's authority.
-
-The first design review is intentionally human-owned. The orchestrator should not guess what the
-user wants changed.
+For this recording only, the user has already approved the exact scripted architecture and visual
+feedback, grouped Send, and approval action in the new reset-safe workspace. The recording operator
+may perform those exact actions through the authenticated UI. It must not invent additional
+subjective feedback, approve a different revision, spend credits on an unscripted Claude pass, or
+make a new product decision without the user.
 
 ## Completion
 
@@ -412,4 +452,7 @@ The handoff is complete only when:
 - the Cinemaverse vertical slice passes its documented tests and production build;
 - its hosted preview is reachable and exercised;
 - Guild contains bounded evidence with truthful provenance; and
-- the final video route passes twice without relying on hidden manual repair.
+- the final video route passes twice without relying on hidden manual repair;
+- the new workspace is distinct from every prior demo workspace;
+- Guild remains visible while hosted Cinemaverse screens are reviewed and exercised; and
+- the silent master shows all six owned regions filling with detailed work before it is accepted.

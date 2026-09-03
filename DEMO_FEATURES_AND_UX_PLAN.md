@@ -1,228 +1,170 @@
 # Guild × Cinemaverse demo features and UX contract
 
-## Purpose and current state
+## Current state
 
-This document defines the product capabilities and navigation that the final Cinemaverse demo uses.
-The detailed implementation history and evidence live in `IMPLEMENTATION_STATUS.md`; the timed
-recording and narration live in `DEMO_VIDEO_SCRIPT.md`.
+The Guild functionality required by the demo is implemented, tested, merged, and deployed. The
+Cinemaverse six-route vertical slice and its verified Version 1 and Version 2 design checkpoints
+also exist. No new product feature is planned before recording unless the two rehearsal passes
+expose a reproducible defect.
 
-The prior version described capabilities as missing and used an obsolete movie-discovery concept.
-Guild's control-plane capabilities are now implemented and production-tested. The remaining product
-work is the separate Cinemaverse vertical slice and its hosted design revisions.
+The only unfinished deliverable is the replacement demo recording. It must use a new Cinemaverse
+workspace and the workflow in `DEMO_VIDEO_SCRIPT.md`.
 
 ## Product boundary
 
-- **Guild** is the visual control plane for AI work.
-- **Cinemaverse** is a separate screenplay-to-location research application.
-- Guild displays workstreams, canvas artifacts, designs, comments, approvals, and bounded evidence.
-- Cinemaverse owns screenplay ingestion, web research, its domain canvas, and its application code.
-- Guild Runner Workers are canvas-only and do not edit or deploy the Cinemaverse repository.
-- External Codex and Claude Code sessions perform authorized Cinemaverse source work. A browser
-  Controller reports it into Guild with explicit provenance.
+- Guild is the hosted visual control plane.
+- Guild Runner launches the user's authenticated local Codex CLI and Claude Code clients.
+- Guild Cloud coordinates and stores shared state; it performs no model inference.
+- Guild Runner Workers have assignment-scoped canvas authority. They do not edit repositories.
+- Cinemaverse is a separate application and repository.
+- External source-work evidence is reported into Guild with explicit Reported or Link-verified
+  provenance. Link reachability is not proof that Guild ran a test.
+- WebMCP controls the signed-in Guild workspace. It does not expose secrets or private reasoning.
 
-## Demo-facing Guild capabilities
-
-The demo depends on these implemented Guild features:
-
-1. WorkOS-authenticated workspaces and membership checks.
-2. Realtime infinite canvas with pan, trackpad navigation, zoom, minimap, sections, and semantic
-   connectors.
-3. Compact selection actions and double-click reading/editing without opening the large Inspector.
-4. Detailed rich Markdown artifacts with expandable reading views.
-5. Role Profiles, saved Teams, Jobs, dependencies, claims, reservations, fencing, progress, and
-   attribution.
-6. A paired local Runner using authenticated Codex CLI and Claude Code Sonnet clients.
-7. Twenty-five browser WebMCP Controller tools and seven assignment-scoped Worker tools.
-8. Immutable hosted design publication, screenshot capture, page-by-page galleries, and Focus mode.
-9. Interactive hosted previews with Interact and Annotate modes.
-10. Point and region visual feedback bound to route, viewport, scroll state, and design revision.
-11. Feedback delivery, acknowledgement, immutable revision comparison, and human approval.
-12. External workstreams with Reported/Stale provenance and bounded implementation evidence.
-13. Activity, Change Sets, stop/retry, and conflict-aware undo.
-14. Presentation views, safe demo reset, preflight, and theme-safe semantic palettes.
-
-These capabilities should be reused. Demo preparation should change Guild code only when rehearsal
-finds a reproducible defect in this path.
-
-## Final Guild navigation model
-
-Guild has four primary surfaces.
+## Final navigation model
 
 ### Canvas
 
-The default project surface. It holds the Cinemaverse PRD, agent workstreams, requirements,
-architecture, evidence, designs, decisions, and implementation links.
+The canvas is the default and dominant surface. It contains six large agent-owned regions,
+requirements, artifacts, hosted screens, semantic edges, activity, and evidence. The recording
+returns to this overview after every focused interaction.
 
 ### Focus
 
-Opened by double-clicking a rich artifact. It is used for detailed Markdown, hosted screen previews,
-revision comparison, visual feedback, and implementation evidence.
+Double-click opens a centered reading or hosted-design surface inside Guild. Rich artifacts render
+full Markdown. Hosted screens retain Guild controls for Interact, Annotate, Comment, Compare,
+Approve, and Exit Focus. Focus never opens an external tab during the recorded path.
+
+### Annotation review
+
+Annotate mode changes the cursor and displays a clear mode indicator. Clicking an object or hosted
+component creates a point anchor; dragging creates a rectangle anchor. Each note remains a local
+draft until `Review & send`.
+
+The review sheet stays inside the Guild workspace, groups drafts by owning agent, and includes one
+optional unanchored overall-instruction textbox. `Send` is pressed once. Guild creates at most one
+complete revision request per owning agent while preserving all exact anchors.
 
 ### Agent dock
 
-A compact view of active, blocked, stale, and review-ready workstreams. It shows responsibility and
-progress, not conversation or chain-of-thought.
+The compact dock shows identity, engine, state, target, elapsed time, and artifact count. It never
+becomes a conversation UI. It is shown briefly to prove the real engines and statuses, then closed
+so the canvas remains primary.
 
 ### Advanced details
 
-An explicitly opened drawer for ownership, relationships, revisions, metadata, and destructive
-actions. It never opens automatically during reading, commenting, or design review.
+Metadata, ownership, revision history, and destructive actions live in an explicitly opened
+advanced surface. The old large Inspector must not cover the recording.
 
 ## Interaction contract
 
 - Single click selects.
-- Double-click edits simple text or opens Focus for a rich artifact.
-- Space plus drag pans; trackpad scroll pans; pinch zooms.
-- `C` starts a comment; `Enter` submits; `Escape` cancels or leaves Focus.
-- A compact toolbar exposes Comment, Ask agent, Approve, Color, and More.
-- Selecting a workstream highlights its target and produced artifacts.
-- Newly created artifacts appear without stealing focus unless Follow is enabled.
-- New content uses server-guided, collision-free placement inside the correct section.
-- Every material write has attribution, revision state, and a receipt.
-- Color is semantic and never the sole status signal.
+- Double-click edits plain text or opens the appropriate reader/Focus surface.
+- Trackpad scroll pans; pinch zooms; Space+drag pans.
+- `C` starts annotation/comment entry; `Escape` cancels or exits Focus.
+- New artifacts do not steal focus unless Follow is enabled.
+- Cards remain readable at the recorded zoom and expand to full Markdown.
+- New writes use server placement and palette guidance.
+- Every material mutation has attribution, revisions, and a verifiable receipt.
+- Color indicates ownership but is never the only state signal.
 
-## Cinemaverse canvas information architecture inside Guild
+## Six-region recording layout
 
-The Guild workspace is arranged for the build, not for Cinemaverse end-user research.
+Use a balanced 2×3 grid. Each section is large enough to hold four to eight readable artifacts and
+has a stable title band with Role name, engine glyph, accent, and status.
 
 ```text
-Product brief and PRD
-        |
-        +--> Product & Design — Claude Sonnet
-        |       user journey → wireframes → hosted V1 → feedback → hosted V2 → approval
-        |
-        +--> Agentic Architecture — Codex
-        |       ingestion → scene decomposition → parallel research → synthesis → human decision
-        |
-        +--> Search & Evidence — Codex
-        |       sources → claims → freshness → contradictions → evaluations
-        |
-        +--> Backend & Data — Codex
-        |       project graph → research jobs → APIs → persistence → recovery
-        |
-        +--> Canvas & Frontend — Codex
-        |       domain canvas → selection context → dossiers → comparisons → export
-        |
-        +--> QA & Security — Codex
-                privacy → prompt injection → citation checks → E2E → deployment evidence
+┌──────────────────────────┬──────────────────────────┬──────────────────────────┐
+│ Product & Visual Design  │ Agentic Architecture     │ Search & Evidence        │
+│ Claude Sonnet            │ Codex                    │ Codex                    │
+├──────────────────────────┼──────────────────────────┼──────────────────────────┤
+│ Backend & Data           │ Canvas & Frontend        │ QA, Security & Evaluation│
+│ Codex                    │ Codex                    │ Codex                    │
+└──────────────────────────┴──────────────────────────┴──────────────────────────┘
 ```
 
-Cards have short titles and detailed bodies. Semantic edges connect requirements to screens,
-architecture, implementation tasks, checks, and preview evidence.
+The full-canvas camera proves parallelism. Saved detail cameras frame Design, Architecture,
+Evidence, and Product Preview without manual searching or zoom thrashing.
 
-## Cinemaverse screen set shown in Guild
+## Recording-quality artifact contract
 
-Claude publishes these stable screens:
+Every visible artifact must contain:
 
-| Stable key             | Screen               | Required visible behavior                                              |
-| ---------------------- | -------------------- | ---------------------------------------------------------------------- |
-| `project-setup`        | Project Setup        | Screenplay, production constraints, research depth and scope           |
-| `script-review`        | Script Review        | Parsed scenes, extraction warnings, corrections and excluded scenes    |
-| `research-canvas`      | Research Canvas      | Scenes, research branches, candidates, evidence and selection-aware AI |
-| `location-dossier`     | Location Dossier     | Fit, imagery, permits, logistics, risks, confidence and citations      |
-| `candidate-comparison` | Candidate Comparison | Weighted criteria, hard blockers, assumptions and decisions            |
-| `export-brief`         | Export Brief         | Scene matrix, dossiers, checklists, risks, sources and freshness       |
+- a concrete title;
+- a two-to-three-sentence summary that explains a real Cinemaverse decision at normal zoom;
+- a full expandable Markdown body with objective, inputs, execution or interface, failure behavior,
+  outputs, human decision boundary, and acceptance criteria; and
+- semantic links to the requirement, consumer, or verification artifact it affects.
 
-Version 1 is a real hosted preview. The user reviews it. Version 2 addresses only captured feedback
-plus required coherence/accessibility changes. Only the human approves a revision.
+Do not show filler such as `Watch work`, `Architecture`, `Backend`, `Working`, or generic prose that
+could describe any product.
 
-For a clear before/after demo, Version 1 is intentionally neutral and usability-first. The prepared
-human comment asks for restrained liquid glass: translucent surfaces, subtle blur, crisp borders,
-almost no gradients, and preserved readability across all six screens.
+Minimum artifacts by region:
 
-## Human design-review UX
+| Region                    | Minimum meaningful output                                                                        |
+| ------------------------- | ------------------------------------------------------------------------------------------------ |
+| Product & Visual Design   | user journey, information architecture, six screen previews, visual tokens, V1/V2 rationale      |
+| Agentic Architecture      | decomposition graph, branch lifecycle, cancellation/retry, synthesis and human decision boundary |
+| Search & Evidence         | source hierarchy, claim schema, freshness policy, contradiction and prompt-injection handling    |
+| Backend & Data            | entity model, job state machine, idempotent API boundaries, persistence and recovery             |
+| Canvas & Frontend         | layout/zoom model, selection-scoped context, dossier/comparison flow, accessibility/performance  |
+| QA, Security & Evaluation | threat model, evaluation matrix, browser/security checks, deployment evidence                    |
 
-1. Open one hosted screen in Focus.
-2. Use Interact mode to verify real behavior.
-3. Switch to Annotate; the hosted site remains visible inside the same Guild workspace.
-4. Click a component or drag a region. The cursor and mode banner make the active tool explicit.
-5. Enter one or more exact requested changes. Each note stays local and preserves its canvas or
-   immutable screen anchor until review.
-6. Open `Review & send`, inspect notes grouped by owning agent, and optionally add one overall
-   instruction that is not tied to a component.
-7. Press Send once. Guild creates at most one revision Job or external feedback packet per target
-   agent while preserving every individual anchor.
-8. Show owner and delivery state, then leave while the external Claude Sonnet workstream updates.
-9. Compare Version 1 and Version 2.
-10. Approve, request another grouped change, or leave unresolved.
+## Hosted design contract
 
-The orchestrator does not invent the user's aesthetic feedback. It forwards the prepared anchored
-comment plus any optional user additions using the packet in `CINEMAVERSE_AGENT_HANDOFF.md`.
+Claude's region shows six individual, legible screen cards:
 
-## Codex artifact-review UX
+1. Project Setup — `project-setup`
+2. Script Review — `script-review`
+3. Research Canvas — `research-canvas`
+4. Location Dossier — `location-dossier`
+5. Candidate Comparison — `candidate-comparison`
+6. Export Brief — `export-brief`
 
-The demo also steers one Codex-owned architecture artifact. The human requests independently
-cancellable scene-research branches, preservation of completed sibling evidence, and a visible
-failure state. Guild routes the comment to Agentic Systems Architect. The later architecture graph
-and evidence view show the addressed change.
+Each card identifies the owner, route, viewport, immutable revision, and review state. Opening a
+card loads the real hosted HTTPS preview inside Guild. Version 1 is the neutral baseline. Version 2
+is the restrained liquid-glass revision with translucent surfaces, subtle blur, crisp borders,
+almost no gradients, and preserved contrast.
 
-One Codex comment is enough. It proves that Guild controls technical work as well as design without
-turning the video into a repetitive review montage.
+## Human-control proof
 
-## External source-work UX
+The recording creates two feedback drafts before sending:
 
-The Agent dock combines Runner Jobs and external workstreams but always exposes provenance.
+1. On the Codex architecture artifact: require independently cancellable scene-research branches,
+   preservation of completed sibling evidence, and a visible failed/blocked state.
+2. On the hosted Research Canvas: request restrained liquid glass across all six screens while
+   protecting text, confidence, source freshness, and unresolved-risk readability.
 
-For external Codex or Claude work, show:
+`Review & send` must show the two notes grouped under the correct stable owners. A single Send
+produces one request for Agentic Systems Architect and one for Product & Visual Designer. The
+agents acknowledge the complete packet; the architecture artifact and immutable design revision
+then update. The user compares V1/V2 and approves the exact new-workspace revision.
 
-- engine and logical responsibility;
-- current reported phase and last update;
-- target section and related artifacts;
-- fresh or stale state;
-- bounded changed files and check outcomes;
-- branch, commit, PR, and hosted preview when they really exist; and
-- Reported, Link verified, or Unavailable evidence labels.
+## Engine identity and status
 
-Guild never represents link reachability as proof that it ran a test or inspected a commit.
+| Visible Role                   | Engine        | Stable accent |
+| ------------------------------ | ------------- | ------------- |
+| Product & Visual Designer      | Claude Sonnet | Magenta       |
+| Agentic Systems Architect      | Codex         | Purple        |
+| Search & Evidence Engineer     | Codex         | Blue          |
+| Backend & Data Engineer        | Codex         | Green         |
+| Canvas & Frontend Engineer     | Codex         | Amber         |
+| QA, Security & Evaluation Lead | Codex         | Red           |
 
-## Cinemaverse vertical slice required outside Guild
+The Role accent never changes with state. A compact engine glyph distinguishes Claude Sonnet from
+Codex. A separate status dot displays queued, active, waiting, blocked, failed, review, or complete.
 
-Before recording, the separate Cinemaverse application must provide:
+## Recording acceptance
 
-- deterministic loading of the original four-scene screenplay fixture;
-- screenplay, sequence, scene, and requirement artifacts;
-- meaningful parallel research states;
-- candidate locations, sources, permits, logistics, risks, and confidence;
-- a pannable, zoomable, searchable domain canvas;
-- readable expandable artifacts;
-- single- and multi-selection context;
-- one bounded cited AI answer;
-- a location dossier and candidate comparison;
-- a credible export state;
-- persistence across refresh;
-- automated tests and a production build; and
-- a reachable hosted preview.
-
-The vertical slice may use accepted deterministic research data for recording reliability, but it
-must clearly distinguish fixture data from a live web-search result. Run one small follow-up action
-live.
-
-## Remaining demo preparation
-
-1. Initialize and implement the separate Cinemaverse repository.
-2. Configure the six stable Guild workstreams and clean baseline.
-3. Have Claude Sonnet publish hosted design Version 1.
-4. Pause for the user's visual review.
-5. Forward exact feedback to Claude and publish Version 2.
-6. Pause for human approval.
-7. Let Codex integrate the approved design and finish the vertical slice.
-8. Report bounded implementation evidence into Guild.
-9. Verify both applications and the complete route twice.
-10. Record according to `DEMO_VIDEO_SCRIPT.md`.
-
-## Acceptance
-
-The demo UX is accepted only when:
-
-- one team instruction creates the six intended logical responsibilities;
-- real Codex and Claude Sonnet activity becomes visible without exposing private reasoning;
-- detailed connected artifacts appear in correct canvas regions;
-- the hosted Cinemaverse design is interactive inside Guild;
-- multiple point/region annotations review cleanly and route as one batch per owning agent with
-  immutable revision context;
-- Claude Version 2 addresses the user's feedback;
-- the human can compare and approve the exact revision;
-- real implementation evidence appears with truthful provenance;
-- the separate Cinemaverse vertical slice works on camera;
-- trackpad, selection, reading, Focus, comments, approval, and undo remain easy to navigate; and
-- the route passes twice with no secret, personal information, fake progress, or hidden repair.
+- The visible workspace is newly created and is not `Guild Judge Workspace`.
+- The correct Chrome profile is used for the recording.
+- Guild stays visible from the 0:12 canvas cut through the final frame.
+- The six regions and agent identities are readable in a full-canvas shot.
+- Real agent phases and detailed artifacts appear in their owned regions.
+- No agent chat, chain-of-thought, fake tokens, or oversized Inspector appears.
+- All six hosted screens are visible in Claude's region and interactive inside Guild.
+- Canvas and hosted-screen annotations work in one mode and remain local until review.
+- Review groups drafts correctly and one Send routes one packet per owner.
+- V1/V2 comparison and authenticated human approval work in the clean workspace.
+- Cinemaverse's selected-context question returns a deterministic cited answer inside Guild.
+- The complete path passes twice with a clean console and no secrets or personal data on screen.

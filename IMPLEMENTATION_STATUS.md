@@ -12,6 +12,37 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Planning snapshot — 2026-09-04 (replacement recording contract synchronized)
+
+- Reconciled every demo and handoff document around the final accepted story. The replacement uses
+  a brand-new Guild workspace titled `Cinemaverse`, never `Guild Judge Workspace`, a prior
+  Cinemaverse workspace, or the rejected recording state.
+- Guild is now explicitly the visible product for the full demo: after the 12-second landing-page
+  opening, the recording stays inside Guild. Cinemaverse screens are arranged in Claude's owned
+  region and opened inside Guild Design Focus rather than becoming a standalone-app sequence.
+- The primary visual is a readable 2×3 canvas of six large owned regions. Five Codex
+  responsibilities and one bounded Claude Sonnet responsibility fill those regions with detailed,
+  expandable, Cinemaverse-specific artifacts. The Agent dock is only a brief secondary status
+  proof, and agent-to-agent dialogue/private reasoning is excluded.
+- The human-control sequence is fixed: create one Codex architecture annotation and one hosted
+  design annotation, review both grouped by owner, add one overall instruction, Send once, show one
+  complete request per owner, then show the addressed architecture and immutable V2 design,
+  compare revisions, and record a new-workspace approval receipt.
+- The visible capture must use Chrome signed into `avichaldwivedi2005@gmail.com`, never Harshita's
+  profile. A hidden signed-in in-app browser may provide WebMCP control while Chrome receives the
+  same realtime state; this two-surface setup must be proven before recording.
+- Existing verified V1/V2 deployments are deterministic checkpoints and may be projected into the
+  clean workspace to conserve Claude Pro credits. The script forbids implying that they were
+  generated during the edited wait. Claude remains Sonnet-only; Fable is forbidden.
+- `DEMO_IMPLEMENTATION_PROMPT.md` is now the in-depth new-session recording contract.
+  `HANDOFF_PROMPT.md` is its copyable launcher. `DEMO_VIDEO_SCRIPT.md`, `DEMO_FLOW.md`,
+  `DEMO_FEATURES_AND_UX_PLAN.md`, `DEMO_IMPLEMENTATION_PLAN.md`,
+  `CINEMAVERSE_AGENT_HANDOFF.md`, and `CODEX_HANDOFF.md` agree with that contract.
+- This batch changes documentation only. Product code and deployments are unchanged. The remaining
+  unchecked work is to create the clean workspace, pass the complete route twice, record and inspect
+  the silent master, then assemble the final composite after presenter media exists.
+- Documentation verification passed the repository-wide Prettier check and `git diff --check`.
+
 ## Snapshot — 2026-09-04 (canvas-native annotation review and grouped agent dispatch)
 
 - Guild now has one explicit Annotate mode across the infinite canvas and hosted Design Focus.
