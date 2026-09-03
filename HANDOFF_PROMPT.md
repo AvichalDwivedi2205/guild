@@ -1,55 +1,38 @@
-# Guild next-session handoff prompt
+# Guild recording handoff prompt
 
-Copy the prompt below into the next Codex session. It is intentionally procedural; current facts
-and remaining work live in `IMPLEMENTATION_STATUS.md` so this prompt does not become a second,
-stale status ledger.
+Copy this into the new chat:
 
 ```text
-You are the primary implementation agent for Guild. Work directly in:
-/Users/avichaldwivedi/dev/guild
+Work directly in /Users/avichaldwivedi/dev/guild and execute
+DEMO_IMPLEMENTATION_PROMPT.md completely as the authoritative task contract.
 
-Continue the existing implementation; do not restart or scaffold a replacement.
+This is the final Guild × Cinemaverse recording session. Do not restart implementation and do not
+reuse or inspect the rejected demo footage. First read every canonical and demo file in the exact
+order specified by DEMO_IMPLEMENTATION_PROMPT.md. Verify the deployed products, use the correct
+Chrome profile signed into avichaldwivedi2005@gmail.com, create a genuinely new Guild workspace
+named Cinemaverse, and use a hidden signed-in WebMCP-capable browser Controller only when needed to
+drive realtime state into that visible Chrome window.
 
-Before changing code:
-1. Read AGENTS.md completely and follow it.
-2. Read PRODUCT.md, Plan.md, CONTEXT.md, Product_Future.md, Initial_Prompt.md, and
-   IMPLEMENTATION_STATUS.md completely, in that order.
-3. Inspect git status, recent atomic commits, the current branch/upstream, and deployed state.
-4. Treat IMPLEMENTATION_STATUS.md as the living evidence ledger. Verify its claims against the
-   repository and infrastructure, then update it after each meaningful batch.
-5. Read the relevant Next.js 16.3.4 guide under node_modules/next/dist/docs/ before editing Next.js
-   code, as AGENTS.md requires.
+The demo must keep Guild visible after the 12-second landing-page opening. Show five real Codex
+responsibilities and one bounded Claude Sonnet responsibility occupying six large colored regions
+of the infinite canvas and filling them with detailed, expandable, Cinemaverse-specific artifacts.
+The Agent dock is secondary. Show all six hosted Cinemaverse screens inside Claude's canvas region,
+open and interact with the Research Canvas inside Guild Design Focus, annotate one Codex
+architecture artifact and one hosted design region, review both drafts grouped by owner, add the
+scripted overall instruction, and press Send once. Then show the addressed architecture revision,
+immutable liquid-glass V2, V1/V2 comparison, authenticated approval in the new workspace, and the
+selection-scoped cited Cinemaverse answer without navigating away from Guild.
 
-The user owns the WorkOS/API secret values and will enter them. Never print, read back, commit, or
-copy secret values into tracked files. No OpenAI or Anthropic API key belongs in Guild. The stable
-production callback is documented in IMPLEMENTATION_STATUS.md; use the stable Vercel alias, not a
-timestamped deployment URL.
+Claude must use Sonnet, never Fable. Reuse the verified existing V1/V2 deployments honestly to save
+credits; do not claim they were generated during the edited seconds. Do not show private reasoning,
+agent chat, fake activity, fake evidence, the large Inspector, account screens, secrets, personal
+tabs, or a standalone Cinemaverse-only sequence.
 
-Start with the highest-priority unchecked item in IMPLEMENTATION_STATUS.md. Current production
-auth, workspace creation, judge-team assembly, Runner pairing, concurrent real Codex + Claude
-Sonnet writes, cancellation, retry, conflict-aware Run undo, Runner revoke/re-pair, trackpad canvas
-panning, readable Inspector contrast, Convex deployment, Vercel deployment, and the clean signed
-browser console are proven. Claude testing must stay pinned to `sonnet`; do not use the user's
-`fable` preference. Unless current evidence changes the order, next:
-- obtain a browser/controller with native `document.modelContext` support and invoke all fourteen
-  production WebMCP tools, verifying their visible canvas effects;
-- verify two real browser contexts, unauthorized membership denial, and sign-out;
-- expand automated Playwright coverage beyond the four landing tests to the remaining required
-  authenticated flows;
-- finish accessibility/reconnect checks, narrated demo, and submission material.
-
-Preserve the locked current-scope blocks in PRODUCT.md and Plan.md byte-for-byte. Do not implement
-Product_Future.md. Keep all changes real, connected, attributable, authorized, reversible, and
-tested; do not use fake Worker activity, hosted inference, provider-key fallbacks, or a /demo
-shortcut.
-
-After each batch, run proportionate formatting, lint, typecheck, and tests. Before claiming final
-completion, run every quality, integration, E2E, build, Convex, security, production-browser, and
-WebMCP gate required by Initial_Prompt.md. Record only commands actually run and their exact result
-in IMPLEMENTATION_STATUS.md.
-
-Commit each coherent change as an atomic commit, preserve the existing 30+ commit history, and push
-successful commits to the configured GitHub upstream. Do not rewrite published history again. End
-with: production URL, commits pushed, implemented behavior, infrastructure state, verification
-results, exact blockers (if any), and the next unchecked ledger item.
+Run the complete route twice from the clean baseline. If a pass fails, fix or restage the cause and
+restart the two-pass count. Only after both passes succeed, use the demo-video-producer skill to
+record one normal-speed silent master and create the edited silent video according to
+DEMO_VIDEO_SCRIPT.md. Inspect representative frames and verify the media technically. If presenter
+face/audio is not yet available, finish everything else and report the exact files still needed.
+Continue autonomously until all available deliverables are complete or a genuine user-only blocker
+occurs.
 ```

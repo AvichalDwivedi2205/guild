@@ -1,7 +1,7 @@
 # Guild × Cinemaverse final demo video
 
-**Status:** Pre-recording rehearsal; Cinemaverse Version 2 is live and the final Guild canvas and
-capture path are being polished  
+**Status:** Ready to begin the clean-workspace rehearsal and recording workflow; product
+implementation is complete, but recording still requires two passing rehearsals
 **Target delivery runtime:** 3 minutes 15 seconds  
 **Master runtime:** Record at normal speed; selectively accelerate slow UI transitions only  
 **Format:** 1920×1080, 16:9, H.264 video, AAC audio  
@@ -52,9 +52,10 @@ Each row keeps its Role accent across the demo. A green braces glyph identifies 
 sparkle identifies Claude Sonnet, and a separate dot communicates execution state. The badges stay
 compact above active targets and inside the Agent dock; they never cover canvas content.
 
-The source `cinemaverse-demo` Version 2 is already approved. The final take may show the approval
-interaction only from a separate reset-safe recording baseline containing the same verified
-revision metadata. Never unapprove or delete the durable source decision for the sake of a shot.
+The source `cinemaverse-demo` Version 2 is already approved. The final take uses a new, reset-safe
+`Cinemaverse` workspace. It projects the same verified V1/V2 checkpoints as new workspace-scoped
+immutable revisions and records a new approval receipt there. Never unapprove, delete, or mutate
+the durable source decision for the sake of a shot.
 
 ## 3. Demo project fixture
 
@@ -71,10 +72,10 @@ The clean Guild baseline contains only:
 
 - a project title and concise brief;
 - the Cinemaverse PRD as one expandable Markdown artifact;
-- empty Product, Design, Architecture, Search & Evidence, Backend & Data, Frontend, and Testing
-  sections;
+- six empty 2×3 regions: Product & Visual Design, Agentic Architecture, Search & Evidence, Backend
+  & Data, Canvas & Frontend, and QA, Security & Evaluation;
 - the six configured Role Profiles and one saved Team; and
-- two or three named presentation camera positions.
+- saved `Opening`, `Architecture`, `Design`, `Evidence`, and `Full project` camera positions.
 
 It must not contain completed agent output before the first run. That allows the audience to see
 real artifacts appear. A separate completed checkpoint may exist for recovery but must not be
@@ -135,7 +136,9 @@ separate prompts during the recording.
 3. Open the compact workspace composer or comment action.
 4. Paste the exact master instruction.
 5. Submit once.
-6. Show the six workstream shells and owned sections appearing through the shared command path.
+6. Show the six large region shells activate with the exact Role name, Role accent, engine glyph,
+   and truthful state dot. The regions occupy the canvas in a clean 2×3 layout before their
+   detailed contents begin to appear.
 
 **Narration**
 
@@ -150,18 +153,19 @@ without opening separate agent chats.
 ### Scene 3 — Real agents, bounded responsibilities
 
 **Time:** 0:32–0:55  
-**Surface:** Guild canvas with compact Agent dock  
+**Surface:** Full Guild canvas; compact Agent dock appears only briefly
 **Face camera:** Hidden
 
 **On-screen action**
 
-1. Open the compact Agent dock.
-2. Show Claude Sonnet's coral sparkle, Codex's green braces, and the six distinct Role accents and
-   names.
-3. Show the real Runner online state and engine readiness without exposing credentials.
-4. Expand only two rows: Product & Visual Designer and Agentic Systems Architect.
-5. Click one row so Guild highlights its owned section and produced artifacts.
-6. Let genuine phase updates move from Reading context to Working or Writing.
+1. Hold on the full 2×3 canvas so all six agent-owned regions and active-target badges are visible.
+2. Open the compact Agent dock only long enough to show Claude Sonnet's coral sparkle, Codex's
+   green braces, the six stable Role accents/names, and the real Runner state.
+3. Expand only Product & Visual Designer and Agentic Systems Architect.
+4. Click one row so Guild highlights its owned section and produced artifacts.
+5. Close the dock; return the canvas to full width.
+6. Let genuine phase updates move from Reading context to Working or Writing while the regions
+   begin filling with detailed cards.
 
 **Narration**
 
@@ -169,8 +173,9 @@ without opening separate agent chats.
 > real local clients I am already signed into. I can see what is active, blocked, or ready for
 > review without exposing private reasoning or staging a fake agent conversation.
 
-**Visible proof:** Engine glyph, stable role name and accent, objective, source, separate state,
-target section, elapsed time, and artifact count are readable. Progress is not a token stream.
+**Visible proof:** The agents occupy and work inside the canvas, not only in right-side boxes.
+Engine glyph, stable role name/accent, objective, source, separate state, target section, elapsed
+time, and artifact count are readable. Progress is not a token stream.
 
 ### Scene 4 — The canvas becomes shared project memory
 
@@ -180,7 +185,7 @@ target section, elapsed time, and artifact count are readable. Progress is not a
 
 **On-screen action**
 
-1. Follow newly created artifacts into view without opening the old Inspector.
+1. Follow newly created artifacts into their owned regions without opening the old Inspector.
 2. Pause on the agentic research graph: screenplay ingestion → scene decomposition → parallel
    researchers → evidence synthesis → human decision.
 3. Keep this recording-quality summary readable on the architecture card:
@@ -218,15 +223,16 @@ target section, elapsed time, and artifact count are readable. Progress is not a
 
 **On-screen action**
 
-1. Move to the saved `Design` camera position.
-2. Show the versioned screen gallery containing:
+1. Move to the saved `Design` camera position inside the Product & Visual Design region.
+2. Show six individual hosted-screen cards arranged visibly inside that region:
    - Project Setup;
    - Script Review;
    - Research Canvas;
    - Location Dossier;
    - Candidate Comparison; and
    - Export Brief.
-3. Open the Research Canvas screen.
+3. Briefly zoom so the six screens read as a coherent page-by-page product, then open Research
+   Canvas.
 4. Keep `Version 1`, route, viewport, Claude owner, and review state visible.
 5. Use Interact mode to pan or open one location dossier in the real hosted preview.
 
@@ -298,11 +304,11 @@ state.
 
 **Narration**
 
-> While Claude revises the design, Codex continues the implementation. The ingestion pipeline,
-> parallel research graph, evidence model, backend, canvas integration, safety checks, changed
-> files, tests, and preview all remain connected to the requirements they implement. Codex also
-> addresses my cancellation requirement. Then I compare Claude's restrained liquid-glass revision
-> and approve the exact version I reviewed.
+> After the agents complete their bounded work, Guild brings the implementation evidence and the
+> design revision back into the same canvas. The ingestion pipeline, research graph, evidence
+> model, backend, canvas, safety checks, changed files, tests, and preview remain connected to the
+> requirements they implement. Codex addresses my cancellation requirement, then I compare
+> Claude's restrained liquid-glass revision and approve the exact version I reviewed.
 
 **Visible proof:** Real evidence provenance, resolved feedback, immutable revision comparison, and
 human approval are visible.
@@ -310,12 +316,13 @@ human approval are visible.
 ### Scene 8 — Open the product and close on Guild
 
 **Time:** 2:38–3:15  
-**Surface:** Working Cinemaverse deployment, then final Guild overview  
+**Surface:** Cinemaverse hosted inside Guild Design Focus, then final Guild overview
 **Face camera:** Return for the last 7 seconds
 
 **On-screen action**
 
-1. Open the linked Cinemaverse preview.
+1. Open Version 2 Research Canvas inside Guild Design Focus. Keep Guild's header, revision label,
+   Interact control, and Exit Focus action visible.
 2. Show the original screenplay already decomposed into scenes and requirements.
 3. Pan across the domain-specific research canvas containing candidate locations, permit findings,
    logistics, risks, images, and cited sources.
@@ -327,8 +334,8 @@ human approval are visible.
 
 6. Show a concise cited Markdown answer grounded in the selection.
 7. Save the answer as a connected research artifact if that path has passed acceptance.
-8. Cut back to the full Guild canvas showing the complete project graph, attribution, activity, and
-   Undo.
+8. Exit Focus back to the full Guild canvas showing all six owned regions, the complete project
+   graph, attribution, activity, approval, and Undo.
 9. Bring back the face camera for the final sentence.
 
 **Narration**
@@ -339,8 +346,8 @@ human approval are visible.
 > point of Guild: many AI agents can work independently while I control the result through one
 > visual, reviewable, and reversible interface.
 
-**Visible proof:** The separate Cinemaverse app works, the query uses selected context, citations
-are visible, and Guild remains the traceable orchestration record.
+**Visible proof:** The separate Cinemaverse app works inside Guild, the query uses selected context,
+citations are visible, and Guild remains the visible traceable orchestration record.
 
 ## 6. Individual Role Profile briefs
 
@@ -400,19 +407,23 @@ environment.
 ### Guild
 
 - Production URL is ready and the presenter is already signed in.
-- The dedicated Cinemaverse demo scenario resets without touching other workspaces.
-- Native WebMCP discovers all 25 browser Controller tools, including `dispatch_feedback_batch`.
+- A new workspace titled `Cinemaverse` has a distinct id and its demo scenario resets without
+  touching other workspaces.
+- The hidden supported Controller surface discovers all 25 browser WebMCP tools, including
+  `dispatch_feedback_batch`.
 - The paired Runner is online and shows Codex plus Claude Code ready.
 - Claude is pinned to Sonnet.
-- The six Role Profiles own valid, visible, non-overlapping sections.
+- The six Role Profiles own valid, visible, non-overlapping sections in a readable 2×3 layout.
 - The Agent dock and active-target badges show the exact stable names, distinct Role accents,
   Codex/Claude engine glyphs, and separate truthful state dots.
-- The master instruction starts exactly one workstream per configured role.
+- The master instruction starts exactly one workstream per configured role, and the work is visible
+  inside those regions rather than only in the Agent dock.
 - Detailed Markdown artifacts appear inside the intended sections.
 - Agent dock highlighting, progress, errors, and evidence work without the Inspector blocking the
   canvas.
-- The design gallery, hosted preview, Interact mode, Annotate mode, multi-note review, grouped
-  feedback delivery, revision comparison, approval, and undo work.
+- The six design screen cards render inside Claude's region. Hosted preview, Interact mode,
+  Annotate mode, multi-note review, grouped feedback delivery, revision comparison, approval, and
+  undo work without leaving Guild.
 - Presentation camera positions frame every important artifact at readable zoom.
 
 ### Cinemaverse
@@ -432,6 +443,9 @@ environment.
 ### Recording environment
 
 - Browser notifications, password prompts, bookmarks, personal email, and unrelated tabs are hidden.
+- The visible browser is the Chrome profile signed into `avichaldwivedi2005@gmail.com`, never
+  Harshita's profile. The account identity itself stays outside the crop.
+- Any in-app-browser WebMCP Controller remains hidden from the captured frame.
 - No environment variables, API keys, cookies, local paths, or private source content are visible.
 - Browser zoom and OS scaling make text readable at 1080p.
 - Cursor size is visible but not distracting.
@@ -443,7 +457,7 @@ environment.
 
 ### Codex records
 
-- deterministic silent Guild and Cinemaverse screen footage;
+- deterministic silent Guild footage, including Cinemaverse embedded inside Guild Focus;
 - cursor movement, clicks, panning, zooming, selection, comment entry, comparison, and product query;
 - a clean normal-speed master with deliberate reading holds; and
 - evidence frames proving each required action succeeded.
@@ -485,7 +499,8 @@ Target audio after assembly: approximately -16 LUFS integrated loudness with pea
 
 ## 10. Editing plan
 
-1. Record and preserve a normal-speed screen master.
+1. Record and preserve one normal-speed screen master. Do not run six simultaneous primary screen
+   recordings; use the full-canvas master and optional later region close-ups.
 2. Use hard cuts between major surfaces; use short eased camera movement only inside the canvas.
 3. Add small lower-thirds only for:
    - `Claude Sonnet · Product & Visual Design`;
@@ -528,7 +543,10 @@ The final take should not depend on a large live generation completing within se
 
 ## 13. Recording readiness today
 
-Guild's demo control plane is implemented and production-tested. The new Cinemaverse repository
-currently contains its PRD but not the working vertical slice or hosted designs required by Scenes
-5–8. This script is final, but recording must wait until those Cinemaverse artifacts exist and the
-full route passes the pre-recording gates twice.
+Guild's demo control plane is implemented, production-tested, and deployed. Cinemaverse has the
+working six-route vertical slice, hosted preview, deterministic research fixture, and verified V1
+and V2 checkpoints required by Scenes 5–8. The implementation is ready for the recording workflow.
+
+The next session must still create the separate clean `Cinemaverse` workspace, verify the correct
+Chrome/WebMCP two-surface setup, run the exact route twice, and only then capture the new silent
+master. Those are recording gates, not missing product features.

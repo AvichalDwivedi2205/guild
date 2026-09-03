@@ -1,22 +1,18 @@
-# Guild × Cinemaverse demo execution plan
+# Guild × Cinemaverse recording execution plan
 
-## 1. Purpose and status
+## 1. Purpose
 
-This is the current end-to-end execution plan for preparing the final Guild demonstration. The
-large Guild demo platform described by the previous version of this file has already been
-implemented and verified; its evidence is in `IMPLEMENTATION_STATUS.md`.
+This plan prepares and records the replacement Guild demo. It does not reimplement Guild or
+Cinemaverse. Both products and the required demo capabilities already exist. Product code changes
+are allowed only when the exact recording path reproduces a defect.
 
-Remaining work centers on the separate Cinemaverse application, its design/implementation handoff,
-the clean Guild demo fixture, connected rehearsal, and recording.
+The demo must show Guild as the primary product: six real AI responsibilities occupy visible
+canvas regions, produce detailed work, receive precise batched feedback, and update their output.
+Cinemaverse is the coherent project being built and the embedded proof surface.
 
-This plan authorizes no hidden simulation. A state, check, design, approval, or deployment is shown
-only after it exists and has the corresponding receipt or external evidence.
+## 2. Source order
 
-## 2. Source-of-truth order
-
-### Guild work
-
-Read in this order:
+Read before acting:
 
 1. `AGENTS.md`
 2. `PRODUCT.md`
@@ -26,329 +22,221 @@ Read in this order:
 6. `Initial_Prompt.md`
 7. `IMPLEMENTATION_STATUS.md`
 8. `DEMO_FLOW.md`
-9. `DEMO_VIDEO_SCRIPT.md`
-10. `DEMO_FEATURES_AND_UX_PLAN.md`
+9. `DEMO_FEATURES_AND_UX_PLAN.md`
+10. `DEMO_VIDEO_SCRIPT.md`
 11. `CINEMAVERSE_AGENT_HANDOFF.md`
-12. this file
-13. `DEMO_IMPLEMENTATION_PROMPT.md`
+12. `DEMO_IMPLEMENTATION_PROMPT.md`
+13. `skills/guild-webmcp-controller/SKILL.md`
+14. `skills/guild-canvas-worker/SKILL.md`
 
-`UI.md` is visual inspiration only. It does not override product, security, or architecture.
+`UI.md` is inspiration only. It cannot override the product, security, attribution, or execution
+contracts above.
 
-### Cinemaverse work
+## 3. Fixed boundaries
 
-Read:
+- Guild repository: `/Users/avichaldwivedi/dev/guild`
+- Cinemaverse repository: `/Users/avichaldwivedi/dev/cinemaverse`
+- Guild production: `https://guild-rose-two.vercel.app`
+- Cinemaverse stable preview: `https://cinemaverse-two.vercel.app`
+- Visible recording browser: Chrome signed into `avichaldwivedi2005@gmail.com`
+- WebMCP controller: a supported signed-in browser surface on the same workspace
+- Local engines: authenticated Codex CLI and Claude Code Sonnet; never Fable
+
+Guild Runner jobs create and revise Guild canvas artifacts. They do not edit Cinemaverse source.
+Existing Cinemaverse code, tests, deployments, and hosted design revisions are external evidence
+reported into Guild. This distinction stays visible.
+
+## 4. Workspace strategy
+
+Create one new production workspace named `Cinemaverse`. Resolve its returned identifier and record
+it in an untracked recording manifest. Prove that it is different from every prior workspace,
+especially `Guild Judge Workspace` and the rejected recording workspace.
 
-1. repository instructions when present;
-2. `PRD.md` completely;
-3. the applicable Codex or Claude prompt from `CINEMAVERSE_AGENT_HANDOFF.md`;
-4. the accepted demo screen set and golden path from `DEMO_VIDEO_SCRIPT.md`; and
-5. approved design and architecture packets produced later in the process.
+Prepare a reset-safe baseline containing only:
 
-## 3. Repository boundary
+- project title and one concise product brief;
+- one expandable Cinemaverse PRD artifact;
+- six empty, non-overlapping agent-owned regions in a 2×3 grid;
+- the six exact Role Profiles and one saved Team;
+- saved cameras: `Opening`, `Architecture`, `Design`, `Evidence`, and `Full project`; and
+- no completed agent outputs, feedback, approval, or misleading activity.
 
-### Guild repository
+The baseline may contain links and fixture identifiers needed for deterministic execution, but
+those must not be rendered as completed work before the corresponding workstream publishes them.
+Reset may target only this workspace and only objects owned by the named demo scenario.
 
-Guild owns:
+## 5. Two-surface control setup
 
-- WebMCP and Runner control paths;
-- visual workstreams, artifacts, feedback, approvals, and evidence;
-- design publication and capture;
-- presentation mode, reset, preflight, and recording support; and
-- genuine fixes discovered during rehearsal.
+The user's Chrome profile is the visible recording surface. The in-app browser can remain hidden as
+the WebMCP Controller because the external Chrome profile may not expose `document.modelContext`.
+Both surfaces must be signed into the same Guild account and opened to the new workspace.
 
-Treat the accepted Guild implementation as stable. Do not refactor it during demo preparation
-without a reproducible defect and focused regression coverage.
+Before rehearsal:
 
-### Cinemaverse repository
+1. call `list_workspaces` and resolve the new workspace by title and id;
+2. call `get_workspace_context` and verify six regions, Role Profiles, Team, Runner, placement, and
+   palette guidance;
+3. perform one harmless draft or reversible object change through WebMCP;
+4. verify it appears through realtime in visible Chrome;
+5. undo or remove only that proof; and
+6. confirm both surfaces show the same clean baseline.
 
-Cinemaverse owns:
+Never record an account chooser, callback URL, personal tabs, environment variables, cookies, or
+the hidden Controller UI.
 
-- screenplay import and scene decomposition;
-- web-research orchestration;
-- location, permit, regulation, logistics, weather, safety, cost, and incentive research;
-- claims, citations, confidence, freshness, and contradiction handling;
-- its domain-specific infinite canvas;
-- selection-aware AI;
-- location comparison, decisions, and export; and
-- its application tests and deployment.
+## 6. Real agent run
 
-No Cinemaverse source, credential, or deployment logic belongs in Guild.
+Start one Team Run from the exact master instruction in `DEMO_VIDEO_SCRIPT.md`. The run contains:
 
-## 4. Target vertical slice
+- Product & Visual Designer — Claude Sonnet;
+- Agentic Systems Architect — Codex;
+- Search & Evidence Engineer — Codex;
+- Backend & Data Engineer — Codex;
+- Canvas & Frontend Engineer — Codex; and
+- QA, Security & Evaluation Lead — Codex.
 
-The demo build is narrower than the full PRD but must be real across the selected path.
+Each role owns one section and has the detailed assignment in `CINEMAVERSE_AGENT_HANDOFF.md`.
+Runner capacity, dependencies, and duration must be verified before recording. If capacity is lower
+than six, jobs may queue truthfully; parallel activity must still be visible. Do not manufacture
+simultaneous state.
 
-### Required input
+Capture one master canvas recording rather than six competing screen recordings. A 4K source may
+be cropped to individual regions in editing, and short per-region backup clips may be recorded
+after the master. This preserves one coherent project timeline and avoids browser/encoder load.
 
-- one original four-scene screenplay fixture;
-- optional PDF or text upload if it can be made reliable before recording;
-- production region, date, budget, and research-depth controls; and
-- a deterministic accepted project state for the final recorded take.
+## 7. Artifact construction
 
-### Required transformation
+The five Codex jobs create real detailed canvas artifacts and semantic edges. The Claude Sonnet job
+creates the design journey and publishes the verified Version 1 hosted-screen metadata into its
+region. Every write uses stable logical keys, server placement, safe palette tokens, revision
+checks, and receipts.
 
-- scenes and requirements are structured and traceable to source text;
-- independent research tasks have explicit state;
-- candidate locations connect to relevant scenes and requirements;
-- claims preserve citations, retrieval time, confidence, freshness, and contradictions;
-- material errors and unavailable sources remain visible; and
-- selected context, not the full project indiscriminately, drives the final AI question.
+Required visible outputs:
 
-### Required output
+| Owner                          | Required artifacts                                                 |
+| ------------------------------ | ------------------------------------------------------------------ |
+| Product & Visual Designer      | journey, IA, six V1 screens, visual rationale                      |
+| Agentic Systems Architect      | decomposition graph, branch lifecycle, synthesis and decision gate |
+| Search & Evidence Engineer     | source hierarchy, claim contract, freshness/contradiction policy   |
+| Backend & Data Engineer        | entity model, job lifecycle, APIs, idempotency/recovery            |
+| Canvas & Frontend Engineer     | canvas model, selection context, dossier/comparison, accessibility |
+| QA, Security & Evaluation Lead | threat model, evaluation matrix, test/deployment evidence          |
 
-- Project Setup;
-- Script Review;
-- Research Canvas;
-- Location Dossier;
-- Candidate Comparison;
-- Export Brief;
-- one hosted interactive build; and
-- tests proving the recorded golden path.
-
-## 5. Execution sequence
-
-### Phase 0 — Freeze the contract
-
-1. Confirm the separate Cinemaverse directory and Git state.
-2. Read `PRD.md` and record unresolved material decisions.
-3. Choose the original demo screenplay fixture.
-4. Confirm the six stable screen and workstream keys.
-5. Confirm target deployment, allowed design-preview origin, and environment-variable names without
-   exposing values.
-6. Record actual project commands after the scaffold exists.
-
-**Complete when:** the repository boundary, vertical slice, fixture, routes, and no-go conditions are
-unambiguous.
-
-### Phase 1 — Create the clean Guild baseline
+Cards must meet the two-level content contract. The six regions and agent badges remain legible at
+the full-project camera. The Agent dock is never the only place where work is visible.
 
-1. Use the dedicated Cinemaverse demo workspace only.
-2. Add one detailed PRD artifact and a concise project brief.
-3. Create or verify Product & Design, Agentic Architecture, Search & Evidence, Backend & Data,
-   Canvas & Frontend, and QA & Security sections.
-4. Configure the six Role Profiles and one Team.
-5. Assign Claude Sonnet only to Product & Visual Designer.
-6. Save Opening, Design, and Architecture & Evidence presentation views.
-7. Create a safe reset checkpoint before agent artifacts exist.
-
-**Complete when:** reset returns to the same clean, readable starting state without affecting any
-other workspace.
-
-### Phase 2 — Start Codex foundations
-
-1. Send Codex the shared packet and exact Codex prompt.
-2. Build or document the agentic architecture, evidence model, backend contracts, and test strategy.
-3. Scaffold the vertical slice using the repository's chosen stack.
-4. Establish formatting, lint, typecheck, unit, integration, browser, and build commands appropriate
-   to that stack.
-5. Implement data and neutral UI foundations that do not depend on final visual approval.
-6. Report stable workstreams and detailed artifacts into Guild.
-7. During rehearsal, route the prepared independent-cancellation comment to the Codex-owned
-   agentic architecture artifact and verify the updated graph preserves partial sibling evidence.
-
-**Complete when:** architecture/backend work can proceed independently and every progress claim has
-real source or canvas evidence.
-
-### Phase 3 — Claude Design Version 1
-
-1. Launch Claude Code in the Cinemaverse design environment using Sonnet.
-2. Send the shared packet and exact Version 1 prompt.
-3. Produce the user journey and six-screen wireframe set.
-4. Implement a coherent interactive hosted visual preview using the demo fixture.
-5. Run actual checks.
-6. Return deployment, routes, viewports, changed files, checks, and limitations to the Controller.
-7. Publish Version 1 in Guild using stable design-set and screen keys.
-
-**Complete when:** all six hosted screens open in Guild and the Research Canvas is interactive.
-
-### Phase 4 — Human design checkpoint
-
-1. Stop further Claude revision work.
-2. Let the user inspect every Version 1 screen.
-3. Use Guild Annotate mode to add the prepared restrained liquid-glass direction on the Research
-   Canvas. Additional point, region, or canvas-artifact notes are optional and remain drafts.
-4. Capture exact target object, route, viewport, scroll, immutable revision, and point/rectangle
-   geometry for every note.
-5. Open `Review & send`, verify the notes are grouped under the correct Codex or Claude Sonnet
-   owners, and add any unanchored overall instruction.
-6. Send once. Verify Guild creates no more than one revision Job or feedback packet per owning
-   agent while retaining every exact anchor.
-7. Ask the user to explicitly say when the first review is complete.
-
-The orchestrator may flag functional breakage or inaccessible contrast, but it does not decide the
-user's desired visual direction.
-
-**Complete when:** the prepared comment is persisted and the user confirms there are no additional
-comments.
-
-### Phase 5 — Claude Design Version 2
-
-1. Read the pending workstream feedback from Guild.
-2. Forward the exact structured packet and Claude revision prompt.
-3. Require stable routes and screen keys.
-4. Implement the requested changes and actual coherence/accessibility dependencies.
-5. Run checks and publish a new hosted deployment.
-6. Publish immutable Version 2 with the addressed feedback IDs.
-7. Compare Version 1 and Version 2 in Guild.
-8. Stop for the user's approve/request-changes decision.
+## 8. Design checkpoint strategy
 
-**Complete when:** an authenticated human approves one exact revision or provides a new bounded
-feedback set.
+The source workspace already contains verified immutable V1 and V2 design metadata. Resolve both
+with signed-in WebMCP and verify every route and capture before using them. In the new workspace:
 
-### Phase 6 — Codex integrates the approved design
+1. publish V1 only when the Claude workstream reaches its design-publication phase;
+2. show all six screen cards inside Claude's region;
+3. interact with Research Canvas inside Guild;
+4. collect the real human feedback packet;
+5. route the packet to the same Claude Sonnet identity;
+6. acknowledge the packet;
+7. publish V2 as a new immutable revision in the new workspace; and
+8. compare and approve the new-workspace V2 revision.
 
-1. Send Codex the approved design packet, never an unapproved draft.
-2. Implement the six accepted screens and states in the Cinemaverse application.
-3. Complete the domain canvas, trackpad controls, selection context, detailed dossier, comparison,
-   export state, and final cited question.
-4. Preserve responsive behavior and accessibility.
-5. Integrate real or deterministic accepted research without presenting fixture data as live.
-6. Keep source and inference states distinct.
-7. Run all project checks and a production build.
+The checkpoints are real prior outputs reused for a deterministic demo. Do not state or imply that
+the source code or deployment was generated during the few seconds removed by the edit. If a new
+material change is requested, run one bounded Claude Sonnet source revision and publish a new
+verified version; otherwise do not spend credits regenerating accepted work.
 
-**Complete when:** the recorded Cinemaverse path works from a clean project state and survives
-refresh.
+## 9. Batched human feedback
 
-### Phase 7 — Evidence and hosted proof
+Create one Codex annotation and one Claude annotation before opening review.
 
-1. Deploy Cinemaverse outside Guild.
-2. Exercise the exact hosted URL and routes.
-3. Record bounded relative changed files, check outcomes, commit/PR, and preview URL.
-4. Report them to their stable Guild workstreams.
-5. Link requirements → design → architecture → implementation → tests → preview.
-6. Preserve Reported versus Link-verified provenance.
+Codex architecture note:
 
-**Complete when:** every narration claim in Scenes 5–8 has visible evidence.
+> Make every scene research branch independently cancellable, preserve completed evidence when a
+> sibling branch fails, and show the failed or blocked state on the canvas.
 
-### Phase 8 — Connected rehearsal
+Claude design note:
 
-1. Reset the dedicated Guild scenario.
-2. Confirm sign-in, WebMCP, Runner, Codex, Claude Sonnet, sections, capacity, and preview origin.
-3. Run the complete script at fast rehearsal pacing.
-4. Verify every click and assertion.
-5. Repeat from reset.
-6. Fix reproducible defects with focused tests in the owning repository.
-7. Repeat until the entire path passes twice consecutively.
+> Move this toward a restrained liquid-glass system: translucent surfaces, subtle blur, crisp
+> borders, and almost no gradients. Apply it consistently across all six screens while keeping
+> text, confidence, source freshness, and unresolved risks highly readable.
 
-**Complete when:** two uninterrupted rehearsals pass with no secrets, fake states, hidden repair, or
-unreadable UI.
+Optional overall instruction:
 
-### Phase 9 — Recording and assembly
-
-Follow `DEMO_VIDEO_SCRIPT.md` and the demo-video production workflow:
-
-1. record silent normal-speed footage;
-2. inspect frames and timing;
-3. lock the screen edit;
-4. record the presenter's face and eight narration segments;
-5. fit, normalize, and mux audio;
-6. selectively accelerate slow UI motion only when needed;
-7. export and inspect the normal master and final delivery; and
-8. play the final file end to end.
+> Keep the final result easy to scan at presentation zoom. Preserve exact source provenance,
+> explicit failure states, and human-owned decisions.
 
-**Complete when:** the delivered MP4 is readable, synchronized, truthful, and approximately 3:15.
-
-## 6. Handoff mechanics
-
-### Codex
-
-The orchestrating session sends:
-
-- Cinemaverse PRD;
-- Codex role prompt;
-- current source state;
-- original fixture;
-- accepted architecture/design packets;
-- exact scope and test gates;
-- Guild stable workstream keys and protocol; and
-- user decisions relevant to implementation.
-
-Architecture/backend work starts immediately. Final visual integration waits for approval.
-
-### Claude Code
-
-The orchestrating session starts Claude with `sonnet` in its bounded design environment and sends:
-
-- Cinemaverse PRD;
-- Version 1 design prompt;
-- six stable screens and original fixture;
-- interaction and accessibility requirements; and
-- publication/evidence output format.
-
-After Version 1, Claude stops. The user reviews. The Controller reads anchored Guild feedback and
-forwards it to Claude with the exact revision prompt. Claude publishes Version 2 and stops for
-human approval.
-
-### Guild reporting
-
-A normal coding CLI cannot call browser page WebMCP solely because a skill exists. Use one of:
-
-- a WebMCP-capable signed-in browser Controller for direct Guild reporting; or
-- the orchestrating Controller as an explicit relay for structured external engine output.
-
-Runner-launched Workers use the separate assignment-scoped MCP and remain canvas-only.
-
-## 7. Test matrix
-
-### Guild regression
-
-Run the existing Guild quality gate when Guild changes. Add focused tests for any rehearsal defect.
-Reverify the affected production browser path after deployment.
-
-### Cinemaverse unit and integration
-
-Cover:
-
-- screenplay parsing and extraction warnings;
-- research-task decomposition and state;
-- source/claim provenance and contradictions;
-- freshness and confidence derivation;
-- candidate scoring and hard blockers;
-- selected-context construction;
-- authorization and private projects;
-- idempotent writes and retry;
-- export data integrity; and
-- malicious document/web-content boundaries.
-
-### Cinemaverse browser acceptance
-
-Cover:
-
-- fixture import or load;
-- scene and requirement canvas;
-- pan, pinch/zoom, search, focus, expand, and minimap;
-- single/multi-selection and visible context chips;
-- candidate dossier and citations;
-- comparison and human decision;
-- bounded cited question;
-- persistence after refresh;
-- keyboard access, contrast, and reduced motion; and
-- hosted production smoke with clean console.
-
-## 8. Principal risks
-
-| Risk                                      | Mitigation                                                               |
-| ----------------------------------------- | ------------------------------------------------------------------------ |
-| Claude credits run low                    | One Sonnet workstream; one V1 and one bounded V2                         |
-| Live web research is slow or changes      | Accepted original fixture plus one bounded live follow-up                |
-| Codex and Claude overwrite the same files | Dedicated responsibilities/branches and approval-gated UI integration    |
-| Visual feedback loses context             | Forward immutable revision, route, viewport, geometry, crop, and comment |
-| CLI is assumed to have browser WebMCP     | Explicit Controller relay with honest provenance                         |
-| Demo documents drift again                | `DEMO_VIDEO_SCRIPT.md` is timing truth; this file is execution truth     |
-| Cinemaverse is mistaken for Guild code    | Separate repository, deployment, evidence, and product boundary          |
-| Reported evidence is mistaken as verified | Keep Reported and Link-verified labels visible                           |
-| Large live run misses recording timing    | Real checkpoint cuts; never fabricate progress                           |
-
-## 9. Completion criteria
-
-Demo preparation is complete only when:
-
-- the Cinemaverse vertical slice exists in its separate repository;
-- Claude Sonnet Version 1 has been reviewed by the user;
-- Version 2 addresses recorded feedback and has explicit human approval;
-- Codex integrates the approved design and passes documented checks;
-- Cinemaverse is deployed and exercised;
-- Guild displays stable workstreams, detailed artifacts, designs, feedback, approval, and bounded
-  evidence;
-- the final route passes twice from the clean baseline; and
-- the finished video passes visual, audio, duration, and truthfulness review.
+Open `Review & send`, verify the exact anchors and owner grouping, then press Send once. Confirm
+that Guild creates no more than one request for each owner. Adding drafts alone must not start an
+agent.
+
+## 10. Update and approval proof
+
+After dispatch:
+
+- the Codex architecture job reads the complete feedback batch, acknowledges it, revises the same
+  stable artifact, adds the cancellation/failure path, and marks the note addressed;
+- the Claude workstream reads the complete design packet, acknowledges it, publishes immutable V2,
+  and identifies addressed feedback; and
+- the human compares V1/V2 and approves V2 through Guild's authenticated decision UI.
+
+Approval is never inferred from a comment, an agent message, or a successful capture. The exact
+new-workspace approval receipt must exist.
+
+## 11. Product proof inside Guild
+
+Keep Guild chrome and Focus controls visible. Exercise the embedded Cinemaverse Research Canvas:
+
+1. pan and zoom;
+2. open one detailed location dossier;
+3. select one scene, two location candidates, and one permit finding;
+4. ask the bounded monsoon/permit-gap question from `DEMO_VIDEO_SCRIPT.md`;
+5. show the deterministic cited Markdown response; and
+6. save it as a connected artifact only if the verified path remains clean.
+
+Exit Focus back to Guild's full-project camera. The video ends on the six regions, semantic graph,
+human approval, activity, and reversible history—not on Cinemaverse alone.
+
+## 12. Verification and rehearsals
+
+Before recording, verify:
+
+- production deployment health and clean console;
+- correct account and workspace on both browser surfaces;
+- all 25 WebMCP Controller tools and `dispatch_feedback_batch` availability;
+- Runner online and both clients ready;
+- Claude engine pinned to Sonnet;
+- six region geometry, readable content, stable colors, glyphs, and state dots;
+- detailed Markdown reader and no unsolicited Inspector;
+- V1/V2 routes, iframe/bridge interaction, desktop and mobile captures;
+- annotation cursor, point/rectangle anchors, draft review, owner grouping, and one-send routing;
+- feedback acknowledgement, addressed state, comparison, approval, activity, and undo;
+- Cinemaverse selection-scoped answer and citations; and
+- zero secrets, personal data, notification banners, or unrelated windows in frame.
+
+Run the complete timed route twice consecutively from the reset-safe baseline. If either pass fails,
+fix or restage the problem and restart the two-pass count.
+
+## 13. Capture and assembly
+
+1. Record a clean 1920×1080 or 4K, 30 fps, normal-speed silent master.
+2. Follow the eight scenes and saved cameras in `DEMO_VIDEO_SCRIPT.md`.
+3. Hold important titles and summaries long enough to read.
+4. Use cuts across real waits; do not fake states or timestamps.
+5. Inspect representative frames from every scene and listen for accidental system audio.
+6. Record presenter face and narration after the screen timeline is locked.
+7. Assemble at natural narration speed; optionally accelerate only slow UI motion to 1.1×–1.2×.
+8. Export master, silent, and final delivery files; verify duration, resolution, frame rate, audio,
+   first/middle/last frames, and absence of secrets.
+
+The rejected recording and its support files are not source material.
+
+## 14. Completion
+
+The recording task is complete only when:
+
+- the new Cinemaverse workspace is preserved with its real evidence;
+- both rehearsals passed;
+- the clean silent master exists and passes visual inspection;
+- the final edit follows the approved story and keeps Guild primary;
+- all shown work and provenance are truthful;
+- output paths and technical media checks are documented; and
+- no required shot depends on the deleted/rejected capture.
