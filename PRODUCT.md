@@ -152,7 +152,11 @@ A task card can contain a title, rich description, checklist, status, assignee, 
 Rich descriptions use Markdown source and render headings, emphasis, lists, task lists, links,
 quotes, tables, inline code, fenced code blocks, dividers, and images. Raw HTML is ignored. Editing
 provides explicit Write and Preview modes; cards keep a bounded formatted preview while the full
-body remains available in the content editor.
+body remains available in the content editor. Double-clicking a content card, or choosing Open from
+its selection toolbar, opens a centered scrollable reading view with the complete body, checklist,
+and semantic metadata. That view provides compact Comment, Edit, and Advanced actions; plain text
+retains its direct double-click editing behavior, while design and evidence artifacts retain their
+dedicated Focus experience.
 
 ### 3. Wireframe mode
 

@@ -12,6 +12,19 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-03 (expandable detailed canvas content)
+
+- Ordinary content cards now open a centered, scrollable reading view on double-click. The same
+  action is keyboard-accessible through Open in the selected-object toolbar. Plain text retains
+  direct inline editing, and design/evidence artifacts retain their dedicated Focus dispatch.
+- The reader shows the complete lazy-loaded body as rich Markdown, task checklists, and semantic
+  metadata. Compact Comment, Edit, Advanced, and Close actions replace the need to scan the large
+  Inspector for ordinary reading; Edit reuses the existing revision-aware autosaving editor.
+- The modal traps keyboard focus, restores prior focus, closes with Escape or backdrop click, and
+  adapts its action controls for narrow screens. Red/green component coverage passed 4 focused
+  files / 18 tests plus strict TypeScript and zero-warning ESLint. Full gates, PR review, deployment,
+  and signed-in browser acceptance remain pending for this batch.
+
 ## Snapshot — 2026-09-03 (rich Markdown canvas content)
 
 - Textual canvas bodies now render safe GitHub-flavored Markdown: headings, emphasis, ordered and
