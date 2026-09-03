@@ -1,8 +1,8 @@
 'use client';
 
 import { useQuery } from 'convex/react';
-import { Bot, ChevronDown } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Bot, Braces, ChevronDown, Sparkles } from 'lucide-react';
+import { useMemo, useState, type CSSProperties } from 'react';
 
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
@@ -11,6 +11,19 @@ import { useCanvasInteractionStore } from '@/features/canvas/store';
 import type { CanvasWorkspaceActions, CanvasWorkspaceData } from '@/features/canvas/types';
 
 import styles from './canvas.module.css';
+
+export function AgentEngineIcon({ engine }: { engine: 'codex' | 'claude' }) {
+  const label = engine === 'claude' ? 'Claude Sonnet' : 'Codex';
+  return (
+    <span className={styles.agentEngineIcon} data-engine={engine} aria-label={label} title={label}>
+      {engine === 'claude' ? <Sparkles size={13} /> : <Braces size={13} />}
+    </span>
+  );
+}
+
+function readableStatus(status: string): string {
+  return status.replaceAll('_', ' ');
+}
 
 export function AgentDock({
   data,
@@ -40,9 +53,11 @@ export function AgentDock({
         dependencyJobIds: job.dependencyJobIds,
         artifactCount: data.objects.filter((object) => object.id === job.targetObjectId).length,
         updatedAt: 0,
+        identityColor:
+          data.roleProfiles.find((role) => role.id === job.roleProfileId)?.color ?? null,
       }),
     );
-  }, [data.jobs, data.objects, listed]);
+  }, [data.jobs, data.objects, data.roleProfiles, listed]);
   const counts = workstreamCounts(workstreams);
 
   return (
@@ -66,7 +81,11 @@ export function AgentDock({
             <li className={styles.mutedText}>No active workstreams.</li>
           ) : (
             workstreams.map((workstream) => (
-              <li key={workstream.id}>
+              <li
+                key={workstream.id}
+                className={styles.agentDockItem}
+                style={{ '--agent-color': workstream.identityColor } as CSSProperties}
+              >
                 <button
                   type="button"
                   className={styles.agentDockRow}
@@ -76,11 +95,24 @@ export function AgentDock({
                     }
                   }}
                 >
-                  <strong>
-                    {workstream.roleName} · {workstream.engineLabel}
-                  </strong>
-                  <span data-provenance={workstream.provenance}>{workstream.status}</span>
-                  <p>{workstream.latestProgress ?? workstream.objective}</p>
+                  <span className={styles.agentDockIdentity}>
+                    <AgentEngineIcon engine={workstream.engine} />
+                    <span>
+                      <strong>{workstream.roleName}</strong>
+                      <small>{workstream.engineLabel}</small>
+                    </span>
+                  </span>
+                  <span className={styles.agentStatus} data-status={workstream.status}>
+                    {readableStatus(workstream.status)}
+                  </span>
+                  {(workstream.latestProgress ?? workstream.objective) !== workstream.roleName ? (
+                    <p className={styles.agentProgress}>
+                      {workstream.latestProgress ?? workstream.objective}
+                    </p>
+                  ) : null}
+                  <small className={styles.agentProvenance} data-provenance={workstream.provenance}>
+                    {workstream.provenance === 'authoritative' ? 'Local Runner' : 'WebMCP reported'}
+                  </small>
                 </button>
                 {workstream.jobId && workstream.status === 'running' ? (
                   <button type="button" onClick={() => void actions.stopRun?.(workstream.runId!)}>

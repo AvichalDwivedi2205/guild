@@ -17,13 +17,16 @@ export type WorkstreamProjectionInput = {
   dependencyJobIds: readonly string[];
   artifactCount: number;
   updatedAt: number;
+  identityColor?: string | null;
 };
 
 export type WorkstreamView = {
   id: string;
   source: WorkstreamSource;
   roleName: string;
+  engine: LocalEngine;
   engineLabel: string;
+  identityColor: string;
   objective: string;
   status: string;
   provenance: WorkstreamProvenance;
@@ -42,6 +45,39 @@ export function engineLabel(engine: LocalEngine): string {
   return engine === 'claude' ? 'Claude Sonnet' : 'Codex';
 }
 
+const identityPalette = [
+  '#2563eb',
+  '#db2777',
+  '#059669',
+  '#7c3aed',
+  '#d97706',
+  '#dc2626',
+  '#0f766e',
+  '#9333ea',
+] as const;
+
+const stableRoleIdentityColors: Readonly<Record<string, string>> = {
+  'Product & Visual Designer': '#db2777',
+  'Agentic Systems Architect': '#7c3aed',
+  'Search & Evidence Engineer': '#2563eb',
+  'Backend & Data Engineer': '#059669',
+  'Canvas & Frontend Engineer': '#d97706',
+  'QA, Security & Evaluation Lead': '#dc2626',
+};
+
+export function workstreamIdentityColor(
+  engine: LocalEngine,
+  roleName: string,
+  explicitColor?: string | null,
+): string {
+  if (explicitColor && /^#[0-9a-f]{6}$/i.test(explicitColor)) return explicitColor;
+  const stableRoleColor = stableRoleIdentityColors[roleName];
+  if (stableRoleColor) return stableRoleColor;
+  let hash = engine === 'claude' ? 17 : 0;
+  for (const character of roleName) hash = (hash * 31 + character.charCodeAt(0)) >>> 0;
+  return identityPalette[hash % identityPalette.length] ?? '#2563eb';
+}
+
 export function projectRunnerWorkstream(input: WorkstreamProjectionInput): WorkstreamView {
   const waiting = input.waitingForRunner && input.state === 'queued';
   const status = waiting ? 'waiting_for_runner' : input.state;
@@ -49,7 +85,9 @@ export function projectRunnerWorkstream(input: WorkstreamProjectionInput): Works
     id: input.id,
     source: 'runner_job',
     roleName: input.roleName,
+    engine: input.engine,
     engineLabel: engineLabel(input.engine),
+    identityColor: workstreamIdentityColor(input.engine, input.roleName, input.identityColor),
     objective: input.brief?.trim() || input.progressMessage || input.roleName,
     status,
     provenance: 'authoritative',

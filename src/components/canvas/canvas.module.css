@@ -606,8 +606,8 @@
 }
 
 .nodeKicker {
-  color: color-mix(in srgb, currentColor 55%, transparent);
-  font-size: 9px;
+  color: color-mix(in srgb, currentColor 82%, transparent);
+  font-size: 10px;
   font-weight: 760;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2027,30 +2027,40 @@
   position: absolute;
   top: -19px;
   left: -1px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   padding: 3px 6px;
+  color: var(--canvas-ink);
+  background: var(--canvas-panel-solid);
+  border: 1px solid;
   border-radius: 5px 5px 5px 0;
-  color: #161512;
+  box-shadow: var(--shadow-1);
   font-size: 8px;
   font-weight: 750;
   white-space: nowrap;
 }
 
 .collaboratorCursor > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   margin: 15px 0 0 -2px;
   padding: 4px 6px;
+  color: var(--canvas-ink);
+  background: var(--canvas-panel-solid);
+  border: 1px solid;
   border-radius: 0 6px 6px 6px;
-  color: #161512;
+  box-shadow: var(--shadow-1);
   font-size: 8px;
   font-weight: 750;
   white-space: nowrap;
 }
 
-.collaboratorCursor[data-kind='worker'] > span::before {
-  margin-right: 4px;
-  content: 'Worker';
-  font-size: 7px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+.collaboratorSelection .agentEngineIcon,
+.collaboratorCursor .agentEngineIcon {
+  width: 16px;
+  height: 16px;
 }
 
 .node {
@@ -2100,6 +2110,11 @@
 }
 
 .node[data-node-type='mindMapNode'] {
+  display: flex;
+  padding-block: clamp(24px, 10%, 72px);
+  padding-inline: clamp(40px, 14%, 140px);
+  flex-direction: column;
+  justify-content: center;
   border-width: 2px;
   border-radius: 999px;
 }
@@ -2110,12 +2125,26 @@
 
 .node[data-node-type='shape'][data-variant='circle'] {
   display: grid;
+  padding: clamp(36px, 18%, 128px);
   place-content: center;
   border-radius: 50%;
 }
 
 .node[data-node-type='shape'][data-variant='pill'] {
+  display: flex;
+  padding-block: clamp(24px, 10%, 72px);
+  padding-inline: clamp(40px, 14%, 140px);
+  flex-direction: column;
+  justify-content: center;
   border-radius: 999px;
+}
+
+.node[data-node-type='mindMapNode'] .nodeTitle,
+.node[data-node-type='shape'][data-variant='circle'] .nodeTitle,
+.node[data-node-type='shape'][data-variant='pill'] .nodeTitle {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
 }
 
 .node[data-family='container'] {
@@ -2145,7 +2174,7 @@
 .nodeTitle {
   margin: 5px 0 0;
   overflow: hidden;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2156,10 +2185,17 @@
   display: -webkit-box;
   margin: 7px 0 0;
   overflow: hidden;
-  font-size: 10px;
-  line-height: 1.4;
+  font-size: 11px;
+  line-height: 1.45;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 5;
+}
+
+.node[data-node-type='mindMapNode'] .nodeBody,
+.node[data-node-type='shape'][data-variant='circle'] .nodeBody,
+.node[data-node-type='shape'][data-variant='pill'] .nodeBody {
+  font-size: 12px;
+  -webkit-line-clamp: 6;
 }
 
 .textNode {
@@ -2625,20 +2661,130 @@
 }
 
 .agentDockList {
+  max-height: min(560px, 62vh);
   margin: 0;
   padding: 0 10px 10px;
+  overflow-y: auto;
   list-style: none;
 }
 
-.agentDockRow {
-  flex-direction: column;
-  align-items: flex-start;
+.agentDockItem {
+  position: relative;
+  margin-top: 7px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--agent-color) 7%, var(--canvas-panel-solid));
+  border: 1px solid color-mix(in srgb, var(--agent-color) 44%, var(--canvas-line));
+  border-left: 4px solid var(--agent-color);
   border-radius: 10px;
 }
 
-.agentDockRow span[data-provenance='authoritative'] {
+.agentDockRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  border-radius: 10px;
+}
+
+.agentDockIdentity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.agentDockIdentity > span:last-child {
+  display: grid;
+  min-width: 0;
+}
+
+.agentDockIdentity strong,
+.agentDockIdentity small,
+.agentProgress {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agentDockIdentity strong {
   font-size: 12px;
+}
+
+.agentDockIdentity small,
+.agentProvenance {
   color: var(--canvas-muted);
+  font-size: 9px;
+}
+
+.agentEngineIcon {
+  --engine-color: #10a37f;
+  display: inline-grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  color: var(--engine-color);
+  background: color-mix(in srgb, var(--engine-color) 14%, var(--canvas-panel-solid));
+  border: 1px solid color-mix(in srgb, var(--engine-color) 62%, var(--canvas-line));
+  border-radius: 7px;
+  place-items: center;
+}
+
+.agentEngineIcon[data-engine='claude'] {
+  --engine-color: #d97757;
+}
+
+.agentStatus {
+  --status-color: #7b756b;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--canvas-muted);
+  font-size: 9px;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.agentStatus::before {
+  width: 7px;
+  height: 7px;
+  background: var(--status-color);
+  border-radius: 50%;
+  content: '';
+}
+
+.agentStatus[data-status='running'],
+.agentStatus[data-status='leased'],
+.agentStatus[data-status='reported'] {
+  --status-color: #10a36f;
+}
+
+.agentStatus[data-status='queued'],
+.agentStatus[data-status='waiting_for_runner'],
+.agentStatus[data-status='blocked_by_dependency'] {
+  --status-color: #d28b17;
+}
+
+.agentStatus[data-status='failed'],
+.agentStatus[data-status='stale'],
+.agentStatus[data-status='cancelled'] {
+  --status-color: #d14d41;
+}
+
+.agentStatus[data-status='completed'] {
+  --status-color: #6955d9;
+}
+
+.agentProgress {
+  grid-column: 1 / -1;
+  width: 100%;
+  margin: 7px 0 0;
+  color: var(--canvas-ink);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.agentProvenance {
+  grid-column: 1 / -1;
+  margin-top: 3px;
 }
 
 @media (max-width: 1120px) {
