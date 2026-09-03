@@ -27,6 +27,17 @@ Status vocabulary:
   interactions, and loaded Home at 390×844; visual inspection of the 1440px Home capture passed.
   Publishing the new fixture revision and its six-screen capture set remains pending.
 
+## Snapshot — 2026-09-03 (completion-branch clean gates)
+
+- `bun run check` passed formatting, zero-warning ESLint, strict TypeScript, 60 application test
+  files / 199 tests, protocol build/typecheck, and Runner typecheck.
+- `bun run runner:test` passed 12 files / 40 tests; `bun run runner:build` passed; the Next.js
+  16.3.4 production build passed across every application and Runner route; `bun audit` reported no
+  vulnerabilities.
+- These are local branch results. PR review, Convex production deploy, Vercel production deploy,
+  authenticated desktop/mobile browser execution, native WebMCP replay, and the six-screen hosted
+  preview publication remain required before completion.
+
 ## Snapshot — 2026-09-03 (connected browser acceptance matrix)
 
 - Added one serial, cleanup-safe Playwright matrix for the 24-point final acceptance flow. It now
