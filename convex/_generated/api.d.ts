@@ -29,6 +29,7 @@ import type * as lib_jobLifecycle from '../lib/jobLifecycle.js';
 import type * as lib_policies from '../lib/policies.js';
 import type * as lib_projection from '../lib/projection.js';
 import type * as lib_recorder from '../lib/recorder.js';
+import type * as lib_roleOwnership from '../lib/roleOwnership.js';
 import type * as lib_runLifecycle from '../lib/runLifecycle.js';
 import type * as lib_runnerAuth from '../lib/runnerAuth.js';
 import type * as migrations from '../migrations.js';
@@ -71,6 +72,7 @@ declare const fullApi: ApiFromModules<{
   'lib/policies': typeof lib_policies;
   'lib/projection': typeof lib_projection;
   'lib/recorder': typeof lib_recorder;
+  'lib/roleOwnership': typeof lib_roleOwnership;
   'lib/runLifecycle': typeof lib_runLifecycle;
   'lib/runnerAuth': typeof lib_runnerAuth;
   migrations: typeof migrations;
