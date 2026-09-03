@@ -12,6 +12,97 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-04 (stable agent identities and existing Cinemaverse V2)
+
+- Guild now separates three truths in every visible workstream: a stable Role name and accent for
+  ownership, a compact engine glyph for Codex or Claude Sonnet, and an independent dot for current
+  execution state. The six Cinemaverse demo responsibilities use deterministic, distinct accents;
+  Runner Jobs preserve their configured Role Profile color, while reported workstreams derive a
+  stable fallback from engine and role.
+- The active-worker canvas overlay and Agent dock show the same identity without exposing private
+  subagent dialogue. Focused component/domain coverage proves all six names, distinct accents,
+  Codex/Claude glyphs, progress copy, provenance, and status separation. The complete Guild gate
+  passed 61 application files / 206 tests, formatting, zero-warning lint, strict TypeScript,
+  protocol build/typecheck, and Runner typecheck; Runner tests passed 12 files / 42 tests, and both
+  Runner and Next.js production builds passed.
+- Convex production deployed successfully to `befitting-bird-666` with schema validation and no
+  deleted indexes. Vercel deployment `dpl_4vPtkLV4ged1cyJBSM6tMb7yyt7o` reached Ready on
+  `https://guild-rose-two.vercel.app`.
+- Signed-in native WebMCP resolved the existing `cinemaverse-demo` design set instead of creating a
+  duplicate. It contains immutable Version 1 and Version 2 revisions at
+  `https://cinemaverse-two.vercel.app`; all six stable screens have ready desktop and mobile
+  captures on both revisions. Version 2 is the restrained liquid-glass revision. Human approval is
+  still pending, so a third Claude pass is neither needed nor permitted unless new user feedback
+  requests one.
+- `CINEMAVERSE_AGENT_HANDOFF.md`, `DEMO_VIDEO_SCRIPT.md`, and
+  `DEMO_IMPLEMENTATION_PROMPT.md` now carry the exact six stable names, workstream keys, engines,
+  accents, detailed-content contract, and resume-safe rule. A new session must reuse the existing
+  Version 1/Version 2 evidence, conserve Claude Pro credits, and run two complete rehearsals rather
+  than regenerate the design.
+- Native WebMCP advanced all six stable Cinemaverse workstreams through truthful sequence updates
+  to `Completed`, preserving the same Role names and engine identities. Two deterministic browser
+  rehearsals passed the landing, Agent dock, owned-artifact selection, expanded Markdown, embedded
+  interaction, region feedback composer, Version 1/Version 2 comparison, responsive viewport,
+  selection-aware cited answer, and save-to-canvas paths. The only intentionally pending demo
+  decision is the authenticated human approval of one immutable design revision; the agent did not
+  fabricate that decision.
+
+## Snapshot — 2026-09-03 (recording-quality copy and rounded-node readability)
+
+- Defined a concrete two-level content contract for the Cinemaverse recording: every visible canvas
+  card carries a meaningful two-to-three-sentence project summary, while double-click opens the
+  complete Markdown explanation with objective, inputs, execution, failure behavior, outputs,
+  human decision boundary, and acceptance criteria. The exact architecture example is now part of
+  `CINEMAVERSE_AGENT_HANDOFF.md`, the new-session execution prompt, and the timed video script.
+- Replaced the video introduction with a concise description of Cinemaverse as a screenplay-driven
+  location, permit, weather, logistics, cost, risk, and evidence research product. The recording
+  script explicitly rejects generic placeholder copy such as `Watch work`.
+- Rounded pills, circles, and mind-map nodes now center content within an inset safe area instead of
+  allowing copy to sit behind curved edges. Rounded titles wrap, summaries may show six lines, and
+  kicker/title/body sizing and contrast are stronger for dark palette nodes.
+- Verification passed the two focused renderer/style files with 9 tests, then the complete Guild
+  gate: formatting, zero-warning lint, strict TypeScript, 61 files / 204 tests, protocol build and
+  typecheck, and Runner typecheck. Vercel production deployment
+  `dpl_5ngaUvazWY9R5tF5iWpEpd2biovC` reached Ready on the stable alias. Signed-in production
+  inspection of the exact `4 · Watch work` mind-map node confirmed the kicker, wrapped title, and
+  body remain visibly inside the rounded safe area without edge clipping.
+
+## Planning snapshot — 2026-09-03 (final Guild × Cinemaverse video script)
+
+- Replaced the obsolete movie-discovery demo narrative with the actual Cinemaverse product:
+  screenplay decomposition, parallel source-grounded location research, evidence, permits,
+  logistics, risks, decisions, and a domain-specific infinite canvas.
+- `DEMO_VIDEO_SCRIPT.md` now defines the final 3:15 timeline, exact narration, visible actions and
+  assertions, six bounded Claude Sonnet/Codex workstreams, prompts, demo fixture, pre-recording
+  gates, presenter/Codex recording responsibilities, editing rules, fallbacks, and deliverables.
+- Reconciled `DEMO_FEATURES_AND_UX_PLAN.md`, `DEMO_IMPLEMENTATION_PLAN.md`, and
+  `DEMO_IMPLEMENTATION_PROMPT.md` with the screenplay-research product and current accepted Guild
+  state, removing the stale instruction to reimplement already completed Guild demo phases.
+- Added `CINEMAVERSE_AGENT_HANDOFF.md` as the exact shared context and role-specific contract for
+  Codex, Claude Sonnet Version 1, user-owned anchored feedback, Claude Version 2, approved-design
+  transfer, Controller relay, evidence, and completion.
+- Final review beats now use a neutral Claude Version 1 followed by one prepared restrained
+  liquid-glass direction, plus one Codex architecture comment covering independent research-branch
+  cancellation, partial-evidence preservation, and visible failure state.
+- This is planning evidence only. Guild is demo-ready, but final recording remains gated on the
+  separate Cinemaverse repository gaining a working vertical slice and hosted design revisions.
+
+## Snapshot — 2026-09-03 (in-depth Guild agent skills)
+
+- Expanded the repository-owned `guild-webmcp-controller` skill into a routed operating manual for
+  all 24 browser WebMCP tools, including exact tool purposes and limits, canvas placement and
+  revision discipline, Team Run control, immutable design publication, external Codex/Claude
+  workstreams, visual feedback, bounded evidence, provenance, idempotency, and verification.
+- Expanded `guild-canvas-worker` for the seven assignment-scoped Runner tools. Codex and Claude
+  Sonnet now receive its essential context, feedback, stable-key, Markdown, relationship,
+  publication, receipt, and completion rules directly in the generated assignment prompt.
+- `AGENTS.md` makes the correct protocol discoverable to manual Codex and Claude sessions while
+  preserving the architecture boundary: browser Controllers use page WebMCP; Runner Workers use
+  ephemeral local MCP; reading a skill does not create an unsupported public CLI connection.
+- Evidence: both skill packages pass the repository skill validator; the focused Runner prompt and
+  canvas-boundary suite passes 7 tests; `bun run check` passes formatting, lint, app/protocol/Runner
+  typechecks, and all 203 repository tests.
+
 ## Snapshot — 2026-09-03 (expandable detailed canvas content)
 
 - Ordinary content cards now open a centered, scrollable reading view on double-click. The same
@@ -1106,7 +1197,29 @@ CI and production proof:
       have automated coverage.
 - [x] A deterministic judge/demo scenario and durable production evidence exist.
 - [x] Setup, controller/Worker skills, WebMCP protocol, demo flow, and handoff material are tracked.
-- [ ] Record the narrated demo only when the user starts the separate recording phase.
+- [x] The user started the separate recording phase; Cinemaverse Version 1 and the Guild
+      orchestration board are prepared.
+- [ ] Add the visible architecture and visual-design review comments, publish Claude Sonnet
+      Version 2, then capture the clean silent master.
+
+## Demo production evidence — 3 September 2026
+
+- The separate `cinemaverse` project now has a detailed PRD, five Codex implementation contracts,
+  one Claude Sonnet design brief, and a working six-route Next.js vertical slice.
+- The research canvas supports trackpad pan, pinch zoom, semantic edges, minimap, double-click
+  detailed Markdown, multi-selection, a selection-bounded synthesis, and a saved research artifact.
+- The local full gate passed: formatting, ESLint, TypeScript, 4 unit/component tests, and the
+  production build. Two consecutive desktop/mobile Playwright rehearsals passed the same demo path
+  with 7 passed and one intentionally skipped duplicate mobile accessibility audit per run.
+- Claude Code Sonnet completed the neutral Version 1 pass. Fable was not used. The pass preserved
+  behavior and improved working-zoom label legibility.
+- Vercel deployment `dpl_Cuzm3NvPHjUi11Lm3PoTVh6ujVWo` is Ready at
+  `https://cinemaverse-two.vercel.app`; all six routes returned HTTP 200 and the hosted selection
+  flow produced the detailed answer.
+- Signed-in WebMCP created the dedicated Cinemaverse demo section, six detailed expandable agent
+  artifacts, six reported external workstreams, and immutable visual design revision 1. Chrome
+  showed all six active rows through realtime state; the WebMCP controller remains the in-app
+  browser because the external Chrome surface reports WebMCP unavailable.
 
 ## Completion rule
 
