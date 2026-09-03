@@ -138,7 +138,9 @@ export class GuildRunner {
             fencingToken: task.fencingToken,
             error: result.error,
           });
+          continue;
         }
+        await this.#cloud.uploadCapture(this.#runnerToken, task, result);
       }
     } catch (error) {
       this.#log('warn', `Capture poll failed: ${errorMessage(error, [this.#runnerToken])}`);

@@ -113,6 +113,27 @@ export type PollRequest = {
   progress: readonly WorkerProgress[];
 };
 
+export const captureAssignmentSchema = z.object({
+  taskId: z.string().min(1).max(200),
+  workspaceId: z.string().min(1).max(200),
+  designRevisionId: z.string().min(1).max(200),
+  designScreenRevisionId: z.string().min(1).max(200),
+  screenKey: z.string().min(1).max(200),
+  route: z.string().min(1).max(500),
+  captureUrl: httpsOrLoopbackUrlSchema,
+  origin: httpsOrLoopbackUrlSchema,
+  viewportKey: z.enum(['desktop', 'mobile']),
+  viewport: z.object({
+    width: z.number().int().positive().max(8_192),
+    height: z.number().int().positive().max(8_192),
+  }),
+  attempt: z.number().int().positive(),
+  fencingToken: z.number().int().nonnegative(),
+  capabilityToken: z.string().min(16).max(4_096),
+  expiresAt: z.number().positive(),
+});
+export type CaptureAssignment = z.infer<typeof captureAssignmentSchema>;
+
 export type PairingStart = {
   pairingId: string;
   deviceCode: string;

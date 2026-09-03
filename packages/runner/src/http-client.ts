@@ -1,10 +1,14 @@
+import { createHash } from 'node:crypto';
 import { z } from 'zod';
+import { assertSafeCaptureUrl, type CaptureResult } from './capture/index.js';
 import { errorMessage, safeStatusMessage } from './redaction.js';
 import {
+  captureAssignmentSchema,
   engineReportSchema,
   pollResponseSchema,
   type Assignment,
   type AssignmentCompletion,
+  type CaptureAssignment,
   type EngineReport,
   type PairingExchange,
   type PairingStart,
@@ -25,6 +29,22 @@ const pairingExchangeSchema = z.object({
   runnerId: z.string().min(1).max(200),
   runnerToken: z.string().min(32).max(4096),
 });
+
+const captureClaimSchema = z.object({
+  tasks: z.array(captureAssignmentSchema).max(4),
+});
+
+const captureUploadIntentSchema = z.object({
+  intentId: z.string().min(1).max(200),
+  uploadUrl: z.string().url(),
+  expiresAt: z.number().positive(),
+});
+
+const storageUploadSchema = z.object({
+  storageId: z.string().min(1).max(200),
+});
+
+type SuccessfulCapture = Extract<CaptureResult, { ok: true }>;
 
 type Fetch = typeof globalThis.fetch;
 const MAX_RESPONSE_BYTES = 2_000_000;
@@ -111,13 +131,63 @@ export class GuildCloudClient {
   async claimCaptures(
     token: string,
     capacity: number,
-  ): Promise<{ tasks: readonly Record<string, unknown>[] }> {
-    const result = await this.#request('/api/runner/captures', {
+  ): Promise<{ tasks: readonly CaptureAssignment[] }> {
+    return captureClaimSchema.parse(
+      await this.#request('/api/runner/captures', {
+        method: 'POST',
+        token,
+        body: JSON.stringify({ action: 'claim', capacity }),
+      }),
+    );
+  }
+
+  async uploadCapture(
+    token: string,
+    task: CaptureAssignment,
+    capture: SuccessfulCapture,
+  ): Promise<unknown> {
+    const authority = {
+      taskId: task.taskId,
+      capabilityToken: task.capabilityToken,
+      attempt: task.attempt,
+      fencingToken: task.fencingToken,
+    };
+    const intent = captureUploadIntentSchema.parse(
+      await this.#request('/api/runner/captures', {
+        method: 'POST',
+        token,
+        body: JSON.stringify({
+          action: 'begin_upload',
+          ...authority,
+          byteSize: capture.bytes.byteLength,
+        }),
+      }),
+    );
+    const uploadOrigin = new URL(intent.uploadUrl).origin;
+    const validatedUpload = await assertSafeCaptureUrl(intent.uploadUrl, uploadOrigin);
+    const uploadResponse = await this.#uploadBytes(
+      validatedUpload.url,
+      capture.bytes,
+      capture.mime,
+    );
+    const stored = storageUploadSchema.parse(await this.#readResponse(uploadResponse));
+    const checksum = createHash('sha256').update(capture.bytes).digest('hex');
+    return await this.#request('/api/runner/captures', {
       method: 'POST',
       token,
-      body: JSON.stringify({ action: 'claim', capacity }),
+      body: JSON.stringify({
+        action: 'complete_upload',
+        ...authority,
+        intentId: intent.intentId,
+        storageId: stored.storageId,
+        checksum,
+        byteSize: capture.bytes.byteLength,
+        width: capture.width,
+        height: capture.height,
+        mime: capture.mime,
+        altText: `${task.screenKey} ${task.viewportKey} preview`,
+      }),
     });
-    return result as { tasks: readonly Record<string, unknown>[] };
   }
 
   async completeCapture(token: string, payload: Record<string, unknown>): Promise<unknown> {
@@ -217,6 +287,26 @@ export class GuildCloudClient {
     } finally {
       clearTimeout(timeout);
       input.signal?.removeEventListener('abort', abort);
+    }
+  }
+
+  async #uploadBytes(url: URL, bytes: Uint8Array, mime: string): Promise<Response> {
+    const controller = new AbortController();
+    const body = new ArrayBuffer(bytes.byteLength);
+    new Uint8Array(body).set(bytes);
+    const timeout = setTimeout(() => controller.abort('Capture upload timed out'), this.#timeoutMs);
+    try {
+      return await this.#fetch(url, {
+        method: 'POST',
+        redirect: 'error',
+        signal: controller.signal,
+        headers: { 'content-type': mime },
+        body,
+      });
+    } catch (error) {
+      throw new Error(`Capture upload failed: ${errorMessage(error, [url.toString()])}`);
+    } finally {
+      clearTimeout(timeout);
     }
   }
 

@@ -15,7 +15,91 @@ import { assignment } from './fixtures.js';
 
 const fakeClaude = fileURLToPath(new URL('./fixtures/fake-claude.mjs', import.meta.url));
 
+const capturePreviewScreen = vi.hoisted(() => vi.fn());
+
+vi.mock('../../packages/runner/src/capture/index.js', () => ({ capturePreviewScreen }));
+
 describe('Runner loop', () => {
+  it('uploads and completes a successful preview capture', async () => {
+    const controller = new AbortController();
+    const captureTask = {
+      taskId: 'capture_1',
+      workspaceId: 'workspace_1',
+      designRevisionId: 'revision_1',
+      designScreenRevisionId: 'screen_revision_1',
+      screenKey: 'landing',
+      captureUrl: 'https://preview.example.com/',
+      origin: 'https://preview.example.com',
+      viewportKey: 'desktop',
+      attempt: 1,
+      fencingToken: 2,
+      capabilityToken: 'capture_capability_token',
+    };
+    capturePreviewScreen.mockResolvedValueOnce({
+      ok: true,
+      mime: 'image/png',
+      width: 1440,
+      height: 900,
+      bytes: new Uint8Array([137, 80, 78, 71]),
+    });
+    let captureSent = false;
+    const uploadCapture = vi.fn(async () => {
+      controller.abort('capture complete');
+    });
+    const cloud = {
+      poll: vi.fn(async (): Promise<PollResponse> => ({
+        serverTime: new Date().toISOString(),
+        activeRun: false,
+        assignments: [],
+        cancellations: [],
+        leaseRenewals: [],
+      })),
+      claimCaptures: vi.fn(async () => {
+        if (captureSent) return { tasks: [] };
+        captureSent = true;
+        return { tasks: [captureTask] };
+      }),
+      uploadCapture,
+      failCapture: vi.fn(),
+    } as unknown as GuildCloudClient;
+    const schedule = {
+      nextDelay: () => 5,
+      reset: () => undefined,
+    } as unknown as AdaptivePollSchedule;
+    const timeout = setTimeout(() => controller.abort('test timeout'), 100);
+    const runner = new GuildRunner({
+      config: createRunnerConfig({
+        cloudUrl: 'https://guild.test',
+        runnerName: 'Test Runner',
+        concurrency: 1,
+      }),
+      cloud,
+      runnerToken: `runner_${'r'.repeat(48)}`,
+      engines: [],
+      schedule,
+    });
+
+    await runner.run(controller.signal);
+    clearTimeout(timeout);
+
+    expect(capturePreviewScreen).toHaveBeenCalledWith({
+      captureUrl: captureTask.captureUrl,
+      origin: captureTask.origin,
+      viewportKey: captureTask.viewportKey,
+      allowLoopback: true,
+    });
+    expect(uploadCapture).toHaveBeenCalledWith(
+      `runner_${'r'.repeat(48)}`,
+      captureTask,
+      expect.objectContaining({
+        mime: 'image/png',
+        width: 1440,
+        height: 900,
+        bytes: expect.any(Uint8Array),
+      }),
+    );
+  });
+
   it('never exceeds configured concurrency and terminates cancelled assignments', async () => {
     await chmod(fakeClaude, 0o755);
     const controller = new AbortController();
