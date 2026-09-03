@@ -141,6 +141,15 @@ export function convexEngineReports(engines: readonly z.output<typeof publicEngi
 
 export function routeError(error: unknown): Response {
   const message = error instanceof Error ? error.message : '';
+  const conflictCode = [
+    'revision_conflict',
+    'outside_reserved_region',
+    'reservation_collision',
+    'reservation_full',
+  ].find((code) => message.includes(code));
+  if (conflictCode) {
+    return Response.json({ error: conflictCode }, { status: 409 });
+  }
   if (/request_too_large/.test(message)) {
     return Response.json({ error: 'request_too_large' }, { status: 413 });
   }

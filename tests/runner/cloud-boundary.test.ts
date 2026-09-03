@@ -5,6 +5,7 @@ import {
   convexEngineReports,
   parseBody,
   pairingStartBodySchema,
+  routeError,
 } from '@/server/runner-cloud';
 
 describe('Runner cloud boundary', () => {
@@ -56,5 +57,12 @@ describe('Runner cloud boundary', () => {
       runnerName: 'Laptop',
       concurrency: 3,
     });
+  });
+
+  it('preserves bounded Worker conflict codes at the HTTP boundary', async () => {
+    const response = routeError(new Error('reservation_collision'));
+
+    expect(response.status).toBe(409);
+    await expect(response.json()).resolves.toEqual({ error: 'reservation_collision' });
   });
 });

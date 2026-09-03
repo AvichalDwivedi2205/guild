@@ -54,6 +54,16 @@ type WorkspaceContext = {
   runs: ContextRun[];
 };
 
+type ProtocolAssignment = {
+  jobId: string;
+  runId: string;
+  attempt: number;
+  fencingToken: number;
+  assignmentToken: string;
+  mcpEndpoint: string;
+  expectedArtifactTypes: string[];
+};
+
 const acceptanceTeamName = `Guild acceptance pair ${Date.now()}`;
 
 async function workspaceContext(page: Page) {
@@ -77,6 +87,15 @@ async function deleteObjects(page: Page, objects: ContextObject[]) {
       })),
     });
   }
+}
+
+function assignmentHeaders(assignment: ProtocolAssignment) {
+  return {
+    authorization: `Bearer ${assignment.assignmentToken}`,
+    'x-guild-job-id': assignment.jobId,
+    'x-guild-attempt': String(assignment.attempt),
+    'x-guild-fencing-token': String(assignment.fencingToken),
+  };
 }
 
 test('protected workspace sends a signed-out browser to WorkOS', async ({ browser }) => {
@@ -556,6 +575,229 @@ test.describe.serial('Guild connected acceptance matrix', () => {
     await page.getByRole('button', { name: 'Runs & Jobs' }).click();
     const runCard = page.getByText(brief, { exact: true }).locator('..');
     await expect(runCard.getByText('cancelled', { exact: true })).toBeVisible();
+  });
+
+  test('pairs a Runner through the real protocol and rejects a Worker collision', async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== 'chromium', 'Protocol flow runs once on desktop Chromium.');
+    test.skip(
+      process.env.GUILD_E2E_RUNNER_PROTOCOL !== '1',
+      'Requires explicit permission to pair and revoke an acceptance Runner.',
+    );
+    await page.goto(workspacePath!);
+    const runnerName = `Guild protocol acceptance ${Date.now()}`;
+    let runnerId: string | null = null;
+    let runId: string | null = null;
+    let humanObjectId: string | null = null;
+    let workerObjectId: string | null = null;
+    let assignment: ProtocolAssignment | null = null;
+    try {
+      const pairingResponse = await page.request.post('/api/runner/pairings', {
+        data: {
+          runnerName,
+          concurrency: 1,
+          engines: [{ engine: 'codex', status: 'available', version: 'acceptance-protocol' }],
+        },
+      });
+      expect(pairingResponse.ok()).toBe(true);
+      const pairing = (await pairingResponse.json()) as {
+        pairingId: string;
+        deviceCode: string;
+        userCode: string;
+        verificationUrl: string;
+      };
+
+      await page.goto(pairing.verificationUrl);
+      await expect(page.getByRole('heading', { name: 'Pair Guild Runner' })).toBeVisible();
+      await expect(page.getByLabel('Pairing code')).toHaveValue(pairing.userCode);
+      await page.getByRole('button', { name: 'Approve Runner' }).click();
+      await expect(page.getByText(/Runner approved/)).toBeVisible();
+
+      const exchangeResponse = await page.request.post('/api/runner/pairings/exchange', {
+        data: { pairingId: pairing.pairingId, deviceCode: pairing.deviceCode },
+      });
+      expect(exchangeResponse.ok()).toBe(true);
+      const exchange = (await exchangeResponse.json()) as {
+        runnerId: string;
+        runnerToken: string;
+      };
+      runnerId = exchange.runnerId;
+
+      const poll = async () => {
+        const response = await page.request.post('/api/runner/poll', {
+          headers: { authorization: `Bearer ${exchange.runnerToken}` },
+          data: {
+            runnerVersion: 'acceptance-protocol',
+            configuredConcurrency: 1,
+            freeCapacity: 1,
+            engines: [{ engine: 'codex', status: 'available', version: 'acceptance-protocol' }],
+            activeAssignments: [],
+            progress: [],
+          },
+        });
+        expect(response.ok()).toBe(true);
+        return (await response.json()) as { assignments: ProtocolAssignment[] };
+      };
+      await poll();
+
+      await page.goto(workspacePath!);
+      const runnerStatus = await callWebMcp<{
+        runners: Array<{ _id: string; name: string; status: string }>;
+      }>(page, 'get_runner_status', { workspaceId });
+      expect(runnerStatus.runners).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ _id: runnerId, name: runnerName, status: 'online' }),
+        ]),
+      );
+
+      const before = await workspaceContext(page);
+      const role = before.roles.find(
+        (candidate) => candidate.engine === 'codex' && candidate.ownedSectionId,
+      );
+      expect(role).toBeTruthy();
+      const routed = await callWebMcp<{ state: string }>(page, 'add_comment', {
+        workspaceId,
+        target: { kind: 'object', objectId: role!.ownedSectionId },
+        body: `Run the bounded collision acceptance ${acceptanceKey('collision')}.`,
+        idempotencyKey: acceptanceKey('collision-comment'),
+      });
+      expect(routed.state).toBe('queued');
+      await expect
+        .poll(async () => {
+          const current = await workspaceContext(page);
+          return current.runs.find(
+            (candidate) => !before.runs.some((existing) => existing.run._id === candidate.run._id),
+          )?.run._id;
+        })
+        .toBeTruthy();
+      const afterRoute = await workspaceContext(page);
+      runId = afterRoute.runs.find(
+        (candidate) => !before.runs.some((existing) => existing.run._id === candidate.run._id),
+      )!.run._id;
+
+      const leased = await poll();
+      expect(leased.assignments).toHaveLength(1);
+      assignment = leased.assignments[0]!;
+      expect(assignment.runId).toBe(runId);
+      expect(assignment.expectedArtifactTypes).toContain('sticky');
+
+      const workerContextResponse = await page.request.post(assignment.mcpEndpoint, {
+        headers: assignmentHeaders(assignment),
+        data: { tool: 'get_workspace_context', arguments: { limit: 200 } },
+      });
+      expect(workerContextResponse.ok()).toBe(true);
+      const workerContext = (await workerContextResponse.json()) as {
+        assignment: {
+          reservedRegion: { x: number; y: number; width: number; height: number };
+        };
+      };
+      const region = workerContext.assignment.reservedRegion;
+
+      const workerCreateResponse = await page.request.post(assignment.mcpEndpoint, {
+        headers: assignmentHeaders(assignment),
+        data: {
+          tool: 'apply_canvas_changes',
+          arguments: {
+            idempotencyKey: acceptanceKey('worker-create'),
+            commands: [
+              {
+                type: 'create_object',
+                objectType: 'sticky',
+                title: 'Worker collision probe',
+                content: { text: 'Worker-owned acceptance object' },
+                size: { width: 240, height: 144 },
+                logicalKey: acceptanceKey('worker-object'),
+              },
+            ],
+          },
+        },
+      });
+      expect(workerCreateResponse.ok()).toBe(true);
+      workerObjectId = ((await workerCreateResponse.json()) as { changedIds: string[] })
+        .changedIds[0]!;
+
+      const collisionPosition = {
+        x: region.x + region.width - 360,
+        y: region.y + region.height - 264,
+      };
+      const humanCreate = await callWebMcp<{ changedIds: string[] }>(page, 'apply_canvas_changes', {
+        workspaceId,
+        idempotencyKey: acceptanceKey('human-collision-target'),
+        changes: [
+          {
+            command: 'create_object',
+            objectType: 'sticky',
+            title: 'Human collision target',
+            placement: {
+              position: collisionPosition,
+              size: { width: 240, height: 144 },
+            },
+          },
+        ],
+      });
+      humanObjectId = humanCreate.changedIds[0]!;
+
+      const collisionResponse = await page.request.post(assignment.mcpEndpoint, {
+        headers: assignmentHeaders(assignment),
+        data: {
+          tool: 'apply_canvas_changes',
+          arguments: {
+            idempotencyKey: acceptanceKey('worker-collision'),
+            commands: [
+              {
+                type: 'move_object',
+                objectId: workerObjectId,
+                position: collisionPosition,
+                expectedRevision: 0,
+              },
+            ],
+          },
+        },
+      });
+      expect(collisionResponse.status()).toBe(409);
+      await expect(collisionResponse.json()).resolves.toEqual({ error: 'reservation_collision' });
+    } finally {
+      if (assignment && workerObjectId) {
+        await page.request.post(assignment.mcpEndpoint, {
+          headers: assignmentHeaders(assignment),
+          data: {
+            tool: 'apply_canvas_changes',
+            arguments: {
+              idempotencyKey: acceptanceKey('worker-cleanup'),
+              commands: [{ type: 'delete_object', objectId: workerObjectId, expectedRevision: 0 }],
+            },
+          },
+        });
+      }
+      await page.goto(workspacePath!);
+      if (humanObjectId) {
+        const current = await workspaceContext(page);
+        await deleteObjects(
+          page,
+          current.objects.filter((object) => object._id === humanObjectId),
+        );
+      }
+      if (runId) {
+        const status = await callWebMcp<{ state: string }>(page, 'get_run_status', {
+          workspaceId,
+          runId,
+        });
+        if (status.state === 'active') {
+          await callWebMcp(page, 'stop_run', {
+            workspaceId,
+            runId,
+            idempotencyKey: acceptanceKey('collision-stop'),
+          });
+        }
+      }
+      if (runnerId) {
+        await page.getByRole('button', { name: 'Guild Runner', exact: true }).click();
+        const runnerCard = page.locator('article').filter({ hasText: runnerName });
+        await runnerCard.getByRole('button', { name: 'Revoke' }).click();
+        await expect(runnerCard.getByText('Revoked', { exact: true })).toBeVisible();
+      }
+    }
   });
 
   test('direct WebMCP mutations reject stale revisions and agree with visible UI', async ({
