@@ -16,6 +16,7 @@ export function PresentationMode({ workspaceId }: { workspaceId: Id<'workspaces'
   const [active, setActive] = useState(false);
   const [followWorker, setFollowWorker] = useState(false);
   const [index, setIndex] = useState(0);
+  const [viewName, setViewName] = useState('');
   const reducedMotion =
     typeof window !== 'undefined' &&
     typeof window.matchMedia === 'function' &&
@@ -33,7 +34,6 @@ export function PresentationMode({ workspaceId }: { workspaceId: Id<'workspaces'
     return () => window.removeEventListener('keydown', onKey);
   }, [active]);
 
-  const current = views?.[index];
   const activeTargetObjectId = runs
     ?.flatMap((row) => row.jobs)
     .find(
@@ -93,15 +93,24 @@ export function PresentationMode({ workspaceId }: { workspaceId: Id<'workspaces'
               void saveView({
                 workspaceId,
                 key: `view-${Date.now()}`,
-                name: current?.name ?? `View ${(views?.length ?? 0) + 1}`,
+                name: viewName.trim() || `View ${(views?.length ?? 0) + 1}`,
                 order: views?.length ?? 0,
                 camera,
                 focusKind: 'canvas',
-              });
+              }).then(() => setViewName(''));
             }}
           >
             Save camera
           </button>
+          <label>
+            Camera name
+            <input
+              value={viewName}
+              onChange={(event) => setViewName(event.target.value)}
+              placeholder="Full project"
+              maxLength={120}
+            />
+          </label>
           {followWorker ? (
             <p>
               {activeTargetObjectId

@@ -183,6 +183,7 @@ export const update = mutation({
       throw new Error('owned_section_already_assigned');
     }
     const now = Date.now();
+    const color = args.color.trim().slice(0, 40) || role.color;
     if (role.ownedSectionId !== args.ownedSectionId) {
       const previousSection = await ctx.db.get(role.ownedSectionId);
       if (
@@ -207,6 +208,13 @@ export const update = mutation({
         updatedAt: now,
       });
     }
+    if (section.style.stroke !== color) {
+      await ctx.db.patch(section._id, {
+        style: { ...section.style, stroke: color },
+        styleRevision: section.styleRevision + 1,
+        updatedAt: now,
+      });
+    }
     await ctx.db.patch(role._id, {
       handle,
       name: args.name.trim().slice(0, 120),
@@ -217,7 +225,7 @@ export const update = mutation({
       capabilities: [...new Set(args.capabilities)].slice(0, 50),
       expectedArtifactTypes: [...new Set(args.expectedArtifactTypes)],
       staticDependencyRoleProfileIds: [...new Set(args.staticDependencyRoleProfileIds)],
-      color: args.color.trim().slice(0, 40) || role.color,
+      color,
       updatedAt: now,
     });
     return null;
