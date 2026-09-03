@@ -114,6 +114,10 @@ describe('Convex visual feedback', () => {
       },
     });
     expect(replay.idempotentReplay).toBe(true);
+    expect(replay.commentId).toBe(created.commentId);
+    expect(replay.anchorId).toBe(created.anchorId);
+    expect(replay.jobId).toBe(created.jobId);
+    expect(replay.feedbackId).toBe(created.feedbackId);
 
     const runs = await asOwner.query(api.runs.list, { workspaceId, limit: 10 });
     const jobs = runs.flatMap((row) => row.jobs);
@@ -158,18 +162,34 @@ describe('Convex visual feedback', () => {
       workspaceId,
       designSetKey: 'external-home',
     });
+    let intendedWorkstreamId: Id<'externalWorkstreams'> | undefined;
     await t.run(async (ctx) => {
       const now = Date.now();
       await ctx.db.insert('externalWorkstreams', {
         workspaceId,
-        key: 'design',
-        roleLabel: 'Design',
+        key: 'architecture',
+        roleLabel: 'Architecture',
+        engineLabel: 'codex',
+        objective: 'Own architecture decisions.',
+        state: 'reported',
+        lastSequence: 0,
+        lastEventTime: now,
+        lastReceivedAt: now,
+        targetObjectId: design!.designSet.gallerySectionId,
+        createdAt: now,
+        updatedAt: now,
+      });
+      intendedWorkstreamId = await ctx.db.insert('externalWorkstreams', {
+        workspaceId,
+        key: 'cinema-design',
+        roleLabel: 'Product design',
         engineLabel: 'claude',
         objective: 'Iterate hosted Cinema screens.',
         state: 'reported',
         lastSequence: 0,
         lastEventTime: now,
         lastReceivedAt: now,
+        targetObjectId: design!.screens[0]!.canvasObjectId,
         createdAt: now,
         updatedAt: now,
       });
@@ -195,6 +215,8 @@ describe('Convex visual feedback', () => {
     });
     expect(created.jobId).toBeNull();
     expect(created.feedbackId).toBeTruthy();
+    const delivered = await t.run(async (ctx) => ctx.db.get(created.feedbackId!));
+    expect(delivered?.workstreamId).toBe(intendedWorkstreamId);
     const runs = await asOwner.query(api.runs.list, { workspaceId, limit: 10 });
     expect(runs.flatMap((row) => row.jobs)).toHaveLength(0);
   });

@@ -50,6 +50,33 @@ describe('Convex design review', () => {
       idempotencyKey: 'approve:review-home:v1',
     });
     expect(approved.version).toBe(1);
+    const approvalReplay = await asOwner.mutation(api.designReview.approveDesignRevision, {
+      workspaceId,
+      designSetKey: 'review-home',
+      version: 1,
+      idempotencyKey: 'approve:review-home:v1',
+    });
+    expect(approvalReplay.idempotentReplay).toBe(true);
+    expect(approvalReplay.decisionId).toBe(approved.decisionId);
+    expect(approvalReplay.designRevisionId).toBe(approved.designRevisionId);
+
+    const requested = await asOwner.mutation(api.designReview.requestDesignChanges, {
+      workspaceId,
+      designSetKey: 'review-home',
+      version: 1,
+      note: 'Increase contrast.',
+      idempotencyKey: 'request:review-home:v1',
+    });
+    const requestReplay = await asOwner.mutation(api.designReview.requestDesignChanges, {
+      workspaceId,
+      designSetKey: 'review-home',
+      version: 1,
+      note: 'Increase contrast.',
+      idempotencyKey: 'request:review-home:v1',
+    });
+    expect(requestReplay.idempotentReplay).toBe(true);
+    expect(requestReplay.decisionId).toBe(requested.decisionId);
+    expect(requestReplay.designRevisionId).toBe(requested.designRevisionId);
 
     await expect(
       asOwner.mutation(api.design.publishDesignPreview, {
@@ -82,6 +109,15 @@ describe('Convex design review', () => {
       idempotencyKey: 'restore:review-home:v1',
     });
     expect(restored.version).toBe(2);
+    const restoreReplay = await asOwner.mutation(api.designReview.restoreDesignRevision, {
+      workspaceId,
+      designSetKey: 'review-home',
+      version: 1,
+      idempotencyKey: 'restore:review-home:v1',
+    });
+    expect(restoreReplay.idempotentReplay).toBe(true);
+    expect(restoreReplay.designRevisionId).toBe(restored.designRevisionId);
+    expect(restoreReplay.version).toBe(restored.version);
     const design = await asOwner.query(api.design.getDesignSet, {
       workspaceId,
       designSetKey: 'review-home',

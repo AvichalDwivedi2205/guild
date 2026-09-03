@@ -46,14 +46,26 @@ export const createVisualComment = mutation({
         applyVisualComment(ctx, { ...args, principal, changeSetId, reference }),
     });
     if (recorded.replay) {
-      const commentChange = recorded.changed.find((change) => change.segment === 'lifecycle');
       const anchorChange = recorded.changed[0];
+      if (!anchorChange) throw new Error('idempotency_replay_incomplete');
+      const anchor = await ctx.db.get(anchorChange.targetId as Id<'visualAnchors'>);
+      if (!anchor || anchor.workspaceId !== args.workspaceId) {
+        throw new Error('idempotency_replay_incomplete');
+      }
+      const comment = await ctx.db.get(anchor.commentId);
+      if (!comment || comment.workspaceId !== args.workspaceId) {
+        throw new Error('idempotency_replay_incomplete');
+      }
+      const feedback = await ctx.db
+        .query('externalWorkstreamFeedback')
+        .withIndex('by_sourceCommentId', (query) => query.eq('sourceCommentId', comment._id))
+        .unique();
       return {
-        commentId: (commentChange?.targetId ?? recorded.changed[1]?.targetId) as Id<'comments'>,
-        anchorId: (anchorChange?.targetId ?? recorded.changed[0]?.targetId) as Id<'visualAnchors'>,
+        commentId: comment._id,
+        anchorId: anchor._id,
         changeSetId: recorded.changeSetId,
-        jobId: null,
-        feedbackId: null,
+        jobId: comment.jobIds[0] ?? null,
+        feedbackId: feedback?._id ?? null,
         idempotentReplay: true,
       };
     }
@@ -160,7 +172,22 @@ async function applyVisualComment(
         query.eq('workspaceId', input.workspaceId).eq('state', 'reported'),
       )
       .take(20);
-    const stream = streams[0];
+    const targetDistance = new Map<string, number>([[object._id, 0]]);
+    let parentId = object.parentId;
+    for (let distance = 1; parentId && distance <= 8; distance += 1) {
+      const parent = await ctx.db.get(parentId);
+      if (!parent || parent.workspaceId !== input.workspaceId || parent.isDeleted) break;
+      targetDistance.set(parent._id, distance);
+      parentId = parent.parentId;
+    }
+    const candidates = streams
+      .filter((stream) => stream.targetObjectId && targetDistance.has(stream.targetObjectId))
+      .map((stream) => ({ stream, distance: targetDistance.get(stream.targetObjectId!)! }))
+      .sort((left, right) => left.distance - right.distance);
+    const bestDistance = candidates[0]?.distance;
+    const best = candidates.filter((candidate) => candidate.distance === bestDistance);
+    if (best.length > 1) throw new Error('ambiguous_delivery_target');
+    const stream = best[0]?.stream;
     if (stream) {
       feedbackId = await ctx.db.insert('externalWorkstreamFeedback', {
         workspaceId: input.workspaceId,

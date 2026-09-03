@@ -75,14 +75,19 @@ export const approveDesignRevision = mutation({
       },
     });
     if (recorded.replay) {
+      const decisionId = recorded.changed[0]?.targetId as Id<'designReviewDecisions'> | undefined;
+      const decision = decisionId ? await ctx.db.get(decisionId) : null;
+      if (!decision || decision.workspaceId !== args.workspaceId) {
+        throw new Error('approval_receipt_missing');
+      }
       return {
-        decisionId: recorded.changed[0]?.targetId as Id<'designReviewDecisions'>,
-        designRevisionId: recorded.changed[0]?.targetId as Id<'designRevisions'>,
+        decisionId,
+        designRevisionId: decision.designRevisionId,
         version: args.version,
         idempotentReplay: true,
       };
     }
-    return recorded.result;
+    return { ...recorded.result, idempotentReplay: false };
   },
 });
 
@@ -133,9 +138,19 @@ export const requestDesignChanges = mutation({
         return { decisionId, designRevisionId: revision._id };
       },
     });
-    if (recorded.replay)
-      return { decisionId: recorded.changed[0]?.targetId, idempotentReplay: true };
-    return recorded.result;
+    if (recorded.replay) {
+      const decisionId = recorded.changed[0]?.targetId as Id<'designReviewDecisions'> | undefined;
+      const decision = decisionId ? await ctx.db.get(decisionId) : null;
+      if (!decision || decision.workspaceId !== args.workspaceId) {
+        throw new Error('review_receipt_missing');
+      }
+      return {
+        decisionId: decision._id,
+        designRevisionId: decision.designRevisionId,
+        idempotentReplay: true,
+      };
+    }
+    return { ...recorded.result, idempotentReplay: false };
   },
 });
 
@@ -213,13 +228,18 @@ export const restoreDesignRevision = mutation({
       },
     });
     if (recorded.replay) {
+      const revisionId = recorded.changed[0]?.targetId as Id<'designRevisions'> | undefined;
+      const revision = revisionId ? await ctx.db.get(revisionId) : null;
+      if (!revision || revision.workspaceId !== args.workspaceId) {
+        throw new Error('restore_receipt_missing');
+      }
       return {
-        designRevisionId: recorded.changed[0]?.targetId as Id<'designRevisions'>,
-        version: args.version,
+        designRevisionId: revision._id,
+        version: revision.version,
         idempotentReplay: true,
       };
     }
-    return recorded.result;
+    return { ...recorded.result, idempotentReplay: false };
   },
 });
 
