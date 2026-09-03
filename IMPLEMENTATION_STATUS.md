@@ -14,11 +14,13 @@ Status vocabulary:
 
 ## Snapshot — 2026-09-03 (completion-branch clean gates)
 
-- `bun run check` passed formatting, zero-warning ESLint, strict TypeScript, 60 application test
-  files / 199 tests, protocol build/typecheck, and Runner typecheck.
-- `bun run runner:test` passed 12 files / 40 tests; `bun run runner:build` passed; the Next.js
+- `bun run check` passed formatting, zero-warning ESLint, strict TypeScript, 59 application test
+  files / 191 tests, protocol build/typecheck, and Runner typecheck after the final review fixes.
+- `bun run --cwd packages/runner test` passed 12 files / 40 tests; the Runner build passed; the Next.js
   16.3.4 production build passed across every application and Runner route; `bun audit` reported no
   vulnerabilities.
+- The public desktop/mobile Playwright gate passed all 8 applicable landing and accessibility tests;
+  6 signed-in workspace checks skipped because this local run had no untracked storage-state fixture.
 - These are local branch results. PR review, Convex production deploy, Vercel production deploy,
   authenticated desktop/mobile browser execution, and native WebMCP replay remain required before
   completion.
@@ -35,7 +37,7 @@ Status vocabulary:
 - Shared Playwright WebMCP helpers install the standards-shaped page host before application code,
   enumerate native registrations, and execute tools through `document.modelContext`. The older demo
   suite now uses the same helper and correctly reads Convex workspace `_id` values.
-- Static evidence: strict TypeScript passed and Playwright discovered 46 desktop/mobile tests. The
+- Static evidence: strict TypeScript passed and Playwright discovered 50 desktop/mobile tests. The
   signed-in matrix intentionally requires an untracked browser storage state; execution against the
   deployed branch remains pending and is not counted as passed yet.
 - The matrix now also drives Role Profile create/edit/remove, saved Team create/remove, reversible
