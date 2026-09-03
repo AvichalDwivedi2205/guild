@@ -12,6 +12,38 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-03 (PR #3 acceptance fixes and production backend)
+
+- Fixed merge-blocking authorization and capture boundaries: evidence-link actions now require
+  workspace membership; Runner capture validates every resolved address, pins validated DNS, blocks
+  redirects and subresources outside the exact origin, and launches the resolved browser binary.
+- Demo reset now snapshots configured baseline objects and bodies, restores baseline drift, and
+  removes only explicitly configured transient keys. It no longer deletes every listed artifact.
+- Design Focus now reads exact revisions, exposes screen/revision navigation, uses authorized capture
+  URLs, supports real previous/current comparison, and records visual anchors against live Preview
+  Bridge route, scroll, and viewport context. Request Changes is a compact inline composer.
+- Visual feedback now routes to the unique nearest matching external workstream instead of array
+  order. Idempotent approval, change-request, restore, and visual-comment replays return original
+  resource IDs.
+- Trackpad pan, full-node text double-click, Focus dispatch for wireframe design screens, and Follow
+  Worker camera behavior have targeted regression coverage. Workspace UI now reports whether native
+  browser WebMCP is ready, registering, unavailable, or failed.
+- Replaced placeholder `/app` Playwright checks with real `/workspaces/:id` demo checks. The
+  authenticated suite requires untracked `GUILD_E2E_STORAGE_STATE` and
+  `GUILD_E2E_WORKSPACE_PATH`; it includes a standards-shaped WebMCP host test that registers all 24
+  tools and executes `list_workspaces` through the page service. Native controller proof remains a
+  separate browser acceptance step.
+- Verification: `bun run check` passed 59 files / 180 tests; Runner passed 12 files / 36 tests five
+  consecutive times; `bun run runner:build`, `bun run build`, and `bun audit` passed; public
+  Playwright passed desktop and mobile landing tests, with authenticated cases honestly skipped
+  until an untracked login state is supplied.
+- Deployed additive schema and functions to both Convex development and production. Production has
+  94 functions and reported no index deletion. Deployed the Guild Preview Bridge fixture at
+  `https://preview-fixture.vercel.app` and verified HTTP 200.
+- Remaining before merge acceptance: push atomic commits, pass PR CI, verify signed-in production
+  behavior and native WebMCP availability, then merge without squashing only if all available gates
+  pass.
+
 ## Snapshot — 2026-09-03 (Phase 11 skills, matrix, and Codex handoff)
 
 - Added `skills/guild-canvas-worker/SKILL.md` and
