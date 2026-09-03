@@ -26,7 +26,7 @@ import type {
   CanvasWorkspaceData,
 } from '@/features/canvas/types';
 import { createConvexWebMcpService } from '@/features/webmcp/convex-service';
-import { WebMcpTools } from '@/features/webmcp/webmcp-tools';
+import { WebMcpTools, type WebMcpRegistrationState } from '@/features/webmcp/webmcp-tools';
 import { mapCanvasContext, type ConvexCanvasContext } from '@/features/workspace/canvas-mapper';
 import {
   PUBLISHER_TICK_MS,
@@ -349,6 +349,7 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
   const [userReady, setUserReady] = useState(false);
   const [actionState, setActionState] = useState<ActionState>(null);
   const [presenceError, setPresenceError] = useState<string | null>(null);
+  const [webMcpState, setWebMcpState] = useState<WebMcpRegistrationState>('registering');
   const [sessionId] = useState(() => `canvas:${crypto.randomUUID()}`);
   const enabled = isAuthenticated && userReady;
 
@@ -854,10 +855,11 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
 
   return (
     <>
-      <WebMcpTools service={webMcpService} />
+      <WebMcpTools service={webMcpService} onStateChange={setWebMcpState} />
       <WorkspaceCanvas
         data={data}
         actions={actions}
+        webMcpState={webMcpState}
         onOpenFocus={(object) => {
           const viewport = useCanvasInteractionStore.getState().presenceViewport;
           captureFocusSession(

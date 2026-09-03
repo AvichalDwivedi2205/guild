@@ -16,6 +16,12 @@ export type ModelContext = {
     tool: ModelContextTool,
     options?: { signal?: AbortSignal; exposedTo?: readonly string[] },
   ) => Promise<void>;
+  getTools?: (options?: { exposedTo?: readonly string[] }) => Promise<ModelContextTool[]>;
+  executeTool?: (
+    tool: ModelContextTool,
+    input?: object,
+    options?: { signal?: AbortSignal },
+  ) => Promise<string>;
 };
 
 type Input<Name extends keyof GuildWebMcpInputSchemas> = z.infer<GuildWebMcpInputSchemas[Name]>;

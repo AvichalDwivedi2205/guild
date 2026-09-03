@@ -1571,6 +1571,21 @@
   color: #319053;
 }
 
+.webMcpStatus {
+  position: fixed;
+  z-index: 40;
+  right: 14px;
+  bottom: 26px;
+  color: var(--canvas-muted);
+  font-size: 9px;
+  font-weight: 680;
+  pointer-events: none;
+}
+
+.webMcpStatus[data-state='active'] {
+  color: #319053;
+}
+
 .shortcutHint {
   display: flex !important;
   gap: 10px;
@@ -2359,6 +2374,7 @@
   .minimap,
   .shortcutHint,
   .connectionStatus,
+  .webMcpStatus,
   .selectionToolbar,
   .agentDock {
     display: none !important;

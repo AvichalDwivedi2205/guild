@@ -52,6 +52,7 @@ import type {
   CanvasWorkspaceActions,
   CanvasWorkspaceData,
 } from '@/features/canvas/types';
+import type { WebMcpRegistrationState } from '@/features/webmcp/webmcp-tools';
 
 import styles from './canvas.module.css';
 
@@ -397,10 +398,12 @@ function CanvasViewport({
   data,
   actions,
   onOpenFocus,
+  webMcpState,
 }: {
   data: CanvasWorkspaceData;
   actions: CanvasWorkspaceActions;
   onOpenFocus?: (object: CanvasObject) => void;
+  webMcpState?: WebMcpRegistrationState;
 }) {
   const nodes = useCanvasInteractionStore((state) => state.nodes);
   const edges = useCanvasInteractionStore((state) => state.edges);
@@ -632,6 +635,16 @@ function CanvasViewport({
         {data.status === 'ready' ? <Wifi size={12} /> : <CloudOff size={12} />}
         {statusLabel(data.status)}
       </div>
+      {webMcpState ? (
+        <div className={styles.webMcpStatus} data-state={webMcpState} role="status">
+          WebMCP{' '}
+          {webMcpState === 'active'
+            ? 'ready'
+            : webMcpState === 'unsupported'
+              ? 'unavailable in this browser'
+              : webMcpState}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -640,10 +653,12 @@ export function WorkspaceCanvas({
   data,
   actions,
   onOpenFocus,
+  webMcpState,
 }: {
   data: CanvasWorkspaceData;
   actions: CanvasWorkspaceActions;
   onOpenFocus?: (object: CanvasObject) => void;
+  webMcpState?: WebMcpRegistrationState;
 }) {
   const hydrate = useCanvasInteractionStore((state) => state.hydrate);
   useEffect(() => {
@@ -652,7 +667,12 @@ export function WorkspaceCanvas({
 
   return (
     <ReactFlowProvider>
-      <CanvasViewport data={data} actions={actions} {...(onOpenFocus ? { onOpenFocus } : {})} />
+      <CanvasViewport
+        data={data}
+        actions={actions}
+        {...(onOpenFocus ? { onOpenFocus } : {})}
+        {...(webMcpState ? { webMcpState } : {})}
+      />
     </ReactFlowProvider>
   );
 }

@@ -141,6 +141,16 @@ describe('WorkspaceCanvas state surfaces', () => {
     expect(flow).toHaveAttribute('data-zoom-on-pinch', 'true');
   });
 
+  it('shows truthful browser WebMCP availability', () => {
+    const { rerender } = render(
+      <WorkspaceCanvas data={data('ready')} actions={{}} webMcpState="unsupported" />,
+    );
+    expect(screen.getByRole('status')).toHaveTextContent('WebMCP unavailable in this browser');
+
+    rerender(<WorkspaceCanvas data={data('ready')} actions={{}} webMcpState="active" />);
+    expect(screen.getByRole('status')).toHaveTextContent('WebMCP ready');
+  });
+
   it('shows a bounded loading surface while live state connects', () => {
     render(<WorkspaceCanvas data={data('loading')} actions={{}} />);
 
