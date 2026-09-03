@@ -12,6 +12,25 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-03 (rich Markdown canvas content)
+
+- Textual canvas bodies now render safe GitHub-flavored Markdown: headings, emphasis, ordered and
+  unordered lists, task lists, links, quotes, tables, inline/fenced code, dividers, and images. Raw
+  HTML is explicitly ignored, and rendered links open with `noopener`/`noreferrer` isolation.
+- Text, diagram, and task cards show bounded formatted previews; task descriptions are now visible
+  on the card instead of existing only in the content editor. Full bodies remain separately stored
+  and may contain up to 150,000 characters.
+- The content editor has explicit Write and Preview modes with a concise Markdown capability hint.
+  Switching modes preserves the exact editable source and the existing 600 ms autosave/conflict
+  behavior.
+- Red/green coverage was added for rich structure, external-link safety, raw-HTML suppression,
+  diagram/task rendering, source-preserving editor preview, and byte-for-byte Markdown passage
+  through `apply_canvas_changes`. Verification passed 60 application test files / 199 tests, 12
+  Runner files / 42 tests, formatting, zero-warning lint, strict TypeScript, protocol/Runner
+  typechecks and builds, the Next.js 16.3.4 production build, and `bun audit` with no
+  vulnerabilities. PR, CI, production deployment, and live browser replay are pending for this
+  batch.
+
 ## Final acceptance snapshot — 2026-09-03
 
 This snapshot is the authoritative current state. Older snapshots below are retained as an audit

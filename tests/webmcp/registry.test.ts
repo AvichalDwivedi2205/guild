@@ -192,4 +192,43 @@ describe('Guild WebMCP registry', () => {
       ),
     ).rejects.toThrow('Invalid apply_canvas_changes input');
   });
+
+  it('passes Markdown bodies through WebMCP without flattening their formatting source', async () => {
+    const tools: ModelContextTool[] = [];
+    const service = makeService();
+    const modelContext: ModelContext = {
+      registerTool: vi.fn(async (tool) => {
+        tools.push(tool);
+      }),
+    };
+    const registration = registerGuildWebMcpTools(modelContext, service);
+    await registration.ready;
+    const applyTool = tools.find((tool) => tool.name === 'apply_canvas_changes');
+    const markdown = '## Agent result\n\n**Implemented** with `WebMCP`.\n\n- Tested\n- Deployed';
+
+    await applyTool?.execute(
+      {
+        workspaceId: 'workspace_1',
+        idempotencyKey: 'markdown-content-preserved',
+        changes: [
+          {
+            command: 'create_object',
+            type: 'task',
+            title: 'Rich implementation result',
+            content: { description: markdown },
+            positionHint: { x: 100, y: 200 },
+            coordinateSpace: 'canvas',
+            size: { width: 360, height: 240 },
+          },
+        ],
+      },
+      {},
+    );
+
+    expect(service.applyCanvasChanges).toHaveBeenCalledWith(
+      expect.objectContaining({
+        changes: [expect.objectContaining({ content: { description: markdown } })],
+      }),
+    );
+  });
 });

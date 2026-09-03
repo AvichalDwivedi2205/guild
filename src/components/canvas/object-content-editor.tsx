@@ -8,13 +8,16 @@ import {
   draftFromObjectContent,
   objectContentLabels,
   objectContentSignature,
+  supportsMarkdownContent,
   type ObjectContentDraft,
 } from '@/domain/object-content';
 import type { CanvasWorkspaceActions, ObjectBodyStatus } from '@/features/canvas/types';
 
 import styles from './canvas.module.css';
+import { MarkdownContent } from './markdown-content';
 
 type SaveState = 'idle' | 'editing' | 'saving' | 'saved' | 'error';
+type ContentMode = 'write' | 'preview';
 
 export function ObjectContentEditor({
   object,
@@ -28,6 +31,7 @@ export function ObjectContentEditor({
   const labels = objectContentLabels(object.type);
   const [draft, setDraft] = useState<ObjectContentDraft>(() => draftFromObjectContent(object));
   const [saveState, setSaveState] = useState<SaveState>('idle');
+  const [contentMode, setContentMode] = useState<ContentMode>('write');
   const editorRef = useRef<HTMLDivElement | null>(null);
   const draftRef = useRef(draft);
   const revisionRef = useRef(object.revisions.content);
@@ -64,6 +68,7 @@ export function ObjectContentEditor({
       revisionRef.current = object.revisions.content;
       lastSavedRef.current = nextSignature;
       setSaveState('idle');
+      if (changedObject) setContentMode('write');
     }
   }, [bodyStatus, object]);
 
@@ -126,6 +131,8 @@ export function ObjectContentEditor({
     return <p className={styles.contentStatus}>Loading object content…</p>;
   }
 
+  const supportsMarkdown = supportsMarkdownContent(object.type);
+
   return (
     <div
       className={styles.contentEditor}
@@ -145,17 +152,55 @@ export function ObjectContentEditor({
           onChange={(event) => updateDraft({ title: event.target.value })}
         />
       </label>
-      <label>
-        <span>{labels.primary}</span>
-        <textarea
-          value={draft.primary}
-          rows={object.type === 'drawing' || object.type === 'table' ? 7 : 5}
-          maxLength={150_000}
-          placeholder={labels.primaryPlaceholder}
-          disabled={!updateContent}
-          onChange={(event) => updateDraft({ primary: event.target.value })}
-        />
-      </label>
+      <div className={styles.contentPrimaryField}>
+        <div className={styles.contentFieldHeader}>
+          <span>{labels.primary}</span>
+          {supportsMarkdown ? (
+            <div className={styles.markdownMode} role="group" aria-label="Markdown view">
+              <button
+                type="button"
+                aria-label="Edit Markdown"
+                aria-pressed={contentMode === 'write'}
+                onClick={() => setContentMode('write')}
+              >
+                Write
+              </button>
+              <button
+                type="button"
+                aria-label="Preview Markdown"
+                aria-pressed={contentMode === 'preview'}
+                onClick={() => setContentMode('preview')}
+              >
+                Preview
+              </button>
+            </div>
+          ) : null}
+        </div>
+        {contentMode === 'preview' && supportsMarkdown ? (
+          <div className={styles.markdownPreview} aria-label={`${labels.primary} Markdown preview`}>
+            {draft.primary.trim() ? (
+              <MarkdownContent source={draft.primary} />
+            ) : (
+              <span className={styles.markdownEmpty}>Nothing to preview yet.</span>
+            )}
+          </div>
+        ) : (
+          <textarea
+            aria-label={labels.primary}
+            value={draft.primary}
+            rows={object.type === 'drawing' || object.type === 'table' ? 7 : 5}
+            maxLength={150_000}
+            placeholder={labels.primaryPlaceholder}
+            disabled={!updateContent}
+            onChange={(event) => updateDraft({ primary: event.target.value })}
+          />
+        )}
+        {supportsMarkdown ? (
+          <span className={styles.markdownHint}>
+            Markdown supports headings, lists, emphasis, links, tables, quotes, and code.
+          </span>
+        ) : null}
+      </div>
       {labels.secondary ? (
         <label>
           <span>{labels.secondary}</span>

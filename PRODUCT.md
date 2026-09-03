@@ -149,6 +149,11 @@ Task mode contains:
 
 A task card can contain a title, rich description, checklist, status, assignee, priority, labels, links, and relationships. A stack is an ordered container of cards and can represent stages such as Backlog, In Progress, Review, Testing, and Shipped.
 
+Rich descriptions use Markdown source and render headings, emphasis, lists, task lists, links,
+quotes, tables, inline code, fenced code blocks, dividers, and images. Raw HTML is ignored. Editing
+provides explicit Write and Preview modes; cards keep a bounded formatted preview while the full
+body remains available in the content editor.
+
 ### 3. Wireframe mode
 
 Used for:
