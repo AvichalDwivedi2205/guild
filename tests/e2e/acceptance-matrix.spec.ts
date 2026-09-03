@@ -344,12 +344,11 @@ test.describe.serial('Guild connected acceptance matrix', () => {
       changes: [
         {
           command: 'create_object',
-          objectType: 'sticky',
+          type: 'sticky',
           title: `Unowned note ${acceptanceKey('title')}`,
-          placement: {
-            position: { x: 8_400, y: 8_400 },
-            size: { width: 260, height: 160 },
-          },
+          positionHint: { x: 8_400, y: 8_400 },
+          coordinateSpace: 'canvas',
+          size: { width: 260, height: 160 },
           semantics: { semanticType: 'note', projectArea: 'product' },
         },
       ],
@@ -727,12 +726,11 @@ test.describe.serial('Guild connected acceptance matrix', () => {
         changes: [
           {
             command: 'create_object',
-            objectType: 'sticky',
+            type: 'sticky',
             title: 'Human collision target',
-            placement: {
-              position: collisionPosition,
-              size: { width: 240, height: 144 },
-            },
+            positionHint: collisionPosition,
+            coordinateSpace: 'canvas',
+            size: { width: 240, height: 144 },
           },
         ],
       });
