@@ -1,19 +1,33 @@
 import { assertPublicHttpUrl } from '@guild/protocol';
 import { v } from 'convex/values';
 
+import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
-import { mutation, type MutationCtx } from './_generated/server';
-import { assertAssetLimits } from './assets';
+import {
+  action,
+  internalMutation,
+  internalQuery,
+  mutation,
+  type MutationCtx,
+  type QueryCtx,
+} from './_generated/server';
+import { assertAssetLimits, assertSniffedAsset } from './assets';
 import { convexAssetStore } from './lib/assetStore';
 import { randomToken, sha256 } from './lib/crypto';
 import { requireRunner } from './lib/runnerAuth';
 
-const CAPTURE_LEASE_MS = 60_000;
+const CAPTURE_LEASE_MS = 3 * 60_000;
 const CAPTURE_UPLOAD_TTL_MS = 15 * 60_000;
 const VIEWPORTS = {
   desktop: { width: 1440, height: 900 },
   mobile: { width: 390, height: 844 },
 } as const;
+
+const captureAssetKindValidator = v.union(
+  v.literal('viewport'),
+  v.literal('full_page'),
+  v.literal('thumbnail'),
+);
 
 function urlPolicy() {
   return {
@@ -34,7 +48,10 @@ type CaptureAuthority = {
   fencingToken: number;
 };
 
-async function requireCaptureAuthority(ctx: MutationCtx, args: CaptureAuthority) {
+async function requireCaptureAuthority(
+  ctx: Pick<MutationCtx, 'db'> | Pick<QueryCtx, 'db'>,
+  args: CaptureAuthority,
+) {
   const runner = await requireRunner(ctx, args.runnerToken);
   const task = await ctx.db.get(args.taskId);
   if (
@@ -57,12 +74,16 @@ async function requireCaptureAuthority(ctx: MutationCtx, args: CaptureAuthority)
 async function completeCapturedTask(
   ctx: MutationCtx,
   task: Doc<'previewCaptureTasks'>,
-  viewportAssetId: Id<'assets'>,
+  assets: {
+    viewportAssetId: Id<'assets'>;
+    fullPageAssetId?: Id<'assets'>;
+    thumbnailAssetId?: Id<'assets'>;
+  },
 ) {
   const now = Date.now();
   await ctx.db.patch(task._id, {
     state: 'completed',
-    viewportAssetId,
+    ...assets,
     updatedAt: now,
   });
   const siblings = await ctx.db
@@ -83,7 +104,7 @@ async function completeCapturedTask(
         await ctx.db.patch(screen.canvasObjectId, {
           contentPreview: {
             kind: 'design_screen',
-            viewportAssetId,
+            viewportAssetId: assets.viewportAssetId,
             captureReady: true,
           },
           updatedAt: now,
@@ -183,6 +204,7 @@ export const beginPreviewCaptureUpload = mutation({
     capabilityToken: v.string(),
     attempt: v.number(),
     fencingToken: v.number(),
+    kind: captureAssetKindValidator,
     byteSize: v.number(),
   },
   handler: async (ctx, args) => {
@@ -192,49 +214,124 @@ export const beginPreviewCaptureUpload = mutation({
     const uploadUrl = await convexAssetStore(ctx).generateUploadUrl();
     const intentId = await ctx.db.insert('assetUploadIntents', {
       workspaceId: task.workspaceId,
-      expectedKind: 'viewport',
+      expectedKind: args.kind,
       maxBytes: args.byteSize,
       state: 'pending',
       expiresAt: now + CAPTURE_UPLOAD_TTL_MS,
       createdByRunnerId: runner._id,
+      captureTaskId: task._id,
       createdAt: now,
     });
+    await ctx.scheduler.runAt(
+      now + CAPTURE_UPLOAD_TTL_MS,
+      internal.captureCleanup.expireUploadIntent,
+      { intentId },
+    );
     return { intentId, uploadUrl, expiresAt: now + CAPTURE_UPLOAD_TTL_MS };
   },
 });
 
-export const completePreviewCaptureUpload = mutation({
+const completePreviewCaptureUploadArgs = {
+  runnerToken: v.string(),
+  taskId: v.id('previewCaptureTasks'),
+  capabilityToken: v.string(),
+  attempt: v.number(),
+  fencingToken: v.number(),
+  intentId: v.id('assetUploadIntents'),
+  storageId: v.id('_storage'),
+  checksum: v.string(),
+  byteSize: v.number(),
+  altText: v.string(),
+};
+
+async function requireCaptureUploadIntent(
+  ctx: Pick<MutationCtx, 'db'> | Pick<QueryCtx, 'db'>,
+  args: CaptureAuthority & {
+    intentId: Id<'assetUploadIntents'>;
+    byteSize: number;
+  },
+) {
+  const { runner, task } = await requireCaptureAuthority(ctx, args);
+  const intent = await ctx.db.get(args.intentId);
+  if (
+    !intent ||
+    intent.workspaceId !== task.workspaceId ||
+    intent.createdByRunnerId !== runner._id ||
+    intent.captureTaskId !== task._id ||
+    !['viewport', 'full_page', 'thumbnail'].includes(intent.expectedKind) ||
+    intent.state !== 'pending' ||
+    intent.expiresAt <= Date.now() ||
+    args.byteSize > intent.maxBytes
+  ) {
+    throw new Error('intent_expired');
+  }
+  return { runner, task, intent };
+}
+
+export const authorizePreviewCaptureUpload = internalQuery({
+  args: completePreviewCaptureUploadArgs,
+  handler: async (ctx, args) => {
+    await requireCaptureUploadIntent(ctx, args);
+    return { authorized: true };
+  },
+});
+
+export const bindPreviewCaptureUpload = internalMutation({
+  args: completePreviewCaptureUploadArgs,
+  handler: async (ctx, args) => {
+    const { intent } = await requireCaptureUploadIntent(ctx, args);
+    if (intent.storageId && intent.storageId !== args.storageId) throw new Error('intent_expired');
+    const stored = await ctx.db.system.get(args.storageId);
+    if (!stored || stored.size !== args.byteSize) throw new Error('unsafe_asset');
+    await ctx.db.patch(intent._id, { storageId: args.storageId });
+    return { authorized: true };
+  },
+});
+
+export const completePreviewCaptureUpload = action({
+  args: completePreviewCaptureUploadArgs,
+  handler: async (ctx, args): Promise<{ assetId: Id<'assets'> }> => {
+    if (!/^[a-f0-9]{64}$/u.test(args.checksum)) throw new Error('unsafe_asset');
+    await ctx.runQuery(internal.captures.authorizePreviewCaptureUpload, args);
+    await ctx.runMutation(internal.captures.bindPreviewCaptureUpload, args);
+    const blob = await ctx.storage.get(args.storageId);
+    if (!blob || blob.size !== args.byteSize || blob.size > 5_000_000) {
+      throw new Error('unsafe_asset');
+    }
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    let header: ReturnType<typeof assertSniffedAsset>;
+    try {
+      header = assertSniffedAsset(bytes, blob.size);
+    } catch {
+      throw new Error('unsafe_asset');
+    }
+    if (header.mime !== 'image/png') throw new Error('unsafe_asset');
+    const digest = await crypto.subtle.digest('SHA-256', bytes);
+    const checksum = Array.from(new Uint8Array(digest), (byte) =>
+      byte.toString(16).padStart(2, '0'),
+    ).join('');
+    if (checksum !== args.checksum) throw new Error('unsafe_asset');
+    return await ctx.runMutation(internal.captures.finalizePreviewCaptureUpload, {
+      ...args,
+      mime: 'image/png',
+      width: header.width,
+      height: header.height,
+    });
+  },
+});
+
+export const finalizePreviewCaptureUpload = internalMutation({
   args: {
-    runnerToken: v.string(),
-    taskId: v.id('previewCaptureTasks'),
-    capabilityToken: v.string(),
-    attempt: v.number(),
-    fencingToken: v.number(),
-    intentId: v.id('assetUploadIntents'),
-    storageId: v.id('_storage'),
-    checksum: v.string(),
-    byteSize: v.number(),
+    ...completePreviewCaptureUploadArgs,
     width: v.number(),
     height: v.number(),
     mime: v.literal('image/png'),
-    altText: v.string(),
   },
   handler: async (ctx, args) => {
-    const { runner, task } = await requireCaptureAuthority(ctx, args);
+    const { runner, task, intent } = await requireCaptureUploadIntent(ctx, args);
     assertAssetLimits(args);
+    if (intent.storageId !== args.storageId) throw new Error('intent_expired');
     if (!/^[a-f0-9]{64}$/u.test(args.checksum)) throw new Error('unsafe_asset');
-    const intent = await ctx.db.get(args.intentId);
-    if (
-      !intent ||
-      intent.workspaceId !== task.workspaceId ||
-      intent.createdByRunnerId !== runner._id ||
-      intent.expectedKind !== 'viewport' ||
-      intent.state !== 'pending' ||
-      intent.expiresAt <= Date.now() ||
-      args.byteSize > intent.maxBytes
-    ) {
-      throw new Error('intent_expired');
-    }
     const stored = await ctx.db.system.get(args.storageId);
     if (
       !stored ||
@@ -251,7 +348,7 @@ export const completePreviewCaptureUpload = mutation({
     const assetId = await ctx.db.insert('assets', {
       workspaceId: task.workspaceId,
       storageId: args.storageId,
-      kind: 'viewport',
+      kind: intent.expectedKind,
       mime: args.mime,
       byteSize: args.byteSize,
       width: args.width,
@@ -270,7 +367,7 @@ export const completePreviewCaptureUpload = mutation({
       assetId,
       expiresAt: Date.now(),
     });
-    return { assetId, ...(await completeCapturedTask(ctx, task, assetId)) };
+    return { assetId };
   },
 });
 
@@ -287,22 +384,29 @@ export const completePreviewCapture = mutation({
   },
   handler: async (ctx, args) => {
     const { task } = await requireCaptureAuthority(ctx, args);
-    const viewportAsset = await ctx.db.get(args.viewportAssetId);
-    if (
-      !viewportAsset ||
-      viewportAsset.workspaceId !== task.workspaceId ||
-      viewportAsset.status !== 'ready'
-    ) {
-      throw new Error('asset_not_found');
+    const expectedAssets = [
+      ['viewport', args.viewportAssetId],
+      ['full_page', args.fullPageAssetId],
+      ['thumbnail', args.thumbnailAssetId],
+    ] as const;
+    for (const [kind, assetId] of expectedAssets) {
+      if (!assetId) continue;
+      const asset = await ctx.db.get(assetId);
+      if (
+        !asset ||
+        asset.workspaceId !== task.workspaceId ||
+        asset.designScreenRevisionId !== task.designScreenRevisionId ||
+        asset.kind !== kind ||
+        asset.status !== 'ready'
+      ) {
+        throw new Error('asset_not_found');
+      }
     }
-    const result = await completeCapturedTask(ctx, task, args.viewportAssetId);
-    if (args.fullPageAssetId || args.thumbnailAssetId) {
-      await ctx.db.patch(task._id, {
-        ...(args.fullPageAssetId ? { fullPageAssetId: args.fullPageAssetId } : {}),
-        ...(args.thumbnailAssetId ? { thumbnailAssetId: args.thumbnailAssetId } : {}),
-      });
-    }
-    return result;
+    return await completeCapturedTask(ctx, task, {
+      viewportAssetId: args.viewportAssetId,
+      ...(args.fullPageAssetId ? { fullPageAssetId: args.fullPageAssetId } : {}),
+      ...(args.thumbnailAssetId ? { thumbnailAssetId: args.thumbnailAssetId } : {}),
+    });
   },
 });
 
@@ -314,12 +418,21 @@ export const failPreviewCapture = mutation({
     attempt: v.number(),
     fencingToken: v.number(),
     error: v.string(),
+    retryable: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { task } = await requireCaptureAuthority(ctx, args);
+    const retry = args.retryable === true && task.attempt < 3;
     await ctx.db.patch(task._id, {
-      state: 'failed',
+      state: retry ? 'queued' : 'failed',
       error: args.error.slice(0, 500),
+      ...(retry
+        ? {
+            runnerId: undefined,
+            expiresAt: undefined,
+            capabilityTokenHash: undefined,
+          }
+        : {}),
       updatedAt: Date.now(),
     });
     return { taskId: task._id as Id<'previewCaptureTasks'> };

@@ -70,6 +70,36 @@ describe('Convex assets and capture tasks', () => {
     });
     const task = claimed.tasks[0];
     if (!task) throw new Error('capture_not_claimed');
+    const unsafeBytes = new TextEncoder().encode('<html><body>not a png capture</body></html>');
+    const unsafeIntent = await t.mutation(api.captures.beginPreviewCaptureUpload, {
+      runnerToken: exchanged.runnerToken,
+      taskId: task.taskId,
+      capabilityToken: task.capabilityToken,
+      attempt: task.attempt,
+      fencingToken: task.fencingToken,
+      kind: 'thumbnail',
+      byteSize: unsafeBytes.byteLength,
+    });
+    const unsafeStored = await t.run(async (ctx) => ({
+      storageId: await ctx.storage.store(new Blob([unsafeBytes], { type: 'text/html' })),
+    }));
+    const unsafeChecksum = [...new Uint8Array(await crypto.subtle.digest('SHA-256', unsafeBytes))]
+      .map((byte) => byte.toString(16).padStart(2, '0'))
+      .join('');
+    await expect(
+      t.action(api.captures.completePreviewCaptureUpload, {
+        runnerToken: exchanged.runnerToken,
+        taskId: task.taskId,
+        capabilityToken: task.capabilityToken,
+        attempt: task.attempt,
+        fencingToken: task.fencingToken,
+        intentId: unsafeIntent.intentId,
+        storageId: unsafeStored.storageId,
+        checksum: unsafeChecksum,
+        byteSize: unsafeBytes.byteLength,
+        altText: 'Unsafe fake preview',
+      }),
+    ).rejects.toThrow('unsafe_asset');
     const pngBytes = Uint8Array.from(
       atob(
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
@@ -82,6 +112,7 @@ describe('Convex assets and capture tasks', () => {
       capabilityToken: task.capabilityToken,
       attempt: task.attempt,
       fencingToken: task.fencingToken,
+      kind: 'viewport',
       byteSize: pngBytes.byteLength,
     });
     expect(intent.uploadUrl).toMatch(/^https?:\/\//u);
@@ -103,7 +134,47 @@ describe('Convex assets and capture tasks', () => {
       byteSize: pngBytes.byteLength,
     });
     expect(stored.storedChecksum).toBeTruthy();
-    const completed = await t.mutation(api.captures.completePreviewCaptureUpload, {
+    const foreignCapability = 'foreign_capture_capability_token';
+    const foreignCapabilityHash = [
+      ...new Uint8Array(
+        await crypto.subtle.digest('SHA-256', new TextEncoder().encode(foreignCapability)),
+      ),
+    ]
+      .map((byte) => byte.toString(16).padStart(2, '0'))
+      .join('');
+    const foreignTaskId = await t.run(async (ctx) => {
+      const original = await ctx.db.get(task.taskId);
+      if (!original?.runnerId) throw new Error('leased_capture_missing');
+      return await ctx.db.insert('previewCaptureTasks', {
+        workspaceId: original.workspaceId,
+        designScreenRevisionId: original.designScreenRevisionId,
+        viewportKey: original.viewportKey,
+        state: 'leased',
+        attempt: 1,
+        fencingToken: 1,
+        runnerId: original.runnerId,
+        expiresAt: Date.now() + 60_000,
+        capabilityTokenHash: foreignCapabilityHash,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+    });
+    await expect(
+      t.action(api.captures.completePreviewCaptureUpload, {
+        runnerToken: exchanged.runnerToken,
+        taskId: foreignTaskId,
+        capabilityToken: foreignCapability,
+        attempt: 1,
+        fencingToken: 1,
+        intentId: intent.intentId,
+        storageId: stored.storageId,
+        checksum,
+        byteSize: stored.byteSize,
+        altText: 'Cross-task preview swap',
+      }),
+    ).rejects.toThrow('intent_expired');
+    await t.run(async (ctx) => await ctx.db.delete(foreignTaskId));
+    const finalized = await t.action(api.captures.completePreviewCaptureUpload, {
       runnerToken: exchanged.runnerToken,
       taskId: task.taskId,
       capabilityToken: task.capabilityToken,
@@ -113,10 +184,15 @@ describe('Convex assets and capture tasks', () => {
       storageId: stored.storageId,
       checksum,
       byteSize: stored.byteSize,
-      width: 1,
-      height: 1,
-      mime: 'image/png',
       altText: 'Landing desktop preview',
+    });
+    const completed = await t.mutation(api.captures.completePreviewCapture, {
+      runnerToken: exchanged.runnerToken,
+      taskId: task.taskId,
+      capabilityToken: task.capabilityToken,
+      attempt: task.attempt,
+      fencingToken: task.fencingToken,
+      viewportAssetId: finalized.assetId,
     });
     expect(completed.captureReady).toBe(true);
 
@@ -130,15 +206,15 @@ describe('Convex assets and capture tasks', () => {
       workspaceId,
       designSetKey: 'capture-success',
     });
-    expect(designSet?.screenRevisions[0]?.captures[0]?.viewportAssetId).toBe(completed.assetId);
+    expect(designSet?.screenRevisions[0]?.captures[0]?.viewportAssetId).toBe(finalized.assetId);
     const authorized = await asOwner.query(api.assets.getAuthorizedAssetUrl, {
       workspaceId,
-      assetId: completed.assetId,
+      assetId: finalized.assetId,
     });
     expect(authorized.url).toMatch(/^https?:\/\//u);
 
     await expect(
-      t.mutation(api.captures.completePreviewCaptureUpload, {
+      t.action(api.captures.completePreviewCaptureUpload, {
         runnerToken: exchanged.runnerToken,
         taskId: task.taskId,
         capabilityToken: task.capabilityToken,
@@ -148,9 +224,6 @@ describe('Convex assets and capture tasks', () => {
         storageId: stored.storageId,
         checksum,
         byteSize: stored.byteSize,
-        width: 1,
-        height: 1,
-        mime: 'image/png',
         altText: 'Landing desktop preview',
       }),
     ).rejects.toThrow('stale_authority');
@@ -217,17 +290,38 @@ describe('Convex assets and capture tasks', () => {
     expect(claimed.tasks[0]?.captureUrl).toBe('https://preview.example.com/');
     expect(claimed.tasks[0]?.viewport).toEqual({ width: 1440, height: 900 });
 
-    const failed = await t.mutation(api.captures.failPreviewCapture, {
+    await t.mutation(api.captures.failPreviewCapture, {
       runnerToken: exchanged.runnerToken,
       taskId: claimed.tasks[0]!.taskId,
       capabilityToken: claimed.tasks[0]!.capabilityToken,
       attempt: claimed.tasks[0]!.attempt,
       fencingToken: claimed.tasks[0]!.fencingToken,
+      error: 'capture_upload_failed',
+      retryable: true,
+    });
+
+    let status = await asOwner.query(api.design.getDesignRevisionStatus, {
+      workspaceId,
+      designSetKey: 'cinema-capture',
+    });
+    expect(status?.captures[0]?.state).toBe('queued');
+
+    const retried = await t.mutation(api.captures.claimPreviewCaptures, {
+      runnerToken: exchanged.runnerToken,
+      capacity: 1,
+    });
+    expect(retried.tasks[0]?.attempt).toBe(2);
+    const failed = await t.mutation(api.captures.failPreviewCapture, {
+      runnerToken: exchanged.runnerToken,
+      taskId: retried.tasks[0]!.taskId,
+      capabilityToken: retried.tasks[0]!.capabilityToken,
+      attempt: retried.tasks[0]!.attempt,
+      fencingToken: retried.tasks[0]!.fencingToken,
       error: 'capture_browser_unavailable',
     });
-    expect(failed.taskId).toBe(claimed.tasks[0]!.taskId);
+    expect(failed.taskId).toBe(retried.tasks[0]!.taskId);
 
-    const status = await asOwner.query(api.design.getDesignRevisionStatus, {
+    status = await asOwner.query(api.design.getDesignRevisionStatus, {
       workspaceId,
       designSetKey: 'cinema-capture',
     });

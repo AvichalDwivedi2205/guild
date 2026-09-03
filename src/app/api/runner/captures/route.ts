@@ -30,6 +30,7 @@ const captureAuthority = {
 const beginUploadBody = z.object({
   action: z.literal('begin_upload'),
   ...captureAuthority,
+  kind: z.enum(['viewport', 'full_page', 'thumbnail']),
   byteSize: z.number().int().min(32).max(5_000_000),
 });
 
@@ -40,9 +41,6 @@ const completeUploadBody = z.object({
   storageId: z.string().min(1).max(200),
   checksum: z.string().regex(/^[a-f0-9]{64}$/u),
   byteSize: z.number().int().min(32).max(5_000_000),
-  width: z.number().int().positive().max(8_192),
-  height: z.number().int().positive().max(8_192),
-  mime: z.literal('image/png'),
   altText: z.string().trim().min(1).max(200),
 });
 
@@ -53,6 +51,7 @@ const failBody = z.object({
   attempt: z.number().int().positive(),
   fencingToken: z.number().int().nonnegative(),
   error: z.string().min(1).max(500),
+  retryable: z.boolean().optional(),
 });
 
 const bodySchema = z.discriminatedUnion('action', [
@@ -82,12 +81,13 @@ export async function POST(request: Request) {
         capabilityToken: body.capabilityToken,
         attempt: body.attempt,
         fencingToken: body.fencingToken,
+        kind: body.kind,
         byteSize: body.byteSize,
       });
       return Response.json(result);
     }
     if (body.action === 'complete_upload') {
-      const result = await client.mutation(api.captures.completePreviewCaptureUpload, {
+      const result = await client.action(api.captures.completePreviewCaptureUpload, {
         runnerToken,
         taskId: body.taskId as Id<'previewCaptureTasks'>,
         capabilityToken: body.capabilityToken,
@@ -97,9 +97,6 @@ export async function POST(request: Request) {
         storageId: body.storageId as Id<'_storage'>,
         checksum: body.checksum,
         byteSize: body.byteSize,
-        width: body.width,
-        height: body.height,
-        mime: body.mime,
         altText: body.altText,
       });
       return Response.json(result);
@@ -126,6 +123,7 @@ export async function POST(request: Request) {
       attempt: body.attempt,
       fencingToken: body.fencingToken,
       error: body.error,
+      ...(body.retryable !== undefined ? { retryable: body.retryable } : {}),
     });
     return Response.json(result);
   } catch (error) {
