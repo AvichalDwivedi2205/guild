@@ -12,6 +12,21 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-03 (deterministic six-screen hosted preview)
+
+- Expanded Guild's isolated Preview Bridge fixture from Home/Login placeholders into six polished,
+  responsive, interactive Cinema screens: Home, Search, Movie Details, Watchlist, Profile, and
+  Admin Dashboard. Login remains available as an additional state. This changes only Guild's
+  protocol fixture; no Cinema repository or application source was touched.
+- Browse-mode interactions now include catalogue search, watchlist toggle/removal, trailer dialog,
+  login feedback, settings controls, and cross-screen navigation. Every screen loads the Preview
+  Bridge so the same hosted URLs can be browsed, captured, selected, and commented on in Design
+  Focus.
+- Red/green static coverage failed for all eight missing contracts before implementation, then
+  passed. A real headless browser loaded all six desktop screens, exercised search and trailer
+  interactions, and loaded Home at 390×844; visual inspection of the 1440px Home capture passed.
+  Publishing the new fixture revision and its six-screen capture set remains pending.
+
 ## Snapshot — 2026-09-03 (connected browser acceptance matrix)
 
 - Added one serial, cleanup-safe Playwright matrix for the 24-point final acceptance flow. It now

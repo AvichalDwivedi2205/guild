@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cinema fixture · Admin Dashboard</title>
+    <link rel="stylesheet" href="/fixture.css" />
+    <script src="/preview-bridge.js" defer></script>
+    <script src="/fixture.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/index.html">CINEMA<span>+</span></a>
+      <nav aria-label="Admin">
+        <a aria-current="page" href="/admin.html">Overview</a><a href="/index.html">Catalogue</a
+        ><a href="/profile.html">Audience</a>
+      </nav>
+      <span class="admin-badge">Studio</span>
+    </header>
+    <main class="page-shell">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">Today · Live</p>
+          <h1>Studio dashboard</h1>
+        </div>
+        <button class="primary">＋ Add title</button>
+      </div>
+      <div class="metric-grid">
+        <article><span>Active viewers</span><strong>24,891</strong><small>↑ 12.4%</small></article>
+        <article><span>Completion rate</span><strong>78.2%</strong><small>↑ 3.1%</small></article>
+        <article><span>Watchlist adds</span><strong>6,402</strong><small>↑ 8.7%</small></article>
+        <article>
+          <span>Streaming health</span><strong>99.98%</strong><small>All systems normal</small>
+        </article>
+      </div>
+      <section class="analytics">
+        <div class="section-title">
+          <div>
+            <h2>Viewing activity</h2>
+            <p>Last seven days</p>
+          </div>
+          <button>Export</button>
+        </div>
+        <div class="bars" aria-label="Viewing activity chart">
+          <i style="height: 42%"></i><i style="height: 55%"></i><i style="height: 48%"></i
+          ><i style="height: 72%"></i><i style="height: 66%"></i><i style="height: 88%"></i
+          ><i style="height: 76%"></i>
+        </div>
+      </section>
+      <section class="analytics">
+        <h2>Top titles</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Views</th>
+              <th>Completion</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Neon Horizon</td>
+              <td>18,402</td>
+              <td>82%</td>
+              <td><span class="status">Trending</span></td>
+            </tr>
+            <tr>
+              <td>Blue Hour</td>
+              <td>12,981</td>
+              <td>76%</td>
+              <td>Live</td>
+            </tr>
+            <tr>
+              <td>Wild Light</td>
+              <td>9,210</td>
+              <td>91%</td>
+              <td>Live</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </body>
+</html>

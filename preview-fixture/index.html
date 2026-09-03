@@ -2,14 +2,58 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Cinema fixture · Home</title>
+    <link rel="stylesheet" href="/fixture.css" />
     <script src="/preview-bridge.js" defer></script>
+    <script src="/fixture.js" defer></script>
   </head>
   <body>
+    <header class="site-header">
+      <a class="brand" href="/index.html">CINEMA<span>+</span></a>
+      <nav aria-label="Cinema screens">
+        <a href="/index.html">Home</a><a href="/search.html">Search</a>
+        <a href="/movie.html">Movie</a><a href="/watchlist.html">Watchlist</a>
+        <a href="/profile.html">Profile</a><a href="/admin.html">Admin</a>
+      </nav>
+      <a class="avatar" href="/profile.html" aria-label="Open profile">AD</a>
+    </header>
     <main>
-      <h1>Cinema home</h1>
-      <p>Static preview fixture used to prove the Guild Preview Bridge handshake.</p>
-      <a href="/login.html">Open login</a>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Cinema original · 2026</p>
+          <h1>Stories that stay<br />after the credits.</h1>
+          <p>Curated films, honest recommendations, and a watchlist shared across every screen.</p>
+          <div class="actions">
+            <a class="primary" href="/movie.html">Watch now</a
+            ><button data-watchlist>＋ Watchlist</button>
+          </div>
+        </div>
+        <div class="hero-orb" aria-hidden="true"><span>NH</span></div>
+      </section>
+      <section class="content-section">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Curated for you</p>
+            <h2>Featured tonight</h2>
+          </div>
+          <a href="/search.html">View all →</a>
+        </div>
+        <div class="poster-grid">
+          <a class="poster violet" href="/movie.html"
+            ><span>NEON<br />HORIZON</span><small>98% match</small></a
+          >
+          <button class="poster ember">
+            <span>THE LAST<br />SIGNAL</span><small>Drama · 2h 06m</small>
+          </button>
+          <button class="poster ocean">
+            <span>BLUE<br />HOUR</span><small>Thriller · 1h 48m</small>
+          </button>
+          <button class="poster moss">
+            <span>WILD<br />LIGHT</span><small>Documentary · 58m</small>
+          </button>
+        </div>
+      </section>
     </main>
   </body>
 </html>
