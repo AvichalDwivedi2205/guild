@@ -4,6 +4,7 @@ import { convexTest } from 'convex-test';
 import { describe, expect, it } from 'vitest';
 
 import { api } from '../../convex/_generated/api';
+import type { Id } from '../../convex/_generated/dataModel';
 import schema from '../../convex/schema';
 
 const modules = import.meta.glob('../../convex/**/*.*s');
@@ -16,7 +17,7 @@ const identity = {
 };
 
 describe('Convex demo scenario', () => {
-  it('rejects wildcards, fences jobs, and seeds no fake progress', async () => {
+  it('rejects wildcards and restores only the configured baseline artifacts', async () => {
     const t = convexTest(schema, modules);
     const asOwner = t.withIdentity(identity);
     const workspaceId = await asOwner.mutation(api.workspaces.create, {
@@ -31,18 +32,64 @@ describe('Convex demo scenario', () => {
         artifactLogicalKeys: ['design:home'],
       }),
     ).rejects.toThrow(/wildcard_rejected/);
+    const baseline = await asOwner.mutation(api.canvas.executeCommands, {
+      workspaceId,
+      source: 'ui',
+      idempotencyKey: 'scenario:baseline:create:0001',
+      summary: 'Create scenario baseline',
+      commands: [
+        {
+          type: 'create_object',
+          logicalKey: 'demo:baseline',
+          objectType: 'sticky',
+          title: 'Baseline title',
+          content: { text: 'Baseline body' },
+          position: { x: 100, y: 120 },
+          size: { width: 240, height: 160 },
+        },
+      ],
+    });
+    const baselineObjectId = baseline.changed[0]!.targetId as Id<'canvasObjects'>;
     await asOwner.mutation(api.demoScenario.configure, {
       workspaceId,
       key: 'cinema-demo',
       checkpoint: 'start',
-      artifactLogicalKeys: ['design:cinema-home'],
+      artifactLogicalKeys: ['demo:baseline', 'demo:transient'],
+    });
+    await t.run(async (ctx) => {
+      const object = await ctx.db.get(baselineObjectId);
+      if (!object) throw new Error('baseline missing');
+      await ctx.db.patch(object._id, { title: 'Drifted title', x: 999, updatedAt: Date.now() });
+      const body = await ctx.db
+        .query('canvasObjectBodies')
+        .withIndex('by_objectId', (query) => query.eq('objectId', object._id))
+        .unique();
+      if (!body) throw new Error('baseline body missing');
+      await ctx.db.patch(body._id, { body: { text: 'Drifted body' }, updatedAt: Date.now() });
+    });
+    await asOwner.mutation(api.canvas.executeCommands, {
+      workspaceId,
+      source: 'ui',
+      idempotencyKey: 'scenario:transient:create:0001',
+      summary: 'Create transient scenario output',
+      commands: [
+        {
+          type: 'create_object',
+          logicalKey: 'demo:transient',
+          objectType: 'text',
+          title: 'Transient output',
+          content: { text: 'Remove on reset' },
+          position: { x: 500, y: 120 },
+          size: { width: 240, height: 100 },
+        },
+      ],
     });
     const preflight = await asOwner.query(api.demoScenario.preflight, {
       workspaceId,
       scenarioKey: 'cinema-demo',
     });
     expect(preflight.ready).toBe(false);
-    expect(preflight.missingKeys).toContain('design:cinema-home');
+    expect(preflight.unexpectedKeys).toContain('demo:transient');
     const reset = await asOwner.mutation(api.demoScenario.reset, {
       workspaceId,
       scenarioKey: 'cinema-demo',
@@ -52,8 +99,20 @@ describe('Convex demo scenario', () => {
       workspaceId,
       objectLimit: 50,
     });
-    expect(context.objects.filter((object) => object.semantics.semanticType === 'task')).toEqual(
-      [],
+    expect(context.objects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          logicalKey: 'demo:baseline',
+          title: 'Baseline title',
+          x: 100,
+        }),
+      ]),
     );
+    expect(context.objects.some((object) => object.logicalKey === 'demo:transient')).toBe(false);
+    const restoredBody = await asOwner.query(api.canvas.getObjectBody, {
+      workspaceId,
+      objectId: baselineObjectId,
+    });
+    expect(restoredBody?.body).toEqual({ text: 'Baseline body' });
   });
 });

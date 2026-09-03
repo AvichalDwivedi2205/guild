@@ -788,4 +788,13 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index('by_workspaceId_and_key', ['workspaceId', 'key']),
+
+  demoScenarioArtifacts: defineTable({
+    workspaceId: v.id('workspaces'),
+    scenarioId: v.id('demoScenarios'),
+    logicalKey: v.string(),
+    present: v.boolean(),
+    snapshot: v.optional(v.any()),
+    capturedAt: v.number(),
+  }).index('by_scenarioId_and_logicalKey', ['scenarioId', 'logicalKey']),
 });
