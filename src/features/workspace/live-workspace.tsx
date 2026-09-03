@@ -7,12 +7,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../../../convex/_generated/api';
 import type { Doc, Id } from '../../../convex/_generated/dataModel';
 import { WorkspaceCanvas } from '@/components/canvas/workspace-canvas';
+import { FeedbackComposer, FeedbackTray } from '@/components/feedback/feedback-controls';
 import { DesignFocus } from '@/components/focus/design-focus';
 import { EvidenceFocus } from '@/components/focus/evidence-focus';
 import { captureFocusSession, restoreFocusSession } from '@/features/focus/session';
 import { focusHref, parseFocusSearch } from '@/features/focus/state';
 import type { JobState, LocalEngine } from '@/domain/jobs';
 import { useCanvasInteractionStore } from '@/features/canvas/store';
+import { useFeedbackStore } from '@/features/feedback/store';
 import type {
   CanvasActivityEvent,
   CanvasCollaborator,
@@ -324,6 +326,7 @@ const emptyData = (workspaceId: string): CanvasWorkspaceData => ({
   teamRuns: [],
   teams: [],
   history: [],
+  workstreams: [],
   selectedObjectBodyStatus: 'idle',
 });
 
@@ -335,6 +338,7 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
   const executeCommands = useMutation(api.canvas.executeCommands);
   const updateWorkspace = useMutation(api.workspaces.update);
   const addComment = useMutation(api.comments.add);
+  const dispatchFeedbackBatch = useMutation(api.feedback.dispatchBatch);
   const resolveComment = useMutation(api.comments.resolve);
   const startTeam = useMutation(api.runs.startTeam);
   const assignJob = useMutation(api.runs.assign);
@@ -361,6 +365,10 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
   const [webMcpState, setWebMcpState] = useState<WebMcpRegistrationState>('registering');
   const [sessionId] = useState(() => `canvas:${crypto.randomUUID()}`);
   const enabled = isAuthenticated && userReady;
+
+  useEffect(() => {
+    useFeedbackStore.getState().setWorkspace(rawWorkspaceId);
+  }, [rawWorkspaceId]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -418,6 +426,10 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
   );
   const teams = useQuery(api.teams.list, enabled ? { workspaceId: targetWorkspaceId } : 'skip');
   const history = useQuery(api.undo.list, enabled ? { workspaceId: targetWorkspaceId } : 'skip');
+  const workstreams = useQuery(
+    api.workstreams.list,
+    enabled ? { workspaceId: targetWorkspaceId, limit: 50 } : 'skip',
+  );
   const latestChangeSet = useQuery(
     api.undo.latest,
     enabled ? { workspaceId: targetWorkspaceId } : 'skip',
@@ -433,7 +445,8 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
     workerSteps !== undefined &&
     presence !== undefined &&
     teams !== undefined &&
-    history !== undefined;
+    history !== undefined &&
+    workstreams !== undefined;
 
   useEffect(() => {
     if (!context) return;
@@ -660,6 +673,26 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
             idempotencyKey: newKey('comment'),
           }),
         ),
+      dispatchFeedbackBatch: async (input) => {
+        setActionState(null);
+        try {
+          await dispatchFeedbackBatch({
+            workspaceId: targetWorkspaceId,
+            source: 'ui',
+            idempotencyKey: newKey('feedback'),
+            ...(input.overallInstruction ? { overallInstruction: input.overallInstruction } : {}),
+            items: input.items.map((item) => ({
+              body: item.body,
+              targetObjectId: item.targetObjectId as Id<'canvasObjects'>,
+              ...(item.reference ? { reference: item.reference } : {}),
+            })),
+          });
+          return true;
+        } catch (error) {
+          reportOperationError(error);
+          return false;
+        }
+      },
       resolveComment: (commentId) =>
         perform(() => resolveComment({ commentId: commentId as Id<'comments'> })),
       startTeamRun: (input) =>
@@ -762,6 +795,7 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
     assignJob,
     assembleTeam,
     createRoleProfile,
+    dispatchFeedbackBatch,
     executeCommands,
     latestChangeSet,
     loaded,
@@ -795,7 +829,8 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
       !workerSteps ||
       !presence ||
       !teams ||
-      !history
+      !history ||
+      !workstreams
     ) {
       const empty = emptyData(rawWorkspaceId);
       if (!authLoading && !isAuthenticated) {
@@ -807,28 +842,31 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
       }
       return empty;
     }
-    return mapLiveData({
-      context: context as ConvexCanvasContext,
-      comments: comments as readonly Doc<'comments'>[],
-      activity: activity as readonly Doc<'activityEvents'>[],
-      roles: roles as readonly Doc<'roleProfiles'>[],
-      runners: runners as readonly Omit<Doc<'runners'>, 'tokenHash'>[],
-      runRows: runRows as readonly RunRow[],
-      workerSteps: workerSteps as readonly WorkerPresenceRow[],
-      presence: presence as readonly PresenceSignal[],
-      teams: teams as readonly Doc<'teams'>[],
-      history: history as readonly HistoryRow[],
-      sessionId,
-      actionState,
-      presenceError,
-      ...(selectedObjectId ? { selectedObjectId } : {}),
-      selectedObjectBody: selectedObjectBody as SelectedObjectBody,
-      selectedObjectBodyStatus: selectedObjectId
-        ? selectedObjectBody === undefined
-          ? 'loading'
-          : 'ready'
-        : 'idle',
-    });
+    return {
+      ...mapLiveData({
+        context: context as ConvexCanvasContext,
+        comments: comments as readonly Doc<'comments'>[],
+        activity: activity as readonly Doc<'activityEvents'>[],
+        roles: roles as readonly Doc<'roleProfiles'>[],
+        runners: runners as readonly Omit<Doc<'runners'>, 'tokenHash'>[],
+        runRows: runRows as readonly RunRow[],
+        workerSteps: workerSteps as readonly WorkerPresenceRow[],
+        presence: presence as readonly PresenceSignal[],
+        teams: teams as readonly Doc<'teams'>[],
+        history: history as readonly HistoryRow[],
+        sessionId,
+        actionState,
+        presenceError,
+        ...(selectedObjectId ? { selectedObjectId } : {}),
+        selectedObjectBody: selectedObjectBody as SelectedObjectBody,
+        selectedObjectBodyStatus: selectedObjectId
+          ? selectedObjectBody === undefined
+            ? 'loading'
+            : 'ready'
+          : 'idle',
+      }),
+      workstreams,
+    };
   }, [
     actionState,
     activity,
@@ -849,6 +887,7 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
     selectedObjectId,
     teams,
     workerSteps,
+    workstreams,
   ]);
 
   const webMcpService = useMemo(() => createConvexWebMcpService(convex), [convex]);
@@ -914,6 +953,8 @@ export function LiveWorkspace({ workspaceId: rawWorkspaceId }: { workspaceId: st
           onExit={exitFocus}
         />
       ) : null}
+      <FeedbackComposer />
+      <FeedbackTray data={data} actions={actions} />
     </>
   );
 }

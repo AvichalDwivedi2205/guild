@@ -41,7 +41,7 @@ Do not assume a framework, remote, branch, dependency, command, or deployed envi
 ## Current truth
 
 - Guild's control-plane implementation is complete and production-tested.
-- Guild has 24 signed-in browser WebMCP Controller tools.
+- Guild has 25 signed-in browser WebMCP Controller tools, including grouped annotation dispatch.
 - Guild Runner supplies seven assignment-scoped canvas tools to Runner-launched Workers.
 - Codex CLI and Claude Code are local authenticated clients; Claude uses Sonnet, never Fable.
 - Guild Cloud performs no model inference and receives no provider credentials.
@@ -157,6 +157,9 @@ environment, not through Guild Runner's canvas-only authority.
 ### 5. Verify my recorded design decision
 
 - Preserve the existing feedback trail and show its exact revision/screen binding.
+- Use Annotate mode for any new review: collect point/rectangle notes, review them grouped by
+  owning agent, optionally add one overall instruction, then Send once. Do not start one Job per
+  note.
 - Verify that Version 2 revision `nn7209h4kyn1f7y4qxbjsynmz18dpes2` is approved and remains the
   current head before sending the design handoff to Codex.
 - For the final recording only, a separate reset-safe baseline may replay the scripted anchored

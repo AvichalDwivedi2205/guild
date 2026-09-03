@@ -173,6 +173,7 @@ function withWebMcpAudit(
     searchCanvas: wrap('search_canvas', service.searchCanvas),
     applyCanvasChanges: wrap('apply_canvas_changes', service.applyCanvasChanges),
     addComment: wrap('add_comment', service.addComment),
+    dispatchFeedbackBatch: wrap('dispatch_feedback_batch', service.dispatchFeedbackBatch),
     runAiTeam: wrap('run_ai_team', service.runAiTeam),
     getRunStatus: wrap('get_run_status', service.getRunStatus),
     getRunnerStatus: wrap('get_runner_status', service.getRunnerStatus),
@@ -375,6 +376,26 @@ export function createConvexWebMcpService(client: ConvexReactClient): GuildWebMc
         idempotencyKey: input.idempotencyKey,
       });
       return { commentId: result.commentId, state: result.state };
+    },
+    async dispatchFeedbackBatch(input) {
+      const result = await client.mutation(api.feedback.dispatchBatch, {
+        workspaceId: workspaceId(input.workspaceId),
+        source: 'webmcp',
+        idempotencyKey: input.idempotencyKey,
+        ...(input.overallInstruction ? { overallInstruction: input.overallInstruction } : {}),
+        items: input.items.map((item) => ({
+          body: item.body,
+          targetObjectId: id<'canvasObjects'>(item.targetObjectId),
+          ...(item.reference ? { reference: item.reference } : {}),
+        })),
+      });
+      return {
+        changeSetId: result.changeSetId,
+        commentIds: result.commentIds,
+        jobIds: result.jobIds,
+        feedbackIds: result.feedbackIds,
+        idempotentReplay: result.idempotentReplay,
+      };
     },
     async runAiTeam(input) {
       const result = await client.mutation(api.runs.startTeam, {

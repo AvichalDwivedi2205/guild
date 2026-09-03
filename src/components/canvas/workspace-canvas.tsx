@@ -22,6 +22,7 @@ import {
   MessageSquare,
   Minus,
   MousePointer2,
+  MessageSquarePlus,
   Play,
   Plus,
   Redo2,
@@ -32,7 +33,13 @@ import {
   Wifi,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+} from 'react';
 
 import { ThemeToggle } from '@/components/theme-toggle';
 import type { CanvasObject } from '@/domain/canvas';
@@ -48,6 +55,7 @@ import { canvasNodeTypes } from '@/components/canvas/node-renderers';
 import { CanvasRightPanel, type CanvasPanel } from '@/components/canvas/canvas-panels';
 import { SelectionToolbar } from '@/components/canvas/selection-toolbar';
 import { type GuildFlowNode, useCanvasInteractionStore } from '@/features/canvas/store';
+import { useFeedbackStore } from '@/features/feedback/store';
 import type {
   CanvasCollaborator,
   CanvasWorkspaceActions,
@@ -64,6 +72,10 @@ function isEditableTarget(target: EventTarget | null) {
     target instanceof HTMLSelectElement ||
     (target instanceof HTMLElement && target.isContentEditable)
   );
+}
+
+function clampUnit(value: number) {
+  return Math.max(0, Math.min(1, value));
 }
 
 function statusLabel(status: CanvasWorkspaceData['status']) {
@@ -114,7 +126,14 @@ function TopToolbar({
           <ToolbarModeIcon mode={mode} /> {mode}
         </span>
         <span className={styles.toolPill}>
-          {tool === 'pan' ? <Hand size={14} /> : <MousePointer2 size={14} />} {tool}
+          {tool === 'pan' ? (
+            <Hand size={14} />
+          ) : tool === 'annotate' ? (
+            <MessageSquarePlus size={14} />
+          ) : (
+            <MousePointer2 size={14} />
+          )}{' '}
+          {tool}
         </span>
         <div className={styles.historyControls}>
           <button
@@ -432,6 +451,10 @@ function CanvasViewport({
   const [panel, setPanel] = useState<CanvasPanel | null>(null);
   const [inspectorEditingObjectId, setInspectorEditingObjectId] = useState<string | null>(null);
   const [expandedObjectId, setExpandedObjectId] = useState<string | null>(null);
+  const [annotationDrag, setAnnotationDrag] = useState<{
+    start: { x: number; y: number };
+    end: { x: number; y: number };
+  } | null>(null);
   const expandedObject = data.objects.find((object) => object.id === expandedObjectId) ?? null;
   const setExpandedEditing = useCallback(
     (editing: boolean) => setInspectorEditingObjectId(editing ? expandedObjectId : null),
@@ -451,6 +474,13 @@ function CanvasViewport({
     },
     [onOpenFocus, selectOnly],
   );
+  const commentOnObject = useCallback((object: CanvasObject) => {
+    useFeedbackStore.getState().openComposer({
+      targetObjectId: object.id,
+      targetTitle: object.title?.trim() || object.type,
+      client: { x: window.innerWidth / 2, y: window.innerHeight / 2 },
+    });
+  }, []);
 
   const publishViewport = useCallback((viewport: { x: number; y: number; zoom: number }) => {
     const bounds = flowRegionRef.current?.getBoundingClientRect();
@@ -514,6 +544,98 @@ function CanvasViewport({
     [actions, finishInteraction],
   );
 
+  const beginAnnotation = useCallback(
+    (event: ReactMouseEvent) => {
+      if (tool !== 'annotate' || event.button !== 0) return;
+      event.preventDefault();
+      event.stopPropagation();
+      setAnnotationDrag({
+        start: { x: event.clientX, y: event.clientY },
+        end: { x: event.clientX, y: event.clientY },
+      });
+    },
+    [tool],
+  );
+
+  useEffect(() => {
+    if (!annotationDrag || tool !== 'annotate') return;
+    const onMove = (event: MouseEvent) => {
+      setAnnotationDrag((current) =>
+        current ? { ...current, end: { x: event.clientX, y: event.clientY } } : null,
+      );
+    };
+    const onUp = (event: MouseEvent) => {
+      const current = annotationDrag;
+      setAnnotationDrag(null);
+      const region = flowRegionRef.current;
+      if (!region) return;
+      const left = Math.min(current.start.x, event.clientX);
+      const top = Math.min(current.start.y, event.clientY);
+      const right = Math.max(current.start.x, event.clientX);
+      const bottom = Math.max(current.start.y, event.clientY);
+      const dragged = right - left >= 6 || bottom - top >= 6;
+      const elements = [...region.querySelectorAll<HTMLElement>('.react-flow__node[data-id]')];
+      const candidates = elements
+        .map((element) => {
+          const bounds = element.getBoundingClientRect();
+          const intersection =
+            Math.max(0, Math.min(right, bounds.right) - Math.max(left, bounds.left)) *
+            Math.max(0, Math.min(bottom, bounds.bottom) - Math.max(top, bounds.top));
+          const containsPoint =
+            event.clientX >= bounds.left &&
+            event.clientX <= bounds.right &&
+            event.clientY >= bounds.top &&
+            event.clientY <= bounds.bottom;
+          return { element, bounds, score: dragged ? intersection : containsPoint ? 1 : 0 };
+        })
+        .filter((candidate) => candidate.score > 0)
+        .sort((a, b) => {
+          if (dragged && b.score !== a.score) return b.score - a.score;
+          return a.bounds.width * a.bounds.height - b.bounds.width * b.bounds.height;
+        });
+      const selected = candidates[0];
+      const objectId = selected?.element.dataset.id;
+      const object = data.objects.find((candidate) => candidate.id === objectId);
+      if (!selected || !objectId || !object) return;
+      const bounds = selected.bounds;
+      const reference = dragged
+        ? {
+            surface: 'canvas' as const,
+            kind: 'rectangle' as const,
+            rectangle: {
+              x: clampUnit((left - bounds.left) / bounds.width),
+              y: clampUnit((top - bounds.top) / bounds.height),
+              width:
+                clampUnit((Math.min(right, bounds.right) - bounds.left) / bounds.width) -
+                clampUnit((left - bounds.left) / bounds.width),
+              height:
+                clampUnit((Math.min(bottom, bounds.bottom) - bounds.top) / bounds.height) -
+                clampUnit((top - bounds.top) / bounds.height),
+            },
+          }
+        : {
+            surface: 'canvas' as const,
+            kind: 'point' as const,
+            point: {
+              x: clampUnit((event.clientX - bounds.left) / bounds.width),
+              y: clampUnit((event.clientY - bounds.top) / bounds.height),
+            },
+          };
+      useFeedbackStore.getState().openComposer({
+        targetObjectId: objectId,
+        targetTitle: object.title?.trim() || object.type,
+        reference,
+        client: { x: event.clientX, y: event.clientY },
+      });
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp, { once: true });
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+  }, [annotationDrag, data.objects, tool]);
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (isEditableTarget(event.target)) return;
@@ -523,6 +645,8 @@ function CanvasViewport({
         useCanvasInteractionStore.getState().setTool('pan');
       if (event.key === 'l' || event.key === 'L')
         useCanvasInteractionStore.getState().setTool('connect');
+      if (event.key === 'a' || event.key === 'A')
+        useCanvasInteractionStore.getState().setTool('annotate');
       if (event.key === 'c' || event.key === 'C') setPanel('comments');
       if (event.key === 'Escape') {
         if (expandedObjectId) {
@@ -579,7 +703,10 @@ function CanvasViewport({
             if (node.data.object.type === 'text') return;
             openObject(node.data.object);
           }}
-          onPaneClick={() => selectOnly(null)}
+          onMouseDown={beginAnnotation}
+          onPaneClick={() => {
+            if (tool !== 'annotate') selectOnly(null);
+          }}
           onPointerMove={(event) => {
             const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
             useCanvasInteractionStore.getState().setPresenceCursor(position);
@@ -589,7 +716,7 @@ function CanvasViewport({
           onMove={(_event, viewport) => publishViewport(viewport)}
           nodesDraggable={tool === 'select'}
           nodesConnectable={tool === 'connect'}
-          elementsSelectable={tool !== 'pan'}
+          elementsSelectable={tool === 'select' || tool === 'connect'}
           panOnDrag={tool === 'pan' || tool === 'connect' ? [0, 1, 2] : [1, 2]}
           panOnScroll
           selectionOnDrag={tool === 'select'}
@@ -616,7 +743,10 @@ function CanvasViewport({
               <kbd>H</kbd> pan
             </span>
             <span>
-              <kbd>C</kbd> comment
+              <kbd>A</kbd> annotate
+            </span>
+            <span>
+              <kbd>C</kbd> comments
             </span>
             <span>
               <kbd>L</kbd> connect
@@ -635,6 +765,22 @@ function CanvasViewport({
           />
         </ReactFlow>
         <CanvasCreationToolbar actions={actions} />
+        {tool === 'annotate' ? (
+          <div className={styles.annotationModeNotice} role="status">
+            <MessageSquarePlus size={15} /> Annotation mode · click a component or drag a region
+          </div>
+        ) : null}
+        {annotationDrag ? (
+          <div
+            className={styles.annotationMarquee}
+            style={{
+              left: Math.min(annotationDrag.start.x, annotationDrag.end.x),
+              top: Math.min(annotationDrag.start.y, annotationDrag.end.y),
+              width: Math.abs(annotationDrag.end.x - annotationDrag.start.x),
+              height: Math.abs(annotationDrag.end.y - annotationDrag.start.y),
+            }}
+          />
+        ) : null}
         {selectedNodeIds.length === 1
           ? (() => {
               const selected = data.objects.find((object) => object.id === selectedNodeIds[0]);
@@ -644,7 +790,7 @@ function CanvasViewport({
                   data={data}
                   actions={actions}
                   onOpen={() => openObject(selected)}
-                  onComment={() => setPanel('comments')}
+                  onComment={() => commentOnObject(selected)}
                   onMore={() => setPanel('inspector')}
                 />
               ) : null;
@@ -667,7 +813,7 @@ function CanvasViewport({
             onClose={() => setExpandedObjectId(null)}
             onComment={() => {
               setExpandedObjectId(null);
-              setPanel('comments');
+              commentOnObject(expandedObject);
             }}
             onAdvanced={() => {
               setExpandedObjectId(null);

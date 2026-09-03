@@ -1,6 +1,6 @@
 # Guild browser WebMCP tool catalog
 
-The signed-in Guild page currently registers the following 24 tools. Inspect the discovered runtime
+The signed-in Guild page currently registers the following 25 tools. Inspect the discovered runtime
 schema before each call; this file explains the maintained behavior and non-obvious constraints.
 
 All ids come from Guild reads. All mutating tools require an idempotency key between 8 and 200
@@ -68,6 +68,18 @@ Input: `workspaceId`, `target`, body up to 10,000 characters, and `idempotencyKe
 Targets are `{kind: "workspace"}`, `{kind: "object", objectId}`, or
 `{kind: "section", sectionId}`. Result returns `commentId` and routing state. A mention or owned
 target can queue work; an unowned comment remains a note.
+
+### `dispatch_feedback_batch`
+
+Input: `workspaceId`, `idempotencyKey`, optional `overallInstruction`, and 1–50 feedback items.
+Each item contains a body, target object id, and optional immutable reference. Canvas references
+use normalized point or rectangle coordinates. Design references additionally identify the exact
+screen revision, screen key, route, viewport, scroll position, and optional stable element id.
+
+Guild resolves the nearest Role Profile owner or connected external workstream, saves every note
+and anchor, then creates at most one revision Job or external feedback item per agent. The entire
+batch fails if any target cannot be resolved. The receipt returns the Change Set, comment, Job, and
+external feedback ids.
 
 ## Team Run control
 
@@ -192,8 +204,9 @@ Use `blocked` with an actionable reason when the external work cannot honestly c
 
 Input: `workspaceId`, `workstreamKey`, and `limit` from 1 to 50.
 
-Returns targeted pending and acknowledged human feedback. Poll at phase boundaries and before final
-completion rather than in a tight loop.
+Returns targeted pending and acknowledged human feedback, including all comments and exact anchors
+from a dispatched batch. Poll at phase boundaries and before final completion rather than in a tight
+loop.
 
 ### `acknowledge_workstream_feedback`
 

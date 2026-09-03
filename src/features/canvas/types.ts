@@ -7,6 +7,8 @@ import type {
   ProjectSemantics,
 } from '@/domain/canvas';
 import type { JobState, LocalEngine } from '@/domain/jobs';
+import type { WorkstreamView } from '@/domain/workstreams';
+import type { FeedbackReference } from '@guild/protocol';
 
 export type CanvasConnectionState =
   'loading' | 'ready' | 'offline' | 'reconnecting' | 'error' | 'conflict';
@@ -138,6 +140,7 @@ export type CanvasWorkspaceData = {
   teamRuns: readonly CanvasTeamRun[];
   teams: readonly CanvasTeam[];
   history: readonly CanvasHistoryPoint[];
+  workstreams?: readonly WorkstreamView[];
   selectedObjectBodyStatus: ObjectBodyStatus;
 };
 
@@ -186,6 +189,14 @@ export type CanvasWorkspaceActions = {
   }) => void | Promise<void>;
   undo?: () => void | Promise<void>;
   addComment?: (input: { targetObjectId: string | null; body: string }) => void | Promise<void>;
+  dispatchFeedbackBatch?: (input: {
+    overallInstruction?: string;
+    items: readonly {
+      body: string;
+      targetObjectId: string;
+      reference?: FeedbackReference;
+    }[];
+  }) => Promise<boolean>;
   resolveComment?: (commentId: string) => void | Promise<void>;
   startTeamRun?: (input: {
     brief: string;

@@ -12,6 +12,39 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-04 (canvas-native annotation review and grouped agent dispatch)
+
+- Guild now has one explicit Annotate mode across the infinite canvas and hosted Design Focus.
+  The cursor changes to an annotation cursor; click anchors feedback to an object or design point,
+  drag anchors a region, and the lightweight composer keeps each note local until review. Hosted
+  sites stay visible inside Guild while annotating; no external app or tab is required.
+- Review & send groups every draft by the responsible agent, preserves each exact canvas/design
+  anchor and immutable design revision, and includes one optional overall instruction that is not
+  tied to a component. One Send creates at most one revision Job or external WebMCP feedback item
+  per target agent; adding a draft alone never starts an agent.
+- Hosted-design routing deterministically prefers the nearest connected Claude Sonnet workstream
+  when both Claude design and Codex implementation workstreams relate to the same screen. Ordinary
+  canvas feedback continues to follow explicit Role ownership, job provenance, ancestry, and the
+  nearest unambiguous workstream. The frontend preview and Convex dispatcher apply the same rule.
+- Browser WebMCP now exposes 25 registered tools including `dispatch_feedback_batch`. Registry
+  execution tests prove the standards-shaped WebMCP call reaches the Convex service; connected
+  Convex tests prove grouped Job and external-workstream delivery, exact anchors, idempotent replay,
+  and Claude/Codex disambiguation. The current Chrome profile truthfully lacks native
+  `document.modelContext`, so this new tool is not claimed as a native-Chrome invocation.
+- Verification passed formatting, zero-warning lint, strict TypeScript, 65 application test files /
+  216 tests, protocol build/typecheck, Runner typecheck, 12 Runner test files / 42 tests, the Runner
+  bundle, and the Next.js 16.3.4 production build. Convex production `befitting-bird-666` deployed
+  with schema validation and no deleted indexes. Vercel deployment
+  `dpl_Bzx1i9wJkrKoBEVAVrYBoU3aT9Jw` reached Ready on `https://guild-rose-two.vercel.app`.
+- Signed-in production replay in `avichaldwivedi2005@gmail.com` Chrome proved the complete
+  non-destructive interaction: the full Cinemaverse Research canvas remained visible in Guild,
+  Annotate captured a design point, the composer added a local draft, and Review & send grouped it
+  under `Product & Visual Designer · Claude Sonnet`. The QA draft was discarded without sending,
+  so no production Job or model credit was consumed.
+- The rejected recording and its support files remain recoverable in the user's Trash and are not
+  deliverables. Recording stays intentionally deferred until the separate clean Cinemaverse
+  workspace is created in the agreed new session.
+
 ## Snapshot — 2026-09-04 (stable agent identities and existing Cinemaverse V2)
 
 - Guild now separates three truths in every visible workstream: a stable Role name and accent for
@@ -1121,9 +1154,10 @@ callback.
 - Assignment execution uses temporary directories, output/time limits, structured progress,
   secret redaction, attempt numbers, fencing tokens, claims, reservations, and short-lived
   capabilities. The long-lived Runner token is not passed to child processes.
-- The assignment-scoped local MCP bridge exposes only five bounded Guild tools.
-- Twenty-four browser WebMCP tools are registered with schemas, abort support, and a real Convex
-  service adapter: workspace listing/context/search, canvas changes, comments, team runs,
+- The assignment-scoped local MCP bridge exposes only seven bounded Guild tools.
+- Twenty-five browser WebMCP tools are registered with schemas, abort support, and a real Convex
+  service adapter: workspace listing/context/search, canvas changes, comments, grouped annotation
+  dispatch, team runs,
   run/runner status, stop/retry/undo, implementation-task claim/report, immutable design previews,
   external workstream feedback, and implementation-evidence flows.
 - Public Runner queries expose only operational status. The persisted token hash stays private and
@@ -1141,7 +1175,7 @@ to the behavior's risk.
 | 2   | Multiplayer human collaboration            | Implemented | Two authenticated contexts proved cursor, selection, edit, and view    |
 | 3   | Local AI Workers as teammates              | Implemented | Live pairing, revocation, re-pair, heartbeat, and execution            |
 | 4   | Multiple Workers simultaneously            | Implemented | Concurrent Codex/Sonnet jobs plus exact collision rejection            |
-| 5   | WebMCP and local Runner paths              | Implemented | All 24 native tools invoked; assignment MCP boundary covered           |
+| 5   | WebMCP and local Runner paths              | Implemented | All 25 tools registered; prior 24-tool native replay plus batch tests  |
 | 6   | Worker Role Profiles                       | Implemented | Authenticated create/edit/remove and ownership-invariant coverage      |
 | 7   | Assignment-scoped autonomous canvas access | Implemented | Claims, capabilities, fencing, reservations, and adversarial proof     |
 | 8   | Sections and project spaces                | Implemented | Browser flow plus guarded owned-section deletion                       |
@@ -1183,9 +1217,10 @@ CI and production proof:
   E2E. Code-merge run `33752844351` and final ledger-merge run `33753756594` also passed.
 - Convex production deployed with schema validation and no deleted indexes.
 - The stable Vercel production alias serves a Ready main deployment.
-- Signed-in native WebMCP invoked all 24 tools and reflected mutations immediately on the live
-  canvas. A final read returned the real Runner online at concurrency 2, Codex and Claude ready,
-  and no internal token hash.
+- Signed-in native WebMCP previously invoked the original 24 tools and reflected mutations
+  immediately on the live canvas. The 25th grouped-feedback tool is covered through the same page
+  registry, Convex service, and connected mutation tests; the current external Chrome profile
+  truthfully reports that native `document.modelContext` is unavailable.
 - Real production runs proved concurrent Codex/Sonnet execution, separate reservations, progress,
   results, cancellation, retry, stale fencing, conflict-aware undo, and exact collision rejection.
 - Browser coverage includes public desktop/mobile, AuthKit sign-in, renderer families, inline text
@@ -1197,7 +1232,8 @@ CI and production proof:
 - [x] WorkOS, Convex, and Vercel production configuration is connected without secrets in source.
 - [x] Signed-in production canvas, persistence, native WebMCP, and local Runner are operational.
 - [x] All 26 locked capabilities are implemented and evidence-backed.
-- [x] All 24 native WebMCP tools are registered and production-invoked.
+- [x] All 25 WebMCP tools are registered; the original 24 have production-native replay and
+      grouped feedback has page-registry plus connected Convex execution coverage.
 - [x] Real Codex and Claude Sonnet jobs run concurrently through local authenticated clients.
 - [x] Stop, retry, stale fencing, reservations, collision rejection, and conflict-aware undo are
       proven.
@@ -1205,10 +1241,10 @@ CI and production proof:
       have automated coverage.
 - [x] A deterministic judge/demo scenario and durable production evidence exist.
 - [x] Setup, controller/Worker skills, WebMCP protocol, demo flow, and handoff material are tracked.
-- [x] The user started the separate recording phase; Cinemaverse Version 1 and the Guild
-      orchestration board are prepared.
-- [ ] Add the visible architecture and visual-design review comments, publish Claude Sonnet
-      Version 2, then capture the clean silent master.
+- [x] Cinemaverse Versions 1 and 2, the approved hosted preview, and the Guild orchestration
+      evidence exist.
+- [ ] Create a separate clean Cinemaverse workspace baseline, rehearse the grouped annotation flow,
+      and record a new silent master only after the user starts the recording phase.
 
 ## Demo production evidence — 3 September 2026
 
@@ -1228,6 +1264,16 @@ CI and production proof:
   artifacts, six reported external workstreams, and immutable visual design revision 1. Chrome
   showed all six active rows through realtime state; the WebMCP controller remains the in-app
   browser because the external Chrome surface reports WebMCP unavailable.
+
+## Rejected demo capture — 4 September 2026
+
+- The first silent capture did not demonstrate Guild as the primary visual orchestration layer and
+  was explicitly rejected by the user. It is not a deliverable and must never be reused.
+- The rejected MP4 and its generated clips, frames, captions, assembly source, and QA sheets were
+  moved out of the repository to the user's Trash, so recovery remains possible if needed.
+- Recording is deferred. The replacement must use a new dedicated Cinemaverse workspace and show
+  agent-owned canvas regions filling with detailed artifacts, hosted screens inside Guild, batched
+  canvas/design annotations, one revision request per owning agent, and the resulting revisions.
 
 ## Completion rule
 

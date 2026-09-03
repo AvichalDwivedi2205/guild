@@ -19,6 +19,7 @@ import type * as design from '../design.js';
 import type * as designReview from '../designReview.js';
 import type * as evidence from '../evidence.js';
 import type * as externalWorkstreams from '../externalWorkstreams.js';
+import type * as feedback from '../feedback.js';
 import type * as lib_assetStore from '../lib/assetStore.js';
 import type * as lib_auth from '../lib/auth.js';
 import type * as lib_commands from '../lib/commands.js';
@@ -63,6 +64,7 @@ declare const fullApi: ApiFromModules<{
   designReview: typeof designReview;
   evidence: typeof evidence;
   externalWorkstreams: typeof externalWorkstreams;
+  feedback: typeof feedback;
   'lib/assetStore': typeof lib_assetStore;
   'lib/auth': typeof lib_auth;
   'lib/commands': typeof lib_commands;

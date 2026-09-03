@@ -89,12 +89,9 @@ export function DesignFocus({
       : 'skip',
   );
   const approveRevision = useMutation(api.designReview.approveDesignRevision);
-  const requestChanges = useMutation(api.designReview.requestDesignChanges);
-  const [mode, setMode] = useState<'interact' | 'comment'>('interact');
+  const [mode, setMode] = useState<'interact' | 'annotate'>('interact');
   const [viewportKey, setViewportKey] = useState<'desktop' | 'mobile'>('desktop');
   const [compareOpen, setCompareOpen] = useState(false);
-  const [reviewNoteOpen, setReviewNoteOpen] = useState(false);
-  const [reviewNote, setReviewNote] = useState('');
   const [reviewError, setReviewError] = useState<string | null>(null);
   const sessionKey = `${focus.designSetKey}:${focus.screenKey ?? ''}:${selectedVersion ?? ''}:${viewportKey}`;
   const mountId = useId();
@@ -149,10 +146,6 @@ export function DesignFocus({
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
       event.preventDefault();
-      if (reviewNoteOpen) {
-        setReviewNoteOpen(false);
-        return;
-      }
       if (compareOpen) {
         setCompareOpen(false);
         return;
@@ -161,7 +154,7 @@ export function DesignFocus({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [compareOpen, onExit, reviewNoteOpen]);
+  }, [compareOpen, onExit]);
 
   if (design === undefined) {
     return (
@@ -292,8 +285,12 @@ export function DesignFocus({
         >
           Interact
         </button>
-        <button type="button" onClick={() => setMode('comment')} aria-pressed={mode === 'comment'}>
-          Comment
+        <button
+          type="button"
+          onClick={() => setMode('annotate')}
+          aria-pressed={mode === 'annotate'}
+        >
+          Annotate
         </button>
         <button
           type="button"
@@ -320,52 +317,12 @@ export function DesignFocus({
         >
           {approved ? `Approved v${revision.version}` : `Approve v${revision.version}`}
         </button>
-        <button type="button" onClick={() => setReviewNoteOpen((open) => !open)}>
-          Request changes
-        </button>
         <a href={previewUrl} target="_blank" rel="noreferrer">
           Open externally
         </a>
         <button type="button" onClick={onExit}>
           Exit Focus
         </button>
-        {reviewNoteOpen ? (
-          <form
-            className={styles.reviewComposer}
-            onSubmit={(event) => {
-              event.preventDefault();
-              if (!reviewNote.trim()) return;
-              setReviewError(null);
-              void requestChanges({
-                workspaceId,
-                designSetKey: focus.designSetKey,
-                version: revision.version,
-                note: reviewNote.trim(),
-                idempotencyKey: `request-changes:${crypto.randomUUID()}`,
-              })
-                .then(() => {
-                  setReviewNote('');
-                  setReviewNoteOpen(false);
-                })
-                .catch((error: unknown) =>
-                  setReviewError(
-                    error instanceof Error ? error.message : 'Could not request changes.',
-                  ),
-                );
-            }}
-          >
-            <label>
-              Change request
-              <textarea
-                autoFocus
-                value={reviewNote}
-                onChange={(event) => setReviewNote(event.target.value)}
-                required
-              />
-            </label>
-            <button type="submit">Send</button>
-          </form>
-        ) : null}
         {reviewError ? <p role="alert">{reviewError}</p> : null}
       </header>
       <div className={styles.preview} style={{ position: 'relative' }}>
@@ -389,12 +346,13 @@ export function DesignFocus({
             {...(currentScreenshot ? { rightSrc: currentScreenshot } : {})}
           />
         ) : null}
-        {mode === 'comment' ? (
+        {mode === 'annotate' ? (
           <VisualOverlay
             workspaceId={workspaceId}
             targetObjectId={screen.canvasObjectId}
             screenRevisionId={screenRevision.id}
             screenKey={screen.key}
+            targetTitle={`${screen.name} · v${revision.version}`}
             route={previewContext.route}
             viewportKey={viewportKey}
             viewport={previewContext}

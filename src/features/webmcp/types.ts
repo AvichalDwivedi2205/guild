@@ -40,6 +40,13 @@ export type GuildWebMcpService = {
     input: Input<'apply_canvas_changes'>,
   ) => Promise<{ changeSetId: string; changedIds: string[] }>;
   addComment: (input: Input<'add_comment'>) => Promise<{ commentId: string; state: string }>;
+  dispatchFeedbackBatch: (input: Input<'dispatch_feedback_batch'>) => Promise<{
+    changeSetId: string;
+    commentIds: string[];
+    jobIds: string[];
+    feedbackIds: string[];
+    idempotentReplay: boolean;
+  }>;
   runAiTeam: (input: Input<'run_ai_team'>) => Promise<{ runId: string; state: string }>;
   getRunStatus: (
     input: Input<'get_run_status'>,

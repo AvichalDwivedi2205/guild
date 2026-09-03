@@ -16,6 +16,13 @@ function makeService(): GuildWebMcpService {
     searchCanvas: vi.fn(async () => ({ results: [] })),
     applyCanvasChanges: vi.fn(async () => ({ changeSetId: 'change_set_1', changedIds: [] })),
     addComment: vi.fn(async () => ({ commentId: 'comment_1', state: 'unassigned' })),
+    dispatchFeedbackBatch: vi.fn(async () => ({
+      changeSetId: 'change_set_feedback',
+      commentIds: ['comment_2'],
+      jobIds: ['job_feedback'],
+      feedbackIds: [],
+      idempotentReplay: false,
+    })),
     runAiTeam: vi.fn(async () => ({ runId: 'run_1', state: 'waiting_for_runner' })),
     getRunStatus: vi.fn(async () => ({ runId: 'run_1', state: 'waiting_for_runner', jobs: [] })),
     getRunnerStatus: vi.fn(async () => ({ runners: [] })),
@@ -191,6 +198,59 @@ describe('Guild WebMCP registry', () => {
         {},
       ),
     ).rejects.toThrow('Invalid apply_canvas_changes input');
+  });
+
+  it('dispatches one exact annotation batch through the WebMCP tool', async () => {
+    const tools: ModelContextTool[] = [];
+    const service = makeService();
+    const modelContext: ModelContext = {
+      registerTool: vi.fn(async (tool) => {
+        tools.push(tool);
+      }),
+    };
+    const registration = registerGuildWebMcpTools(modelContext, service);
+    await registration.ready;
+    const feedbackTool = tools.find((tool) => tool.name === 'dispatch_feedback_batch');
+
+    await feedbackTool?.execute(
+      {
+        workspaceId: 'workspace_1',
+        idempotencyKey: 'feedback-batch-webmcp-1',
+        overallInstruction: 'Keep every screen readable.',
+        items: [
+          {
+            body: 'Use restrained liquid glass on this result card.',
+            targetObjectId: 'screen_1',
+            reference: {
+              surface: 'design',
+              screenRevisionId: 'revision_1',
+              screenKey: 'research-canvas',
+              route: '/research',
+              viewportKey: 'desktop',
+              viewportWidth: 1440,
+              viewportHeight: 900,
+              scrollX: 0,
+              scrollY: 0,
+              kind: 'rectangle',
+              rectangle: { x: 0.25, y: 0.2, width: 0.35, height: 0.3 },
+            },
+          },
+        ],
+      },
+      {},
+    );
+
+    expect(service.dispatchFeedbackBatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        workspaceId: 'workspace_1',
+        items: [
+          expect.objectContaining({
+            targetObjectId: 'screen_1',
+            reference: expect.objectContaining({ surface: 'design', kind: 'rectangle' }),
+          }),
+        ],
+      }),
+    );
   });
 
   it('passes Markdown bodies through WebMCP without flattening their formatting source', async () => {

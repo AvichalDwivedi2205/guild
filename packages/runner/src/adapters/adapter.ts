@@ -35,7 +35,7 @@ export function buildAssignmentPrompt(assignment: Assignment): string {
     '',
     'Use only assignment-scoped Guild MCP tools to read context and change canvas artifacts.',
     'Do not inspect, create, edit, or execute local files. Do not run shell commands or browse web.',
-    'Call get_workspace_context before writing. If this assignment came from visual feedback, call get_assignment_feedback before changing the design.',
+    'Call get_workspace_context before writing. If this assignment came from feedback, call get_assignment_feedback and apply every returned anchored note as one coherent revision.',
     'Use search_canvas only when bounded context is missing a required object or relationship.',
     'Use stable logical keys so retries update the same artifacts. Keep each apply_canvas_changes call at 25 commands or fewer.',
     'When setting node style, use only style.palette from the color guide. Never send fill, color, or hex.',

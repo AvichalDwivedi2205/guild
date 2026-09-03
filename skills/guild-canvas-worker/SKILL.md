@@ -12,7 +12,8 @@ assignment-scoped MCP server. Your authority is canvas-only and expires with the
 
 1. Call `get_workspace_context` before reasoning about the assignment or writing.
 2. If the assignment came from visual feedback, call `get_assignment_feedback` before writing.
-   Use the exact comment, revision identity, and optional crop returned by Guild.
+   Apply every returned comment in the batch, including its exact anchor and revision identity,
+   together with the overall instruction and optional crop returned by Guild.
 3. Call `search_canvas` only for an object or relationship missing from the bounded context.
 4. Read [assignment tools](references/assignment-tools.md) before the first mutation.
 5. Read [artifact protocol](references/artifact-protocol.md) when producing structured canvas work

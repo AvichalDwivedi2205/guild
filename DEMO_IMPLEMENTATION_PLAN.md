@@ -165,10 +165,15 @@ real source or canvas evidence.
 
 1. Stop further Claude revision work.
 2. Let the user inspect every Version 1 screen.
-3. Use Guild Comment mode to submit the prepared restrained liquid-glass direction on the Research
-   Canvas. Additional user comments are optional.
-4. Capture exact route, viewport, scroll, revision, geometry, optional crop, and comment.
-5. Ask the user to explicitly say when the first review is complete.
+3. Use Guild Annotate mode to add the prepared restrained liquid-glass direction on the Research
+   Canvas. Additional point, region, or canvas-artifact notes are optional and remain drafts.
+4. Capture exact target object, route, viewport, scroll, immutable revision, and point/rectangle
+   geometry for every note.
+5. Open `Review & send`, verify the notes are grouped under the correct Codex or Claude Sonnet
+   owners, and add any unanchored overall instruction.
+6. Send once. Verify Guild creates no more than one revision Job or feedback packet per owning
+   agent while retaining every exact anchor.
+7. Ask the user to explicitly say when the first review is complete.
 
 The orchestrator may flag functional breakage or inaccessible contrast, but it does not decide the
 user's desired visual direction.

@@ -25,7 +25,7 @@ function PreviewFrameInner({
   title: string;
   src: string;
   origin: string;
-  mode: 'interact' | 'comment';
+  mode: 'interact' | 'annotate';
   sessionNonce: string;
   designRevisionId: string;
   screenKey: string;
@@ -63,17 +63,12 @@ function PreviewFrameInner({
     };
   }, [designRevisionId, origin, screenKey, sessionNonce]);
 
-  const showFallback =
-    mode === 'comment' ||
-    state === 'timeout' ||
-    state === 'blocked' ||
-    state === 'fallback' ||
-    (state === 'bridge-unavailable' && Boolean(screenshotUrl));
+  const showFallback = state === 'timeout' || state === 'blocked' || state === 'fallback';
 
   return (
     <div className={styles.preview} data-preview-state={state} data-preview-mode={mode}>
       <div role="group" aria-label="Preview mode">
-        <span>{mode === 'interact' ? 'Interact' : 'Comment'}</span>
+        <span>{mode === 'interact' ? 'Interact' : 'Annotate'}</span>
       </div>
       {showFallback && screenshotUrl ? (
         // External capture URLs are authorized Convex storage links, not local assets.
@@ -83,7 +78,7 @@ function PreviewFrameInner({
       {showFallback && !screenshotUrl ? (
         <p>Screenshot fallback unavailable. Comment against the immutable revision metadata.</p>
       ) : null}
-      {mode === 'interact' ? (
+      {!showFallback ? (
         <iframe
           ref={frameRef}
           title={title}
@@ -108,5 +103,5 @@ function PreviewFrameInner({
 export function PreviewFrame(
   props: Parameters<typeof PreviewFrameInner>[0] & { sessionNonce: string },
 ) {
-  return <PreviewFrameInner key={`${props.src}:${props.sessionNonce}:${props.mode}`} {...props} />;
+  return <PreviewFrameInner key={`${props.src}:${props.sessionNonce}`} {...props} />;
 }

@@ -43,8 +43,16 @@ export {
   type PublishDesignPreviewRequest,
 } from './design.js';
 export {
+  canvasFeedbackReferenceSchema,
+  designFeedbackReferenceSchema,
+  dispatchFeedbackBatchRequestSchema,
+  feedbackReferenceSchema,
   visualAnchorKindSchema,
   visualFeedbackReferenceSchema,
+  type CanvasFeedbackReference,
+  type DesignFeedbackReference,
+  type DispatchFeedbackBatchRequest,
+  type FeedbackReference,
   type VisualFeedbackReference,
 } from './feedback.js';
 export {

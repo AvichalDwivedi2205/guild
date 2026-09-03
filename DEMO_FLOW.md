@@ -17,7 +17,7 @@ Guild landing page
     → Claude Sonnet + Codex workstreams
     → detailed connected artifacts
     → hosted screen designs
-    → region-anchored human feedback
+    → point/region annotations reviewed and sent once per owning agent
     → revised design + implementation evidence
     → working Cinemaverse research canvas
     → Guild closes as the reviewable, reversible control plane
@@ -28,6 +28,8 @@ The video may selectively accelerate slow UI movement to 1.1×–1.2×, but face
 remain at natural speed.
 
 The separate Cinemaverse repository now contains the working six-screen vertical slice, interactive
-research canvas, detailed Markdown reading, desktop/mobile browser coverage, and hosted Version 1.
-Recording remains gated only on the visible architecture/design feedback loop, Claude Sonnet
-Version 2, its hosted immutable revision, and the final clean capture preflight.
+research canvas, detailed Markdown reading, desktop/mobile browser coverage, and immutable hosted
+Versions 1 and 2. Guild now has a dedicated Annotate tool for both canvas artifacts and embedded
+hosted screens, plus a grouped `Review & send` step with an optional unanchored overall instruction.
+Recording remains gated on creating the clean dedicated Cinemaverse workspace baseline, rehearsing
+the grouped architecture/design feedback loop, and passing the final clean-capture preflight.

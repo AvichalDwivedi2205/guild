@@ -86,6 +86,12 @@ blindly overwrite a human or Worker change.
 
 Check the returned comment state instead of assuming a Job was created.
 
+For a review pass, prefer `dispatch_feedback_batch` over many `add_comment` calls. Include every
+object or design anchor plus its note, and put cross-cutting direction in `overallInstruction`.
+Guild groups the batch by resolved owner and creates one revision Job per agent. A target inherits
+ownership from its nearest owned ancestor; an unresolved target rejects the whole transaction so
+feedback is never silently lost.
+
 ## Run the local AI team
 
 1. Read context and choose the exact saved Team id.

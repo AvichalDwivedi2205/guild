@@ -231,13 +231,69 @@ export const getWorkstreamFeedback = query({
       .withIndex('by_workstreamId_and_state', (query) => query.eq('workstreamId', stream._id))
       .take(args.limit ?? 20);
     return {
-      items: items.map((item) => ({
-        id: item._id,
-        state: item.state,
-        body: item.body,
-        createdAt: item.createdAt,
-        acknowledgedAt: item.acknowledgedAt ?? null,
-      })),
+      items: await Promise.all(
+        items.map(async (item) => {
+          const source = await ctx.db.get(item.sourceCommentId);
+          const comments = source?.feedbackBatchKey
+            ? await ctx.db
+                .query('comments')
+                .withIndex('by_workspaceId_and_triggerKey', (query) =>
+                  query
+                    .eq('workspaceId', args.workspaceId)
+                    .eq('triggerKey', source.feedbackBatchKey),
+                )
+                .take(50)
+            : source
+              ? [source]
+              : [];
+          const annotated = await Promise.all(
+            comments.map(async (comment) => {
+              const anchor = comment.visualAnchorId
+                ? await ctx.db.get(comment.visualAnchorId)
+                : null;
+              return {
+                id: comment._id,
+                body: comment.body,
+                targetObjectId: comment.objectId ?? null,
+                anchor: anchor
+                  ? {
+                      surface: anchor.surface ?? 'design',
+                      kind: anchor.kind,
+                      screenRevisionId: anchor.designScreenRevisionId ?? null,
+                      screenKey: anchor.screenKey ?? null,
+                      route: anchor.route ?? null,
+                      point:
+                        anchor.pointX !== undefined && anchor.pointY !== undefined
+                          ? { x: anchor.pointX, y: anchor.pointY }
+                          : null,
+                      rectangle:
+                        anchor.rectX !== undefined &&
+                        anchor.rectY !== undefined &&
+                        anchor.rectWidth !== undefined &&
+                        anchor.rectHeight !== undefined
+                          ? {
+                              x: anchor.rectX,
+                              y: anchor.rectY,
+                              width: anchor.rectWidth,
+                              height: anchor.rectHeight,
+                            }
+                          : null,
+                    }
+                  : null,
+              };
+            }),
+          );
+          return {
+            id: item._id,
+            state: item.state,
+            body: item.body,
+            comments: annotated,
+            overallInstruction: source?.feedbackOverallInstruction ?? null,
+            createdAt: item.createdAt,
+            acknowledgedAt: item.acknowledgedAt ?? null,
+          };
+        }),
+      ),
     };
   },
 });

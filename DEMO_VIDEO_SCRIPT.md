@@ -198,7 +198,7 @@ target section, elapsed time, and artifact count are readable. Progress is not a
    > Make every scene research branch independently cancellable, preserve completed evidence when
    > a sibling branch fails, and show the failure state on the canvas.
 
-7. Submit once and show it routing to Agentic Systems Architect.
+7. Add it to the feedback review. Do not start the agent yet.
 8. Close the reader and zoom out enough to show semantic connectors across sections.
 
 **Narration**
@@ -242,12 +242,12 @@ its immutable revision.
 ### Scene 6 — Precise human feedback becomes routed work
 
 **Time:** 1:45–2:12  
-**Surface:** Research Canvas hosted preview in Comment mode  
+**Surface:** Research Canvas hosted preview in Annotate mode
 **Face camera:** Hidden
 
 **On-screen action**
 
-1. Switch from Interact to Comment.
+1. Switch from Interact to Annotate. The live hosted screen must remain fully visible inside Guild.
 2. Drag a rectangular selection around the Research Canvas toolbar and result cards.
 3. Enter this exact comment:
 
@@ -255,17 +255,21 @@ its immutable revision.
    > borders, and almost no gradients. Carry it consistently across all six screens while keeping
    > text, confidence, source freshness, and unresolved risks highly readable.
 
-4. Submit once.
-5. Show the anchored rectangle and comment pin.
-6. Briefly reveal route, viewport, revision, Claude ownership, and Pending state.
-7. Show the state becoming Acknowledged or Working after Claude retrieves it.
-8. Leave the preview while the design work continues.
+4. Add the note to the feedback review; no agent starts yet.
+5. Open `Review & send`. Show the exact architecture and design notes grouped under Agentic Systems
+   Architect · Codex and Product & Visual Designer · Claude Sonnet.
+6. Use the optional overall textbox only for context shared by both agents, then press Send once.
+7. Show the design rectangle, immutable route/viewport/revision, and one grouped revision request per
+   target agent—not one Job per annotation.
+8. Show the external Claude state becoming Acknowledged or Working after it retrieves the complete
+   feedback packet, then leave the preview while the work continues.
 
 **Narration**
 
-> Now I can review the same artifact the agent produced. This feedback is not another detached chat
-> message. Guild binds it to the exact screen, region, route, viewport, and revision, then routes it
-> to the Claude workstream that owns the design.
+> Now I can review the same artifacts the agents produced. I can pin several exact changes, review
+> them together, add one overall instruction, and send once. Guild preserves every canvas or screen
+> anchor, then creates one complete revision request for each owning agent instead of starting a
+> separate job for every comment.
 
 **Visible proof:** The feedback exists once, is attributable to the human, and has a real delivery
 state.
@@ -397,7 +401,7 @@ environment.
 
 - Production URL is ready and the presenter is already signed in.
 - The dedicated Cinemaverse demo scenario resets without touching other workspaces.
-- Native WebMCP discovers all 24 browser Controller tools.
+- Native WebMCP discovers all 25 browser Controller tools, including `dispatch_feedback_batch`.
 - The paired Runner is online and shows Codex plus Claude Code ready.
 - Claude is pinned to Sonnet.
 - The six Role Profiles own valid, visible, non-overlapping sections.
@@ -407,8 +411,8 @@ environment.
 - Detailed Markdown artifacts appear inside the intended sections.
 - Agent dock highlighting, progress, errors, and evidence work without the Inspector blocking the
   canvas.
-- The design gallery, hosted preview, Interact mode, Comment mode, feedback delivery, revision
-  comparison, approval, and undo work.
+- The design gallery, hosted preview, Interact mode, Annotate mode, multi-note review, grouped
+  feedback delivery, revision comparison, approval, and undo work.
 - Presentation camera positions frame every important artifact at readable zoom.
 
 ### Cinemaverse

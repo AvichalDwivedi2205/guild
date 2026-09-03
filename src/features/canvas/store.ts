@@ -19,7 +19,7 @@ import type {
 } from '@/domain/canvas';
 import type { CanvasWorkspaceActions } from '@/features/canvas/types';
 
-export type CanvasTool = 'select' | 'pan' | 'connect';
+export type CanvasTool = 'select' | 'pan' | 'connect' | 'annotate';
 
 export type GuildFlowNodeData = {
   object: CanvasObject;

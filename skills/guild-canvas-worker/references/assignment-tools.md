@@ -67,8 +67,10 @@ hosted deployment identity, never HTML or image bytes.
 
 Input: none.
 
-Returns the exact visual comment, immutable revision identity, and optional bounded crop as MCP
-image content. Call before changing a design when the assignment originated from visual feedback.
+Returns the complete revision request: overall instruction, every exact canvas or design comment,
+its immutable anchor/revision identity, and optional bounded crop as MCP image content. The legacy
+single `comment` and `anchor` fields mirror the first item. Call before changing work when the
+assignment originated from feedback.
 
 ## `report_progress`
 

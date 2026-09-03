@@ -108,7 +108,7 @@ Convex now has 27 modules including `design.ts`, `designReview.ts`, `assets.ts`,
 `captures.ts`, `visualFeedback.ts`, `externalWorkstreams.ts`, `evidence.ts`, and
 `demoScenario.ts`.
 
-WebMCP exposes **24** tools: the original 14 plus `publish_design_preview`,
+WebMCP exposes **25** tools: the original 14 plus `dispatch_feedback_batch`, `publish_design_preview`,
 `get_design_set`, `get_design_revision_status`, `register_workstream`,
 `report_workstream_update`, `complete_workstream`, `get_workstream_feedback`,
 `acknowledge_workstream_feedback`, `report_implementation_evidence`,
@@ -151,7 +151,7 @@ latent race rather than fixed.
 
 None of the following has browser or deployment evidence:
 
-1. **Native WebMCP.** Invoke all 24 tools through `document.modelContext` in a
+1. **Native WebMCP.** Invoke all 25 tools through `document.modelContext` in a
    browser that supports it, against a signed-in workspace, and confirm each
    tool's visible canvas effect.
 2. **Preview Bridge handshake.** Real iframe handshake against the hosted
