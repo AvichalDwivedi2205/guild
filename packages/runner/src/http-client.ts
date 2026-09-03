@@ -108,6 +108,34 @@ export class GuildCloudClient {
     return parsed;
   }
 
+  async claimCaptures(
+    token: string,
+    capacity: number,
+  ): Promise<{ tasks: readonly Record<string, unknown>[] }> {
+    const result = await this.#request('/api/runner/captures', {
+      method: 'POST',
+      token,
+      body: JSON.stringify({ action: 'claim', capacity }),
+    });
+    return result as { tasks: readonly Record<string, unknown>[] };
+  }
+
+  async completeCapture(token: string, payload: Record<string, unknown>): Promise<unknown> {
+    return this.#request('/api/runner/captures', {
+      method: 'POST',
+      token,
+      body: JSON.stringify({ action: 'complete', ...payload }),
+    });
+  }
+
+  async failCapture(token: string, payload: Record<string, unknown>): Promise<unknown> {
+    return this.#request('/api/runner/captures', {
+      method: 'POST',
+      token,
+      body: JSON.stringify({ action: 'fail', ...payload }),
+    });
+  }
+
   async callAssignmentTool(
     assignment: Assignment,
     tool: string,

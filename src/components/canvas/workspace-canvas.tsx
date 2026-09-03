@@ -38,16 +38,21 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import type { CanvasObject } from '@/domain/canvas';
 import { NODE_PALETTE, resolvePaletteId } from '@/domain/palette';
 import { absoluteObjectRectangle } from '@/domain/geometry';
+import { primaryAction } from '@/features/canvas/action-registry';
+import { AgentDock } from '@/components/canvas/agent-dock';
+import { PresentationMode } from '@/components/canvas/presentation-mode';
 import { CanvasCreationToolbar, ToolbarModeIcon } from '@/components/canvas/canvas-toolbar';
 import { canvasEdgeTypes } from '@/components/canvas/connector-edge';
 import { canvasNodeTypes } from '@/components/canvas/node-renderers';
 import { CanvasRightPanel, type CanvasPanel } from '@/components/canvas/canvas-panels';
+import { SelectionToolbar } from '@/components/canvas/selection-toolbar';
 import { type GuildFlowNode, useCanvasInteractionStore } from '@/features/canvas/store';
 import type {
   CanvasCollaborator,
   CanvasWorkspaceActions,
   CanvasWorkspaceData,
 } from '@/features/canvas/types';
+import type { WebMcpRegistrationState } from '@/features/webmcp/webmcp-tools';
 
 import styles from './canvas.module.css';
 
@@ -379,12 +384,26 @@ function minimapColor(node: GuildFlowNode) {
   return NODE_PALETTE[palette].light.fill;
 }
 
+function designSetKeyFrom(object: CanvasObject): string | undefined {
+  const value = object.semantics.customFields?.designSetKey;
+  return typeof value === 'string' ? value : undefined;
+}
+
+function screenKeyFrom(object: CanvasObject): string | undefined {
+  const value = object.semantics.customFields?.screenKey;
+  return typeof value === 'string' ? value : undefined;
+}
+
 function CanvasViewport({
   data,
   actions,
+  onOpenFocus,
+  webMcpState,
 }: {
   data: CanvasWorkspaceData;
   actions: CanvasWorkspaceActions;
+  onOpenFocus?: (object: CanvasObject) => void;
+  webMcpState?: WebMcpRegistrationState;
 }) {
   const nodes = useCanvasInteractionStore((state) => state.nodes);
   const edges = useCanvasInteractionStore((state) => state.edges);
@@ -397,7 +416,7 @@ function CanvasViewport({
   const selectedNodeIds = useCanvasInteractionStore((state) => state.selectedNodeIds);
   const interactingNodeIds = useCanvasInteractionStore((state) => state.interactingNodeIds);
   const connectorRelationship = useCanvasInteractionStore((state) => state.connectorRelationship);
-  const { getViewport, screenToFlowPosition } = useReactFlow();
+  const { getViewport, setViewport, screenToFlowPosition } = useReactFlow();
   const flowRegionRef = useRef<HTMLElement | null>(null);
   const [panel, setPanel] = useState<CanvasPanel | null>(null);
   const [inspectorEditingObjectId, setInspectorEditingObjectId] = useState<string | null>(null);
@@ -432,6 +451,13 @@ function CanvasViewport({
     return () => observer.disconnect();
   }, [getViewport, publishViewport]);
 
+  useEffect(() => {
+    const pending = useCanvasInteractionStore.getState().pendingViewport;
+    if (!pending) return;
+    void setViewport(pending, { duration: 0 });
+    useCanvasInteractionStore.getState().setPendingViewport(null);
+  }, [setViewport]);
+
   const connect = useCallback(
     (connection: Connection) => {
       if (!connection.source || !connection.target || connection.source === connection.target)
@@ -464,11 +490,15 @@ function CanvasViewport({
         useCanvasInteractionStore.getState().setTool('select');
       if (event.key === 'h' || event.key === 'H')
         useCanvasInteractionStore.getState().setTool('pan');
-      if (event.key === 'c' || event.key === 'C')
+      if (event.key === 'l' || event.key === 'L')
         useCanvasInteractionStore.getState().setTool('connect');
+      if (event.key === 'c' || event.key === 'C') setPanel('comments');
       if (event.key === 'Escape') {
+        if (panel) {
+          setPanel(null);
+          return;
+        }
         selectOnly(null);
-        setPanel(null);
       }
       if ((event.key === 'Backspace' || event.key === 'Delete') && actions.deleteObject) {
         const objectById = new Map(data.objects.map((object) => [object.id, object]));
@@ -489,7 +519,7 @@ function CanvasViewport({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [actions, data.objects, selectOnly, selectedNodeIds]);
+  }, [actions, data.objects, panel, selectOnly, selectedNodeIds]);
 
   return (
     <div className={styles.workspaceCanvas} data-tool={tool}>
@@ -509,9 +539,13 @@ function CanvasViewport({
           onConnect={connect}
           onNodeDragStart={(_event, node) => beginInteraction(node.id)}
           onNodeDragStop={dragStop}
-          onNodeClick={(_event, node) =>
-            setPanel(node.data.object.type === 'text' ? null : 'inspector')
-          }
+          onNodeClick={() => undefined}
+          onNodeDoubleClick={(_event, node) => {
+            const action = primaryAction(node.data.object);
+            if (action === 'focus-design' || action === 'focus-evidence') {
+              onOpenFocus?.(node.data.object);
+            }
+          }}
           onPaneClick={() => selectOnly(null)}
           onPointerMove={(event) => {
             const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
@@ -549,7 +583,10 @@ function CanvasViewport({
               <kbd>H</kbd> pan
             </span>
             <span>
-              <kbd>C</kbd> connect
+              <kbd>C</kbd> comment
+            </span>
+            <span>
+              <kbd>L</kbd> connect
             </span>
             <span>
               <kbd>⌫</kbd> delete
@@ -565,6 +602,22 @@ function CanvasViewport({
           />
         </ReactFlow>
         <CanvasCreationToolbar actions={actions} />
+        {selectedNodeIds.length === 1
+          ? (() => {
+              const selected = data.objects.find((object) => object.id === selectedNodeIds[0]);
+              return selected ? (
+                <SelectionToolbar
+                  object={selected}
+                  data={data}
+                  actions={actions}
+                  onComment={() => setPanel('comments')}
+                  onMore={() => setPanel('inspector')}
+                />
+              ) : null;
+            })()
+          : null}
+        <AgentDock data={data} actions={actions} />
+        <PresentationMode workspaceId={data.workspaceId as never} />
         <CanvasRightPanel
           panel={panel}
           setPanel={setPanel}
@@ -582,6 +635,16 @@ function CanvasViewport({
         {data.status === 'ready' ? <Wifi size={12} /> : <CloudOff size={12} />}
         {statusLabel(data.status)}
       </div>
+      {webMcpState ? (
+        <div className={styles.webMcpStatus} data-state={webMcpState} role="status">
+          WebMCP{' '}
+          {webMcpState === 'active'
+            ? 'ready'
+            : webMcpState === 'unsupported'
+              ? 'unavailable in this browser'
+              : webMcpState}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -589,9 +652,13 @@ function CanvasViewport({
 export function WorkspaceCanvas({
   data,
   actions,
+  onOpenFocus,
+  webMcpState,
 }: {
   data: CanvasWorkspaceData;
   actions: CanvasWorkspaceActions;
+  onOpenFocus?: (object: CanvasObject) => void;
+  webMcpState?: WebMcpRegistrationState;
 }) {
   const hydrate = useCanvasInteractionStore((state) => state.hydrate);
   useEffect(() => {
@@ -600,7 +667,14 @@ export function WorkspaceCanvas({
 
   return (
     <ReactFlowProvider>
-      <CanvasViewport data={data} actions={actions} />
+      <CanvasViewport
+        data={data}
+        actions={actions}
+        {...(onOpenFocus ? { onOpenFocus } : {})}
+        {...(webMcpState ? { webMcpState } : {})}
+      />
     </ReactFlowProvider>
   );
 }
+
+export { designSetKeyFrom, screenKeyFrom };

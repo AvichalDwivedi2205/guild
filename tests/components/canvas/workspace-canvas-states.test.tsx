@@ -50,8 +50,14 @@ vi.mock('@xyflow/react', () => ({
     zoomOut: vi.fn(),
     getZoom: () => 1,
     getViewport: () => ({ x: 0, y: 0, zoom: 1 }),
+    setViewport: vi.fn(),
     screenToFlowPosition: ({ x, y }: { x: number; y: number }) => ({ x, y }),
   }),
+}));
+
+vi.mock('convex/react', () => ({
+  useQuery: () => undefined,
+  useMutation: () => vi.fn(async () => undefined),
 }));
 
 vi.mock('@/components/theme-toggle', () => ({ ThemeToggle: () => <button>Theme</button> }));
@@ -105,11 +111,22 @@ afterEach(() => {
 });
 
 describe('WorkspaceCanvas state surfaces', () => {
-  it('keeps plain text on-canvas instead of opening its Inspector automatically', () => {
+  it('starts a comment with C and connect with L', () => {
+    render(<WorkspaceCanvas data={data('ready')} actions={{}} />);
+
+    fireEvent.keyDown(window, { key: 'c' });
+    expect(screen.getByTestId('workspace-panels')).toHaveAttribute('data-panel', 'comments');
+
+    fireEvent.keyDown(window, { key: 'l' });
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.getByTestId('workspace-panels')).toHaveAttribute('data-panel', 'closed');
+  });
+
+  it('keeps single click from opening Advanced details', () => {
     render(<WorkspaceCanvas data={data('ready')} actions={{}} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Click task node' }));
-    expect(screen.getByTestId('workspace-panels')).toHaveAttribute('data-panel', 'inspector');
+    expect(screen.getByTestId('workspace-panels')).toHaveAttribute('data-panel', 'closed');
 
     fireEvent.click(screen.getByRole('button', { name: 'Click text node' }));
     expect(screen.getByTestId('workspace-panels')).toHaveAttribute('data-panel', 'closed');
@@ -122,6 +139,16 @@ describe('WorkspaceCanvas state surfaces', () => {
     expect(flow).toHaveAttribute('data-pan-on-scroll', 'true');
     expect(flow).toHaveAttribute('data-zoom-on-scroll', 'false');
     expect(flow).toHaveAttribute('data-zoom-on-pinch', 'true');
+  });
+
+  it('shows truthful browser WebMCP availability', () => {
+    const { rerender } = render(
+      <WorkspaceCanvas data={data('ready')} actions={{}} webMcpState="unsupported" />,
+    );
+    expect(screen.getByRole('status')).toHaveTextContent('WebMCP unavailable in this browser');
+
+    rerender(<WorkspaceCanvas data={data('ready')} actions={{}} webMcpState="active" />);
+    expect(screen.getByRole('status')).toHaveTextContent('WebMCP ready');
   });
 
   it('shows a bounded loading surface while live state connects', () => {

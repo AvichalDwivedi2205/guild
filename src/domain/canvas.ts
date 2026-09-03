@@ -1,84 +1,36 @@
 import { z } from 'zod';
+import {
+  boardModeSchema,
+  boardModes,
+  canvasObjectTypeSchema,
+  canvasObjectTypes,
+  pointSchema,
+  projectAreaSchema,
+  projectAreas,
+  projectRelationshipSchema,
+  projectRelationships,
+  projectSemanticsSchema,
+  sizeSchema,
+  type BoardMode,
+  type CanvasObjectType,
+  type ProjectArea,
+  type ProjectRelationship,
+} from '@guild/protocol';
 
-export const boardModes = ['diagram', 'task', 'wireframe'] as const;
-export const boardModeSchema = z.enum(boardModes);
-export type BoardMode = z.infer<typeof boardModeSchema>;
-
-export const canvasObjectTypes = [
-  'shape',
-  'sticky',
-  'text',
-  'mindMapNode',
-  'table',
-  'icon',
-  'image',
-  'link',
-  'section',
-  'annotation',
-  'drawing',
-  'task',
-  'stack',
-  'wireframeFrame',
-  'wireframeComponent',
-] as const;
-export const canvasObjectTypeSchema = z.enum(canvasObjectTypes);
-export type CanvasObjectType = z.infer<typeof canvasObjectTypeSchema>;
-
-export const projectAreas = [
-  'idea',
-  'product',
-  'journey',
-  'design',
-  'architecture',
-  'aiSystems',
-  'database',
-  'implementation',
-  'testing',
-  'launch',
-] as const;
-export const projectAreaSchema = z.enum(projectAreas);
-export type ProjectArea = z.infer<typeof projectAreaSchema>;
-
-export const projectRelationships = [
-  'contains',
-  'informs',
-  'requires',
-  'implements',
-  'represents',
-  'supports',
-  'depends_on',
-  'calls',
-  'reads_from',
-  'writes_to',
-  'emits',
-  'triggers',
-  'verified_by',
-  'affects',
-  'blocks',
-  'supersedes',
-] as const;
-export const projectRelationshipSchema = z.enum(projectRelationships);
-export type ProjectRelationship = z.infer<typeof projectRelationshipSchema>;
-
-export const pointSchema = z.object({
-  x: z.number().finite(),
-  y: z.number().finite(),
-});
-
-export const sizeSchema = z.object({
-  width: z.number().finite().positive(),
-  height: z.number().finite().positive(),
-});
-
-export const projectSemanticsSchema = z.object({
-  semanticType: z.string().trim().min(1).optional(),
-  projectArea: projectAreaSchema.optional(),
-  status: z.string().trim().min(1).optional(),
-  priority: z.string().trim().min(1).optional(),
-  ownerUserId: z.string().trim().min(1).optional(),
-  ownerRoleProfileId: z.string().trim().min(1).optional(),
-  customFields: z.record(z.string(), z.unknown()).optional(),
-});
+export {
+  boardModeSchema,
+  boardModes,
+  canvasObjectTypeSchema,
+  canvasObjectTypes,
+  pointSchema,
+  projectAreaSchema,
+  projectAreas,
+  projectRelationshipSchema,
+  projectRelationships,
+  projectSemanticsSchema,
+  sizeSchema,
+};
+export type { BoardMode, CanvasObjectType, ProjectArea, ProjectRelationship };
 export type ProjectSemantics = z.infer<typeof projectSemanticsSchema>;
 
 export const revisionSegments = ['geometry', 'content', 'style', 'semantics', 'hierarchy'] as const;

@@ -1,16 +1,26 @@
-import { z } from 'zod';
-
 import {
   canvasObjectTypeSchema,
+  completeWorkstreamRequestSchema,
+  getDesignRevisionStatusRequestSchema,
+  getDesignSetRequestSchema,
+  identifierSchema,
+  idempotencyKeySchema,
+  implementationEvidenceSchemas,
+  nodeStyleInputSchema,
   pointSchema,
   projectRelationshipSchema,
   projectSemanticsSchema,
+  publishDesignPreviewRequestSchema,
+  registerWorkstreamRequestSchema,
+  reportWorkstreamUpdateRequestSchema,
+  acknowledgeWorkstreamFeedbackRequestSchema,
+  getWorkstreamFeedbackRequestSchema,
   sizeSchema,
-} from '@/domain/canvas';
-import { nodeStyleInputSchema } from '@/domain/palette';
+} from '@guild/protocol';
+import { z } from 'zod';
 
-const identifier = z.string().trim().min(1).max(128);
-const idempotencyKey = z.string().trim().min(8).max(200);
+const identifier = identifierSchema;
+const idempotencyKey = idempotencyKeySchema;
 
 export const listWorkspacesInput = z.object({
   limit: z.number().int().min(1).max(100).default(50),
@@ -179,6 +189,10 @@ export const reportTaskResultInput = z.object({
   idempotencyKey,
 });
 
+export const publishDesignPreviewInput = publishDesignPreviewRequestSchema;
+export const getDesignSetInput = getDesignSetRequestSchema;
+export const getDesignRevisionStatusInput = getDesignRevisionStatusRequestSchema;
+
 export const guildWebMcpInputSchemas = {
   list_workspaces: listWorkspacesInput,
   get_workspace_context: getWorkspaceContextInput,
@@ -194,6 +208,16 @@ export const guildWebMcpInputSchemas = {
   list_implementation_tasks: listImplementationTasksInput,
   claim_task: claimTaskInput,
   report_task_result: reportTaskResultInput,
+  publish_design_preview: publishDesignPreviewInput,
+  get_design_set: getDesignSetInput,
+  get_design_revision_status: getDesignRevisionStatusInput,
+  register_workstream: registerWorkstreamRequestSchema,
+  report_workstream_update: reportWorkstreamUpdateRequestSchema,
+  complete_workstream: completeWorkstreamRequestSchema,
+  get_workstream_feedback: getWorkstreamFeedbackRequestSchema,
+  acknowledge_workstream_feedback: acknowledgeWorkstreamFeedbackRequestSchema,
+  report_implementation_evidence: implementationEvidenceSchemas.report,
+  list_implementation_evidence: implementationEvidenceSchemas.list,
 } as const;
 
 export type GuildWebMcpInputSchemas = typeof guildWebMcpInputSchemas;

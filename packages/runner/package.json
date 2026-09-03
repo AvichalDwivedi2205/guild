@@ -18,7 +18,9 @@
     "test": "vitest run --root ../.. tests/runner"
   },
   "dependencies": {
+    "@guild/protocol": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.30.0",
+    "playwright-core": "^1.55.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {

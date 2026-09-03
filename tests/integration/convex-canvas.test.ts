@@ -242,6 +242,46 @@ describe('Convex canvas command integration', () => {
     });
   });
 
+  it('rejects an idempotency key reused with a different payload', async () => {
+    const t = convexTest(schema, modules);
+    const asOwner = t.withIdentity(identity);
+    const workspaceId = await asOwner.mutation(api.workspaces.create, {
+      title: 'Idempotency payload mismatch',
+    });
+    await asOwner.mutation(api.canvas.executeCommands, {
+      workspaceId,
+      source: 'ui',
+      idempotencyKey: 'canvas:mismatch:0001',
+      summary: 'Create first object',
+      commands: [
+        {
+          type: 'create_object',
+          objectType: 'sticky',
+          title: 'First',
+          position: { x: 40, y: 40 },
+          size: { width: 200, height: 120 },
+        },
+      ],
+    });
+    await expect(
+      asOwner.mutation(api.canvas.executeCommands, {
+        workspaceId,
+        source: 'ui',
+        idempotencyKey: 'canvas:mismatch:0001',
+        summary: 'Create a different object',
+        commands: [
+          {
+            type: 'create_object',
+            objectType: 'text',
+            title: 'Different',
+            position: { x: 80, y: 80 },
+            size: { width: 220, height: 140 },
+          },
+        ],
+      }),
+    ).rejects.toThrow('idempotency_payload_mismatch');
+  });
+
   it('normalizes hex style writes to a palette token', async () => {
     const t = convexTest(schema, modules);
     const asOwner = t.withIdentity(identity);

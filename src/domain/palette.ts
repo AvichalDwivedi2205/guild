@@ -1,25 +1,15 @@
-import { z } from 'zod';
+import {
+  nodePaletteIdSchema,
+  nodePaletteIds,
+  nodeStyleInputSchema,
+  type NodePaletteId,
+} from '@guild/protocol';
 
 import type { CanvasObjectType } from './canvas';
 
-export const NODE_PALETTE_IDS = [
-  'paper',
-  'amber',
-  'peach',
-  'mint',
-  'lilac',
-  'rose',
-  'ink',
-] as const;
-
-export const nodePaletteIdSchema = z.enum(NODE_PALETTE_IDS);
-export type NodePaletteId = (typeof NODE_PALETTE_IDS)[number];
-
-export const nodeStyleInputSchema = z
-  .object({
-    palette: nodePaletteIdSchema.optional(),
-  })
-  .strict();
+export const NODE_PALETTE_IDS = nodePaletteIds;
+export { nodePaletteIdSchema, nodeStyleInputSchema };
+export type { NodePaletteId };
 
 export const NODE_PALETTE_LABELS = {
   paper: 'Paper',

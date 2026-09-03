@@ -8,6 +8,7 @@
         "@convex-dev/presence": "^0.4.0",
         "@convex-dev/rate-limiter": "^0.3.2",
         "@convex-dev/workos": "^0.0.3",
+        "@guild/protocol": "workspace:*",
         "@modelcontextprotocol/sdk": "^1.30.0",
         "@workos-inc/authkit-nextjs": "^4.3.1",
         "@workos-inc/node": "^10.13.0",
@@ -46,6 +47,16 @@
         "vitest": "^4.1.11",
       },
     },
+    "packages/guild-protocol": {
+      "name": "@guild/protocol",
+      "version": "0.1.0",
+      "dependencies": {
+        "zod": "^4.1.12",
+      },
+      "devDependencies": {
+        "typescript": "^5.9.2",
+      },
+    },
     "packages/runner": {
       "name": "@guild/runner",
       "version": "0.1.0",
@@ -53,7 +64,9 @@
         "guild-runner": "./dist/cli.js",
       },
       "dependencies": {
+        "@guild/protocol": "workspace:*",
         "@modelcontextprotocol/sdk": "^1.30.0",
+        "playwright-core": "^1.55.0",
         "zod": "^4.1.12",
       },
       "devDependencies": {
@@ -211,6 +224,8 @@
     "@eslint/plugin-kit": ["@eslint/plugin-kit@0.4.1", "", { "dependencies": { "@eslint/core": "^0.17.0", "levn": "^0.4.1" } }, "sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA=="],
 
     "@exodus/bytes": ["@exodus/bytes@1.15.1", "", { "peerDependencies": { "@noble/hashes": "^1.8.0 || ^2.0.0" }, "optionalPeers": ["@noble/hashes"] }, "sha512-S6mL0yNB/Abt9Ei4tq8gDhcczc4S3+vQ4ra7vxnAf+YHC02srtqxKKZghx2Dq6p0e66THKwR6r8N6P95wEty7Q=="],
+
+    "@guild/protocol": ["@guild/protocol@workspace:packages/guild-protocol"],
 
     "@guild/runner": ["@guild/runner@workspace:packages/runner"],
 

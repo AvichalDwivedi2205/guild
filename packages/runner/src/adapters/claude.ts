@@ -8,6 +8,8 @@ const ALLOWED_GUILD_TOOLS = [
   'mcp__guild__search_canvas',
   'mcp__guild__apply_canvas_changes',
   'mcp__guild__add_comment',
+  'mcp__guild__publish_design_preview',
+  'mcp__guild__get_assignment_feedback',
   'mcp__guild__report_progress',
 ].join(',');
 

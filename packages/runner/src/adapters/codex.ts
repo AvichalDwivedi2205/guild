@@ -43,7 +43,7 @@ export class CodexAdapter implements EngineAdapter {
         '-c',
         'mcp_servers.guild.required=true',
         '-c',
-        'mcp_servers.guild.enabled_tools=["get_workspace_context","search_canvas","apply_canvas_changes","add_comment","report_progress"]',
+        'mcp_servers.guild.enabled_tools=["get_workspace_context","search_canvas","apply_canvas_changes","add_comment","publish_design_preview","get_assignment_feedback","report_progress"]',
         '-c',
         'mcp_servers.guild.default_tools_approval_mode="approve"',
         '-c',

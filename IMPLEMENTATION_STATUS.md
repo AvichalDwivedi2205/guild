@@ -12,6 +12,277 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-03 (PR #3 acceptance fixes and production backend)
+
+- Fixed merge-blocking authorization and capture boundaries: evidence-link actions now require
+  workspace membership; Runner capture validates every resolved address, pins validated DNS, blocks
+  redirects and subresources outside the exact origin, and launches the resolved browser binary.
+- Demo reset now snapshots configured baseline objects and bodies, restores baseline drift, and
+  removes only explicitly configured transient keys. It no longer deletes every listed artifact.
+- Design Focus now reads exact revisions, exposes screen/revision navigation, uses authorized capture
+  URLs, supports real previous/current comparison, and records visual anchors against live Preview
+  Bridge route, scroll, and viewport context. Request Changes is a compact inline composer.
+- Visual feedback now routes to the unique nearest matching external workstream instead of array
+  order. Idempotent approval, change-request, restore, and visual-comment replays return original
+  resource IDs.
+- Trackpad pan, full-node text double-click, Focus dispatch for wireframe design screens, and Follow
+  Worker camera behavior have targeted regression coverage. Workspace UI now reports whether native
+  browser WebMCP is ready, registering, unavailable, or failed.
+- Replaced placeholder `/app` Playwright checks with real `/workspaces/:id` demo checks. The
+  authenticated suite requires untracked `GUILD_E2E_STORAGE_STATE` and
+  `GUILD_E2E_WORKSPACE_PATH`; it includes a standards-shaped WebMCP host test that registers all 24
+  tools and executes `list_workspaces` through the page service. Native controller proof remains a
+  separate browser acceptance step.
+- Verification: `bun run check` passed 59 files / 180 tests; Runner passed 12 files / 36 tests five
+  consecutive times; `bun run runner:build`, `bun run build`, and `bun audit` passed; public
+  Playwright passed desktop and mobile landing tests, with authenticated cases honestly skipped
+  until an untracked login state is supplied.
+- Deployed additive schema and functions to both Convex development and production. Production has
+  94 functions and reported no index deletion. Deployed the Guild Preview Bridge fixture at
+  `https://preview-fixture.vercel.app` and verified HTTP 200.
+- Remaining before merge acceptance: push atomic commits, pass PR CI, verify signed-in production
+  behavior and native WebMCP availability, then merge without squashing only if all available gates
+  pass.
+
+## Snapshot — 2026-09-03 (Phase 11 skills, matrix, and Codex handoff)
+
+- Added `skills/guild-canvas-worker/SKILL.md` and
+  `skills/guild-webmcp-controller/SKILL.md` covering context order, progress
+  cadence, stable keys, publication, feedback polling, bounded evidence, and
+  honest completion.
+- Wrote the authenticated Playwright matrix in `tests/e2e/cinema-demo.spec.ts`
+  for the 15 demo flows. Specs skip unless `GUILD_E2E_STORAGE_STATE` points at
+  an untracked storage-state file. This agent did not run them.
+- Native browser WebMCP and signed-in Focus/Interact proof remain for Codex.
+- Full gate results on this branch:
+  - `bun install --frozen-lockfile` — success
+  - `bun run format:check` — success
+  - `bun run lint` — success
+  - `bun run typecheck` — success
+  - `bun run runner:typecheck` — success
+  - `bun run runner:test` — 33 passed, 1 skipped
+  - `bun run runner:build` — success
+  - `bun run build` — success after protocol imports dropped `.js`
+    suffixes that Turbopack could not resolve
+  - `bun audit` — no vulnerabilities
+  - `bun run test` — 173 passed, 1 skipped, 1 failed:
+    `tests/runner/runner-loop.test.ts` still flakes `job_3` as `failed`
+    instead of `cancelled`. That flake predates this branch and was not
+    changed here.
+- Convex preview, Vercel branch preview, and `preview-fixture` deploy were
+  not run. This environment has no `CONVEX_DEPLOY_KEY` or Vercel CLI.
+- Do not merge `cursor/cinema-demo-platform-d4c4` until human review.
+
+### Codex WebMCP verification handoff
+
+Invoke every native browser WebMCP tool against a signed-in workspace:
+
+Existing (14): `list_workspaces`, `get_workspace_context`, `search_canvas`,
+`apply_canvas_changes`, `add_comment`, `run_ai_team`, `get_run_status`,
+`get_runner_status`, `stop_run`, `retry_job`, `undo_run`,
+`list_implementation_tasks`, `claim_task`, `report_task_result`.
+
+New (10): `publish_design_preview`, `get_design_set`,
+`get_design_revision_status`, `register_workstream`,
+`report_workstream_update`, `complete_workstream`, `get_workstream_feedback`,
+`acknowledge_workstream_feedback`, `report_implementation_evidence`,
+`list_implementation_evidence`.
+
+Still unproven in a native recording browser: iframe Preview Bridge handshake
+against the hosted fixture, Interact on a site that allows framing, blocked
+`x-frame-options` fallback, visual point/rectangle overlay, one-click approval,
+two-browser realtime, and the 15 authenticated Playwright flows.
+
+## Snapshot — 2026-09-03 (Phase 10 scenario and presentation)
+
+- `demoScenarios` and `presentationViews` store named cameras and an explicit
+  scenario key. `preflight` and `reset` reject wildcards, fence active Jobs,
+  restore only listed logical keys, and seed no fake progress or evidence.
+- Presentation mode adds Present/Escape, previous/next named views, opt-in
+  Follow Worker, and reduced-motion camera jumps.
+- Evidence: `bun run test -- tests/integration/convex-demo-scenario.test.ts`.
+
+## Snapshot — 2026-09-03 (Phase 9 implementation evidence)
+
+- `implementationEvidence` and `evidenceLinkChecks` store bounded reports.
+  `verifyEvidenceLink` is the repository's first Convex action and never
+  upgrades a reported check outcome; it only changes verification state.
+- WebMCP adds `report_implementation_evidence` and
+  `list_implementation_evidence`. Evidence Focus labels every item Reported,
+  Link verified, or Unavailable.
+- Evidence: `bun run test -- tests/integration/convex-evidence.test.ts`.
+
+## Snapshot — 2026-09-03 (Phase 8 external workstream reporting)
+
+- `externalWorkstreams`, `workstreamUpdates`, and
+  `externalWorkstreamFeedback` support register/update/complete/get/ack with
+  monotonic sequence and dual timestamps.
+- Silent controllers derive Stale, never Running. Five WebMCP tools are
+  registered. The Agent dock merges Runner Jobs with Reported rows and exposes
+  Stop/Retry only for Jobs.
+- Evidence: `bun run test -- tests/domain/workstream-staleness.test.ts
+tests/integration/convex-external-workstreams.test.ts
+tests/webmcp/registry.test.ts`.
+
+## Snapshot — 2026-09-03 (Phase 7 revisions and approval)
+
+- `designReview.approveDesignRevision` and `requestDesignChanges` accept only
+  an authenticated human principal. `restoreDesignRevision` is append-only and
+  does not call `publishDesignPreview`.
+- Screenshot compare supports side-by-side and slider. The selection toolbar
+  Approve action binds the exact head version.
+- Evidence: `bun run test -- tests/domain/design-review.test.ts
+tests/integration/convex-design-review.test.ts`.
+
+## Snapshot — 2026-09-03 (Phase 6 visual comments)
+
+- `visualAnchors` plus optional comment thread fields persist a point or
+  rectangle against one immutable screen revision.
+- `visualFeedback.createVisualComment` writes the anchor, the root comment,
+  and exactly one delivery in one Recorder transaction: a Runner Job for a
+  Role-owned screen, or one pending external-workstream feedback row.
+- Comment mode in Design Focus hosts an overlay and an edge-flipping
+  composer. Anchors stay on their original revision.
+- Assignment MCP adds `get_assignment_feedback` with bounded text and an
+  optional MCP image content block. Browser WebMCP still does not return
+  screenshot bytes.
+- Evidence: `bun run test -- tests/domain/anchor.test.ts
+tests/integration/convex-visual-feedback.test.ts
+tests/runner/canvas-only-boundary.test.ts tests/runner/adapters.test.ts
+tests/runner/mcp-bridge.test.ts` (14 passed); `bun run lint`;
+  `bun run typecheck`; `bun run runner:typecheck`.
+
+## Snapshot — 2026-09-03 (green CI: protocol packaging and hermetic capture test)
+
+- Fixed the Vercel build failure. `@guild/protocol` was a source-only package whose
+  NodeNext `./x.js` specifiers Turbopack could not resolve, so every `next build`
+  failed with `Module not found: Can't resolve './canvas.js'`. The package now
+  compiles to `dist` and exports built ESM plus declarations, which satisfies both
+  the bundler consumers (Next, Convex, Vitest) and the Runner's NodeNext build.
+- `bun run protocol:build` runs from `postinstall`, `dev`, `build`, and `check`, so a
+  fresh clone or CI/Vercel install always has `dist` before anything consumes it.
+  Removed the root `tsconfig` path alias that pinned the package to raw source.
+- Fixed the failing `verify` job. `tests/runner/capture.test.ts` assumed Chrome was
+  absent, but GitHub's Ubuntu image ships Chrome, so the test launched a browser and
+  hit the network until the 5s timeout. It now mocks `existsSync` to force the
+  absent-browser path: deterministic, offline, and asserting the exact error.
+- Verified locally end to end: `bun run check` (164 tests), `bun run runner:build`,
+  `bun run build`, and `bun run test:e2e` (4 tests, Chromium desktop and mobile).
+
+## Snapshot — 2026-09-03 (Phase 5 Focus and Preview Bridge)
+
+- Deep-linkable Focus uses validated workspace search params (`focus`,
+  `designSet`, `screen`, `revision`). Exit restores the captured canvas
+  viewport and originating DOM focus.
+- Design Focus provides previous/next screen, desktop/mobile, Interact and
+  Comment, and Escape. The preview iframe is titled, sandboxed, and least
+  privilege.
+- `public/preview-bridge.js` is version 1 and reports only route, scroll,
+  viewport, revision, and screen identity. Parent-side validation rejects
+  wrong origin, source, nonce, version, size, or revision.
+- `preview-fixture/` is a tiny static site with two screen routes and the
+  same bridge script, ready to deploy as its own Vercel project.
+- Evidence Focus is a deep-link shell only; reported evidence listing lands
+  in Phase 9.
+- Evidence: `bun run test -- tests/domain/focus-state.test.ts`;
+  `bun run lint`; `bun run typecheck`. Native iframe handshake still needs
+  a hosted fixture and a signed-in browser.
+
+## Snapshot — 2026-09-03 (Phase 4 assets and Runner capture)
+
+- Added `assets` and `assetUploadIntents` plus optional capture-task asset
+  pointers. `convex/assets.ts` uses Convex Storage behind
+  `convex/lib/assetStore.ts`.
+- Pure `@guild/protocol` modules sniff PNG/JPEG/WebP headers and reject HTML,
+  SVG, credentialed URLs, private/link-local/loopback/metadata addresses, and
+  unapproved ports. Loopback is an explicit opt-in.
+- `convex/captures.ts` claims, completes, and fails preview capture tasks with
+  attempt and fencing checks. `/api/runner/captures` is the sixth Runner route.
+- Guild Runner uses `playwright-core` with the system Chrome channel, a fresh
+  cookie-free context, and bounded navigation/bytes. Missing Chrome reports
+  `capture_browser_unavailable`.
+- Evidence: `bun run test -- tests/domain/image-header.test.ts
+tests/domain/url-policy.test.ts tests/runner/capture.test.ts
+tests/integration/convex-assets.test.ts` (5 passed); `bun run lint`;
+  `bun run typecheck`; `bun run runner:typecheck`.
+- Focus, visual comments, and screenshot compare remain later phases.
+
+## Snapshot — 2026-09-03 (Phase 3 immutable design publication)
+
+- Added design/preview tables: `designSets`, `designScreens`, `designRevisions`,
+  `designScreenRevisions`, `previewOrigins`, `previewDeployments`, and
+  `previewCaptureTasks`.
+- `design.publishDesignPreview` goes through the Recorder. It projects a
+  `section` gallery and `image`/`wireframeFrame` screen cards with stable
+  logical keys, stores an append-only revision, and queues capture tasks.
+- Later publications require the exact head version. Raw HTML is rejected.
+  Cross-workspace related objects fail with `workspace_mismatch`.
+- WebMCP now exposes `publish_design_preview`, `get_design_set`, and
+  `get_design_revision_status`. Assignment MCP adds `publish_design_preview`.
+- Evidence: `bun run test -- tests/integration/convex-design.test.ts
+tests/webmcp/registry.test.ts tests/runner/canvas-only-boundary.test.ts
+tests/runner/mcp-bridge.test.ts tests/runner/adapters.test.ts` (16 passed);
+  `bun run lint`; `bun run typecheck`; `bun run runner:typecheck`.
+- Capture completion, authorized asset URLs, and Focus review remain later
+  phases. No deployment in this batch.
+
+## Snapshot — 2026-09-03 (Phase 2 contextual canvas UX)
+
+- Added `primaryAction` / `contextActions` registry so renderers stay visual.
+- Single click no longer opens a panel. `C` starts a comment, `L` starts Connect,
+  Escape closes Advanced first, and More opens Advanced details.
+- Added a screen-space selection toolbar (Comment, Ask agent, Color, More) and a
+  compact Agent dock projected from real Jobs.
+- Added `convex/workstreams.list` as the Job projection Module. External
+  Controller rows are not present yet.
+- Remaining: design Focus dispatch, visual approval, and dock rows for reported
+  workstreams.
+
+## Snapshot — 2026-09-03 (Phase 1 shared protocol and mutation recorder)
+
+- Added workspace package `@guild/protocol` with protocol version, shared canvas
+  primitives, error codes, stable-key rules, canonical request hashing, and
+  schemas for later design, feedback, workstream, and evidence tools.
+- WebMCP and assignment MCP now import those shared primitives instead of
+  maintaining parallel enum copies.
+- Widened `changeSets` with optional `commandName`, `requestHash`, and
+  `parentChangeSetId`; widened `changeEntries.targetKind`; added optional
+  `canvasEdges.logicalKey`.
+- `canvas.executeCommands` now goes through `recordWorkspaceMutation`. Reusing
+  an idempotency key with a different payload throws
+  `idempotency_payload_mismatch`; matching replays remain unchanged.
+- This closes the command-service boundary P1 item for canvas writes. Comment
+  and later modules will adopt the same Recorder.
+- No deployment in this batch.
+
+## Snapshot — 2026-09-03 (Phase 0 Cinema demo baseline)
+
+- Started implementation of the Guild-only Cinema demo platform on branch
+  `cursor/cinema-demo-platform-d4c4`. Cinema repository execution remains out of
+  scope.
+- Proved the `## Locked current scope` blocks in `PRODUCT.md` and `Plan.md` are
+  byte-identical (17 lines). A regression test now fails if they drift.
+- Added glossary terms to `CONTEXT.md`: immutable design revision, visual
+  anchor, preview origin, external workstream, reported evidence, and link
+  verification.
+- Added `docs/adr/0001-design-projection-not-raw-html.md` and
+  `docs/adr/0002-reported-workstreams-vs-job-authority.md`.
+- Added characterization coverage that locks the current five assignment-scoped
+  canvas tools, the Claude `sonnet` pin, and the absence of Git, worktree,
+  repository, or deployment adapters in Guild Runner.
+- This batch does not change product behavior, schema, or deployments.
+
+## Snapshot — 2026-09-03 (Cursor Cloud Agent environment)
+
+- Added a repository-managed Cloud Agent environment: `.cursor/environment.json`,
+  `scripts/cloud-agent-install.sh` (Bun 1.3.9 + `bun install --frozen-lockfile`), and
+  `scripts/cloud-agent-start.sh` (writes `.env.local` from injected secrets only when missing).
+- Documented Cloud secrets, ports, and verification in `AGENTS.md` under
+  `Cursor Cloud specific instructions`.
+- Local proof on this machine: `next dev` served http://127.0.0.1:3000 with HTTP 200 landing copy
+  ("Build with an AI team, not an AI chat."), and `/sign-in` returned 307 to WorkOS AuthKit.
+- No product, Convex, or Vercel deployment change. Secrets were not written to tracked files.
+
 ## Planning snapshot — 2026-09-03 (Cinema end-to-end implementation architecture)
 
 - Added `DEMO_IMPLEMENTATION_PLAN.md` as the deep implementation plan for the accepted Cinema
@@ -608,8 +879,9 @@ errors; `/auth-check` now resolves to the authenticated not-found UI rather than
       keeps unsupported Run/comment Change Sets visible without offering a fake restore action.
 - [x] Role/team/Runner management UI now creates, edits, removes roles and teams, and can rename,
       revoke, and re-pair Runners. Authenticated browser coverage is still required.
-- [ ] Decide and document the command-service boundary, then route remaining user/WebMCP mutations
-      through one consistent idempotent attribution path where required.
+- [x] Decide and document the command-service boundary. Canvas writes now use
+      `recordWorkspaceMutation` with payload-bound idempotency. Remaining comment
+      and later module adapters still need to adopt the same Recorder.
 - [x] WebMCP invocations now record tool name, user, workspace, outcome, duration, and optional
       Change Set in `activityEvents`.
 - [ ] Review accessibility, keyboard interaction, focus behavior, mobile layout, reconnect/offline

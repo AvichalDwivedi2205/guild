@@ -182,6 +182,25 @@ function withWebMcpAudit(
     listImplementationTasks: wrap('list_implementation_tasks', service.listImplementationTasks),
     claimTask: wrap('claim_task', service.claimTask),
     reportTaskResult: wrap('report_task_result', service.reportTaskResult),
+    publishDesignPreview: wrap('publish_design_preview', service.publishDesignPreview),
+    getDesignSet: wrap('get_design_set', service.getDesignSet),
+    getDesignRevisionStatus: wrap('get_design_revision_status', service.getDesignRevisionStatus),
+    registerWorkstream: wrap('register_workstream', service.registerWorkstream),
+    reportWorkstreamUpdate: wrap('report_workstream_update', service.reportWorkstreamUpdate),
+    completeWorkstream: wrap('complete_workstream', service.completeWorkstream),
+    getWorkstreamFeedback: wrap('get_workstream_feedback', service.getWorkstreamFeedback),
+    acknowledgeWorkstreamFeedback: wrap(
+      'acknowledge_workstream_feedback',
+      service.acknowledgeWorkstreamFeedback,
+    ),
+    reportImplementationEvidence: wrap(
+      'report_implementation_evidence',
+      service.reportImplementationEvidence,
+    ),
+    listImplementationEvidence: wrap(
+      'list_implementation_evidence',
+      service.listImplementationEvidence,
+    ),
   };
 }
 
@@ -458,6 +477,137 @@ export function createConvexWebMcpService(client: ConvexReactClient): GuildWebMc
         source: 'webmcp',
       });
       return { taskId: input.taskId, changeSetId: result.changeSetId };
+    },
+    async publishDesignPreview(input) {
+      const result = await client.mutation(api.design.publishDesignPreview, {
+        workspaceId: workspaceId(input.workspaceId),
+        source: 'webmcp',
+        idempotencyKey: input.idempotencyKey,
+        designSetKey: input.designSetKey,
+        title: input.title,
+        stage: input.stage,
+        deploymentId: input.deploymentId,
+        deploymentUrl: input.deploymentUrl,
+        origin: input.origin,
+        ...(input.expectedBaseRevision !== undefined
+          ? { expectedBaseRevision: input.expectedBaseRevision }
+          : {}),
+        ...(input.targetSectionId
+          ? { targetSectionId: input.targetSectionId as Id<'canvasObjects'> }
+          : {}),
+        screens: input.screens.map((screen) => ({
+          screenKey: screen.screenKey,
+          name: screen.name,
+          route: screen.route,
+          order: screen.order,
+          viewports: screen.viewports,
+          ...(screen.relatedObjectIds ? { relatedObjectIds: screen.relatedObjectIds } : {}),
+        })),
+        ...(input.addressedCommentIds ? { addressedCommentIds: input.addressedCommentIds } : {}),
+      });
+      return {
+        changeSetId: result.changeSetId,
+        designSetId: result.designSetId,
+        designRevisionId: result.designRevisionId,
+        version: result.version,
+      };
+    },
+    async getDesignSet(input) {
+      return client.query(api.design.getDesignSet, {
+        workspaceId: workspaceId(input.workspaceId),
+        designSetKey: input.designSetKey,
+        ...(input.version !== undefined ? { version: input.version } : {}),
+      });
+    },
+    async getDesignRevisionStatus(input) {
+      return client.query(api.design.getDesignRevisionStatus, {
+        workspaceId: workspaceId(input.workspaceId),
+        designSetKey: input.designSetKey,
+        ...(input.version !== undefined ? { version: input.version } : {}),
+      });
+    },
+    async registerWorkstream(input) {
+      return client.mutation(api.externalWorkstreams.registerWorkstream, {
+        workspaceId: workspaceId(input.workspaceId),
+        idempotencyKey: input.idempotencyKey,
+        workstreamKey: input.workstreamKey,
+        roleLabel: input.roleLabel,
+        engineLabel: input.engineLabel,
+        objective: input.objective,
+        eventTime: input.eventTime,
+        ...(input.targetObjectId ? { targetObjectId: input.targetObjectId } : {}),
+      });
+    },
+    async reportWorkstreamUpdate(input) {
+      return client.mutation(api.externalWorkstreams.reportWorkstreamUpdate, {
+        workspaceId: workspaceId(input.workspaceId),
+        idempotencyKey: input.idempotencyKey,
+        workstreamKey: input.workstreamKey,
+        sequence: input.sequence,
+        phase: input.phase,
+        summary: input.summary,
+        eventTime: input.eventTime,
+        ...(input.targetObjectIds ? { targetObjectIds: input.targetObjectIds } : {}),
+        ...(input.artifactObjectIds ? { artifactObjectIds: input.artifactObjectIds } : {}),
+      });
+    },
+    async completeWorkstream(input) {
+      return client.mutation(api.externalWorkstreams.completeWorkstream, {
+        workspaceId: workspaceId(input.workspaceId),
+        idempotencyKey: input.idempotencyKey,
+        workstreamKey: input.workstreamKey,
+        sequence: input.sequence,
+        summary: input.summary,
+        state: input.state,
+        eventTime: input.eventTime,
+      });
+    },
+    async getWorkstreamFeedback(input) {
+      return client.query(api.externalWorkstreams.getWorkstreamFeedback, {
+        workspaceId: workspaceId(input.workspaceId),
+        workstreamKey: input.workstreamKey,
+        limit: input.limit,
+      });
+    },
+    async acknowledgeWorkstreamFeedback(input) {
+      return client.mutation(api.externalWorkstreams.acknowledgeWorkstreamFeedback, {
+        ...input,
+        workspaceId: workspaceId(input.workspaceId),
+      });
+    },
+    async reportImplementationEvidence(input) {
+      return client.mutation(api.evidence.reportImplementationEvidence, {
+        workspaceId: workspaceId(input.workspaceId),
+        idempotencyKey: input.idempotencyKey,
+        workstreamKey: input.workstreamKey,
+        kind: input.kind,
+        projectLabel: input.projectLabel,
+        eventTime: input.eventTime,
+        ...(input.branch ? { branch: input.branch } : {}),
+        ...(input.commit ? { commit: input.commit } : {}),
+        ...(input.changedFiles ? { changedFiles: input.changedFiles } : {}),
+        ...(input.diffSummary ? { diffSummary: input.diffSummary } : {}),
+        ...(input.checks
+          ? {
+              checks: input.checks.map((check) => ({
+                name: check.name,
+                outcome: check.outcome,
+                ...(check.durationMs !== undefined ? { durationMs: check.durationMs } : {}),
+                ...(check.summary ? { summary: check.summary } : {}),
+              })),
+            }
+          : {}),
+        ...(input.url ? { url: input.url } : {}),
+        ...(input.relatedObjectIds ? { relatedObjectIds: input.relatedObjectIds } : {}),
+      });
+    },
+    async listImplementationEvidence(input) {
+      return client.query(api.evidence.listImplementationEvidence, {
+        workspaceId: workspaceId(input.workspaceId),
+        ...(input.workstreamKey ? { workstreamKey: input.workstreamKey } : {}),
+        ...(input.subjectObjectId ? { subjectObjectId: input.subjectObjectId } : {}),
+        limit: input.limit,
+      });
     },
   });
 }

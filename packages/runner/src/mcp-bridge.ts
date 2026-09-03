@@ -4,6 +4,15 @@ import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import {
+  boundedSizeSchema,
+  canvasObjectTypeSchema,
+  nodeStyleInputSchema,
+  pointSchema,
+  projectRelationshipSchema,
+  projectSemanticsSchema,
+  progressPhaseSchema,
+} from '@guild/protocol';
 import { z } from 'zod/v4';
 import type { GuildCloudClient } from './http-client.js';
 import { errorMessage, redactText } from './redaction.js';
@@ -12,71 +21,13 @@ import type { Assignment } from './types.js';
 const MAX_REQUEST_BYTES = 1_000_000;
 const MAX_RESULT_BYTES = 200_000;
 
-const nodePaletteIdSchema = z.enum(['paper', 'amber', 'peach', 'mint', 'lilac', 'rose', 'ink']);
-const nodeStyleSchema = z.object({ palette: nodePaletteIdSchema.optional() }).strict();
-const canvasObjectTypeSchema = z.enum([
-  'shape',
-  'sticky',
-  'text',
-  'mindMapNode',
-  'table',
-  'icon',
-  'image',
-  'link',
-  'section',
-  'annotation',
-  'drawing',
-  'task',
-  'stack',
-  'wireframeFrame',
-  'wireframeComponent',
-]);
-const projectAreaSchema = z.enum([
-  'idea',
-  'product',
-  'journey',
-  'design',
-  'architecture',
-  'aiSystems',
-  'database',
-  'implementation',
-  'testing',
-  'launch',
-]);
-const relationshipSchema = z.enum([
-  'contains',
-  'informs',
-  'requires',
-  'implements',
-  'represents',
-  'supports',
-  'depends_on',
-  'calls',
-  'reads_from',
-  'writes_to',
-  'emits',
-  'triggers',
-  'verified_by',
-  'affects',
-  'blocks',
-  'supersedes',
-]);
+const nodeStyleSchema = nodeStyleInputSchema;
 const objectIdSchema = z.string().min(1).max(200);
 const revisionSchema = z.number().int().nonnegative();
-const positionSchema = z.object({ x: z.number().finite(), y: z.number().finite() });
-const sizeSchema = z.object({
-  width: z.number().finite().min(24).max(4_096),
-  height: z.number().finite().min(24).max(4_096),
-});
-const semanticsSchema = z.object({
-  semanticType: z.string().min(1).max(200).optional(),
-  projectArea: projectAreaSchema.optional(),
-  status: z.string().min(1).max(200).optional(),
-  priority: z.string().min(1).max(200).optional(),
-  ownerUserId: objectIdSchema.optional(),
-  ownerRoleProfileId: objectIdSchema.optional(),
-  customFields: z.record(z.string(), z.unknown()).optional(),
-});
+const positionSchema = pointSchema;
+const sizeSchema = boundedSizeSchema;
+const semanticsSchema = projectSemanticsSchema;
+const relationshipSchema = projectRelationshipSchema;
 const canvasCommandSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('create_object'),
@@ -284,11 +235,107 @@ function createAssignmentServer(
   );
 
   server.registerTool(
+    'publish_design_preview',
+    {
+      description:
+        'Publish an immutable design revision for the current assignment. Project a gallery section and screen cards with stable keys. Never send HTML or image bytes.',
+      inputSchema: {
+        idempotencyKey: z.string().min(8).max(200),
+        designSetKey: z
+          .string()
+          .trim()
+          .min(2)
+          .max(200)
+          .regex(/^[a-z0-9][a-z0-9._:-]{0,198}$/iu),
+        title: z.string().trim().min(1).max(200),
+        stage: z.enum(['wireframe', 'visual']),
+        deploymentId: z.string().trim().min(1).max(200),
+        deploymentUrl: z.string().url().max(2_000),
+        origin: z.string().url().max(2_000),
+        expectedBaseRevision: z.number().int().nonnegative().optional(),
+        screens: z
+          .array(
+            z.object({
+              screenKey: z
+                .string()
+                .trim()
+                .min(2)
+                .max(200)
+                .regex(/^[a-z0-9][a-z0-9._:-]{0,198}$/iu),
+              name: z.string().trim().min(1).max(200),
+              route: z
+                .string()
+                .trim()
+                .min(1)
+                .max(500)
+                .regex(/^\/[A-Za-z0-9._~:/#[\]@!$&'()*+,;=%-]*$/u),
+              order: z.number().int().min(0).max(200),
+              viewports: z
+                .array(z.enum(['desktop', 'mobile']))
+                .min(1)
+                .max(2),
+              relatedObjectIds: z.array(z.string().min(1).max(128)).max(20).optional(),
+            }),
+          )
+          .min(1)
+          .max(40),
+        addressedCommentIds: z.array(z.string().min(1).max(128)).max(50).optional(),
+      },
+      annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+    },
+    async (args) => {
+      try {
+        return textResult(
+          await cloud.callAssignmentTool(assignment, 'publish_design_preview', args),
+          knownSecrets,
+        );
+      } catch (error) {
+        return errorResult(error, knownSecrets);
+      }
+    },
+  );
+
+  server.registerTool(
+    'get_assignment_feedback',
+    {
+      description:
+        'Read the visual comment, revision identity, and optional crop image for this assignment.',
+      inputSchema: {},
+      annotations: { readOnlyHint: true, openWorldHint: false },
+    },
+    async () => {
+      try {
+        const result = (await cloud.callAssignmentTool(
+          assignment,
+          'get_assignment_feedback',
+          {},
+        )) as {
+          comment?: { body?: string } | null;
+          image?: { data?: string; mime?: string } | null;
+        };
+        const content: Array<
+          { type: 'text'; text: string } | { type: 'image'; data: string; mimeType: string }
+        > = [textResult(result, knownSecrets).content[0]!];
+        if (result.image?.data && result.image.mime) {
+          content.push({
+            type: 'image',
+            data: result.image.data,
+            mimeType: result.image.mime,
+          });
+        }
+        return { content };
+      } catch (error) {
+        return errorResult(error, knownSecrets);
+      }
+    },
+  );
+
+  server.registerTool(
     'report_progress',
     {
       description: 'Report concise visible Worker progress for current assignment.',
       inputSchema: {
-        phase: z.enum(['reading_context', 'working', 'writing', 'finishing']),
+        phase: progressPhaseSchema,
         message: z.string().trim().min(1).max(2_000),
         targetObjectId: z.string().max(200).optional(),
       },

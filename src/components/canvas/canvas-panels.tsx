@@ -44,7 +44,7 @@ export type CanvasPanel =
 
 const panelDefinitions: { id: CanvasPanel; label: string; icon: ReactNode }[] = [
   { id: 'overview', label: 'Overview', icon: <BarChart3 size={17} /> },
-  { id: 'inspector', label: 'Inspector', icon: <SlidersHorizontal size={17} /> },
+  { id: 'inspector', label: 'Advanced', icon: <SlidersHorizontal size={17} /> },
   { id: 'comments', label: 'Comments', icon: <MessageSquare size={17} /> },
   { id: 'activity', label: 'Activity', icon: <Activity size={17} /> },
   { id: 'team', label: 'Team', icon: <Users size={17} /> },

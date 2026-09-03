@@ -12,8 +12,9 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "postinstall": "bun run protocol:build",
+    "dev": "bun run protocol:build && next dev",
+    "build": "bun run protocol:build && next build",
     "start": "next start",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -22,12 +23,15 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "protocol:build": "bun run --cwd packages/guild-protocol build",
+    "protocol:typecheck": "bun run --cwd packages/guild-protocol typecheck",
     "runner:build": "bun run --cwd packages/runner build",
     "runner:typecheck": "bun run --cwd packages/runner typecheck",
     "runner:test": "bun run --cwd packages/runner test",
-    "check": "bun run format:check && bun run lint && bun run typecheck && bun run test && bun run runner:typecheck"
+    "check": "bun run protocol:build && bun run format:check && bun run lint && bun run typecheck && bun run test && bun run protocol:typecheck && bun run runner:typecheck"
   },
   "dependencies": {
+    "@guild/protocol": "workspace:*",
     "@convex-dev/presence": "^0.4.0",
     "@convex-dev/rate-limiter": "^0.3.2",
     "@convex-dev/workos": "^0.0.3",

@@ -30,6 +30,8 @@ describe('assignment-scoped MCP bridge', () => {
           'add_comment',
           'apply_canvas_changes',
           'get_workspace_context',
+          'get_assignment_feedback',
+          'publish_design_preview',
           'report_progress',
           'search_canvas',
         ].sort(),
