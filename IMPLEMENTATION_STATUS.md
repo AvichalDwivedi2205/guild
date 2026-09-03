@@ -31,10 +31,14 @@ Status vocabulary:
   deleted the seven sections still referenced by Role Profiles. Production ownership was repaired
   through the Team UI by mapping all seven profiles to the canonical Product, Design,
   Architecture, AI, Data, Testing, and Implementation sections.
-- New deletion invariant rejects removing a section while any Role Profile owns it. The focused
-  integration regression reproduced the old destructive behavior, then passed after adding the
-  `roleProfiles.by_ownedSectionId` index and `owned_section_in_use` guard. Full gate, PR, merge,
-  production deployment, and live rejection replay remain pending for this batch.
+- New deletion invariant rejects removing a section while any Role Profile owns it. One shared
+  `owned_section_in_use` guard now covers direct canvas deletion, Change Set undo, Team Run undo,
+  and demo-scenario reset; regression coverage exercises all four public mutation paths. The
+  `roleProfiles.by_ownedSectionId` index makes the check bounded.
+- Verification: `bun run check` passed 59 files / 190 tests; Runner passed 12 files / 40 tests;
+  `bun run runner:build`, Next.js 16.3.4 `bun run build`, and `bun audit` passed. Standards review
+  found no issues; spec review found the undo/reset bypasses above, which this batch then fixed. PR,
+  merge, production deployment, and live rejection replay remain pending.
 
 ## Snapshot — 2026-09-03 (unrouted visual-comment acceptance repair)
 
