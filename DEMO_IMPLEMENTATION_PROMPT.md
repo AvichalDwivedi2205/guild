@@ -281,7 +281,9 @@ Put this in the optional overall textbox:
 > Keep the final result easy to scan at presentation zoom. Preserve exact source provenance,
 > explicit failure states, and human-owned decisions.
 
-Press Send once. Verify that at most one complete request is created per owning agent. Then verify
+This unanchored instruction belongs to both owner packets: Codex receives it with the linked
+architecture note, and Claude receives it with both hosted-design notes. Press Send once. Verify
+that at most one complete request is created per owning agent. Then verify
 both feedback-originated Workers retrieve their complete packet. Runner assignment feedback has no
 separate acknowledgement action; addressed state comes from the revised artifact or design
 publication, so do not narrate a nonexistent acknowledgement step.

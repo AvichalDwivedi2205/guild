@@ -287,7 +287,9 @@ its immutable revision.
    > Keep the final result easy to scan at presentation zoom. Preserve exact source provenance,
    > explicit failure states, and human-owned decisions.
 
-   Then press Send once.
+   Then press Send once. The unanchored overall instruction is included in both owner packets, so
+   Codex receives it together with the component-linked architecture comment and Claude receives
+   it together with the two hosted-design comments.
 
 9. Show both design anchors, immutable route/viewport/revision, and one grouped revision request per
    target agent—not one Job per annotation.
