@@ -86,7 +86,7 @@ The recording uses two synchronized surfaces when needed:
   `document.modelContext`.
 
 Both surfaces may use the title only to find the just-created workspace once. Controller writes
-must become visible in Chrome through realtime state before the first rehearsal is accepted.
+must become visible in Chrome through realtime state before the single take begins.
 Harshita's Chrome profile, account-selection screens, callback pages, and Controller UI must never
 enter the capture.
 
@@ -498,7 +498,7 @@ The handoff is complete only when:
 - the Cinemaverse vertical slice passes its documented tests and production build;
 - its hosted preview is reachable and exercised;
 - Guild contains bounded evidence with truthful provenance; and
-- the final video route passes twice without relying on hidden manual repair;
+- deterministic non-model preflight passes before the first real Team Run is recorded;
 - the new workspace is distinct from every prior demo workspace;
 - Guild remains visible while hosted Cinemaverse screens are reviewed and exercised; and
 - the silent master shows all six owned regions filling with detailed work before it is accepted.
