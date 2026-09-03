@@ -17,7 +17,7 @@ Status vocabulary:
 - Added an isolated browser E2E configuration backed by the official WorkOS local emulator. The
   test drives AuthKit authorization, Guild's real `/callback`, the sealed `wos-session` cookie,
   authenticated `/workspaces`, and the protected Runner-pairing page. It passed locally without
-  production credentials or live Hosted AuthKit automation.
+  production credentials or live Hosted AuthKit automation and now runs as an independent CI gate.
 - Added a connected Playwright flow that begins a Runner pairing through Guild's public protocol,
   approves the code through the signed-in UI, exchanges the device secret, polls a real assignment,
   invokes the assignment-scoped Worker endpoint, and intentionally collides a Worker move with a
