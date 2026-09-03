@@ -46,10 +46,11 @@ Guild landing page with presenter
     → detailed architecture, evidence, backend, frontend, QA, and design artifacts appear
     → six hosted Cinemaverse screens appear inside Claude's region
     → Interact with the hosted Research Canvas inside Guild
-    → Annotate one design region and one Codex architecture artifact
+    → Annotate two design regions and one Codex architecture artifact
     → Review all drafts, add one overall note, and Send once
     → one complete request reaches each owning agent
     → revised architecture and immutable design Version 2 appear
+    → pull request, changed files, checks, and preview evidence remain visible inside Guild
     → compare and human-approve Version 2
     → exercise Cinemaverse inside Guild, then return to the whole project canvas
 ```
@@ -63,14 +64,29 @@ Guild landing page with presenter
 - The hidden WebMCP-capable in-app browser may control the same workspace while Chrome records the
   realtime result. Verify cross-surface sync before the take.
 - The five Codex canvas jobs and bounded Claude Sonnet job are real. Claude never uses Fable.
+- The six visible teammates are Runner Jobs. Do not register mirrored external workstreams with the
+  same Role names; report existing source-repository evidence directly against the stable keys.
 - Existing verified Cinemaverse V1 and V2 deployments may be projected into the new workspace as
   deterministic checkpoints. Do not claim they were generated in seconds or during the take.
-- Human annotations, grouped routing, acknowledgement, revised canvas artifacts, comparison, and
+- V1 and V2 must use distinct public version-pinned origins. Reject any origin that redirects to
+  Vercel login, blocks iframe embedding, or silently serves the mutable current alias for both.
+- Human annotations, grouped routing, Worker retrieval, revised canvas artifacts, comparison, and
   approval shown in the new workspace must be real.
+- The recording gate requires six available Runner slots and overlapping active states for all six
+  initial Jobs. The current product supports up to eight; do not describe queued work as active.
+- Cross-workspace object, revision, capture, feedback, and approval IDs are never copied. The new
+  workspace publishes fresh revisions/captures from verified public deployment metadata.
+- Cinemaverse has a real private source repository at verified baseline `a0d2339`; do not imply the
+  baseline commit was created during the recorded Run.
+- The optional Preview Bridge may be absent. Coordinate annotations remain valid, but the demo must
+  not claim stable DOM-element tracking or show an “unavailable” warning over the preview.
+- Pull-request evidence opens in Guild's canvas-native Evidence Focus. Show its summary, branch,
+  commit, changed files, checks, and verification state; do not click the secondary external
+  GitHub action during the take.
 - Use a normal-speed silent master. Remove waits with cuts; use 1.1×–1.2× only for slow pans or UI
   transitions. Narration and face-camera footage remain natural speed.
 - Never use the rejected footage, fake activity, fake citations, fake test results, or a hidden
-  `/demo` shortcut.
+  `/demo` shortcut. Disconnect Chrome automation before capture so its debugging banner is absent.
 
 ## Ready-to-record gate
 

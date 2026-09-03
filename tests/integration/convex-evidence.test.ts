@@ -44,6 +44,43 @@ describe('Convex implementation evidence', () => {
     );
   });
 
+  it('returns one exact evidence item when Focus supplies its id', async () => {
+    const t = convexTest(schema, modules);
+    const asOwner = t.withIdentity(identity);
+    const workspaceId = await asOwner.mutation(api.workspaces.create, {
+      title: 'Focused evidence workspace',
+      boardMode: 'diagram',
+    });
+    const first = await asOwner.mutation(api.evidence.reportImplementationEvidence, {
+      workspaceId,
+      idempotencyKey: 'evidence:focus:0001',
+      workstreamKey: 'frontend',
+      kind: 'commit',
+      projectLabel: 'first',
+      commit: 'a0d2339',
+      eventTime: 1_000,
+    });
+    await asOwner.mutation(api.evidence.reportImplementationEvidence, {
+      workspaceId,
+      idempotencyKey: 'evidence:focus:0002',
+      workstreamKey: 'frontend',
+      kind: 'pull_request',
+      projectLabel: 'second',
+      eventTime: 2_000,
+    });
+
+    const listed = await asOwner.query(api.evidence.listImplementationEvidence, {
+      workspaceId,
+      evidenceId: first.evidenceId as Id<'implementationEvidence'>,
+      limit: 25,
+    });
+
+    expect(listed.items).toHaveLength(1);
+    expect(listed.items[0]).toEqual(
+      expect.objectContaining({ id: first.evidenceId, projectLabel: 'first' }),
+    );
+  });
+
   it('rejects an unauthenticated link check before fetching the reported URL', async () => {
     const t = convexTest(schema, modules);
     const asOwner = t.withIdentity(identity);

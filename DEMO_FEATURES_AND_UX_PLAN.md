@@ -7,8 +7,10 @@ Cinemaverse six-route vertical slice and its verified Version 1 and Version 2 de
 also exist. No new product feature is planned before recording unless the two rehearsal passes
 expose a reproducible defect.
 
-The only unfinished deliverable is the replacement demo recording. It must use a new Cinemaverse
-workspace and the workflow in `DEMO_VIDEO_SCRIPT.md`.
+The remaining work is recording preparation and the replacement demo. The private Cinemaverse
+source repository now exists at baseline `a0d2339`. Its V1/V2 version aliases are reserved, but they
+must be made publicly embeddable before fresh Guild captures can pass. The recording then uses a
+new Cinemaverse workspace and the workflow in `DEMO_VIDEO_SCRIPT.md`.
 
 ## Product boundary
 
@@ -34,6 +36,11 @@ returns to this overview after every focused interaction.
 Double-click opens a centered reading or hosted-design surface inside Guild. Rich artifacts render
 full Markdown. Hosted screens retain Guild controls for Interact, Annotate, Comment, Compare,
 Approve, and Exit Focus. Focus never opens an external tab during the recorded path.
+
+Implementation evidence uses the same canvas-native Focus surface. A pull request is shown as a
+readable evidence card with repository, summary, branch, commit, changed files, checks, and
+verification state. The GitHub link is a secondary `Open externally` action and is not used during
+the recorded path; GitHub is not treated as an embeddable product surface.
 
 ### Annotation review
 
@@ -108,13 +115,13 @@ Minimum artifacts by region:
 | Search & Evidence         | source hierarchy, claim schema, freshness policy, contradiction and prompt-injection handling    |
 | Backend & Data            | entity model, job state machine, idempotent API boundaries, persistence and recovery             |
 | Canvas & Frontend         | layout/zoom model, selection-scoped context, dossier/comparison flow, accessibility/performance  |
-| QA, Security & Evaluation | threat model, evaluation matrix, browser/security checks, deployment evidence                    |
+| QA, Security & Evaluation | threat model, evaluation matrix, browser/security checks, PR and deployment evidence             |
 
 ## Hosted design contract
 
 Claude's region shows six individual, legible screen cards:
 
-1. Project Setup — `project-setup`
+1. Project Setup — `setup`
 2. Script Review — `script-review`
 3. Research Canvas — `research-canvas`
 4. Location Dossier — `location-dossier`
@@ -126,19 +133,28 @@ card loads the real hosted HTTPS preview inside Guild. Version 1 is the neutral 
 is the restrained liquid-glass revision with translucent surfaces, subtle blur, crisp borders,
 almost no gradients, and preserved contrast.
 
+V1 and V2 require distinct public version-pinned origins. A mutable alias must never back both
+sides of comparison, and an origin that redirects to Vercel login is not recordable. The optional
+Preview Bridge is not required for coordinate annotations: without it, Guild anchors feedback to
+revision, screen, route, viewport, scroll, and normalized point or rectangle and makes no stable
+DOM-element claim.
+
 ## Human-control proof
 
-The recording creates two feedback drafts before sending:
+The recording creates three feedback drafts before sending:
 
 1. On the Codex architecture artifact: require independently cancellable scene-research branches,
    preservation of completed sibling evidence, and a visible failed/blocked state.
-2. On the hosted Research Canvas: request restrained liquid glass across all six screens while
-   protecting text, confidence, source freshness, and unresolved-risk readability.
+2. Around the hosted Research Canvas toolbar and primary cards: request restrained liquid glass
+   across all six screens.
+3. Around its evidence/source panel: require readable contrast and hierarchy for confidence,
+   citation provenance, retrieval date, source freshness, and unresolved risk without relying only
+   on color.
 
-`Review & send` must show the two notes grouped under the correct stable owners. A single Send
-produces one request for Agentic Systems Architect and one for Product & Visual Designer. The
-agents acknowledge the complete packet; the architecture artifact and immutable design revision
-then update. The user compares V1/V2 and approves the exact new-workspace revision.
+`Review & send` must show one note under Agentic Systems Architect and both design notes under
+Product & Visual Designer. A single Send produces one request for each owner. The Workers retrieve
+the complete packets; the architecture artifact and immutable design revision then update. The
+user compares V1/V2 and approves the exact new-workspace revision.
 
 ## Engine identity and status
 
@@ -161,8 +177,12 @@ Codex. A separate status dot displays queued, active, waiting, blocked, failed, 
 - Guild stays visible from the 0:12 canvas cut through the final frame.
 - The six regions and agent identities are readable in a full-canvas shot.
 - Real agent phases and detailed artifacts appear in their owned regions.
+- Real pull-request evidence is readable inside Guild Focus; opening GitHub externally is optional
+  and excluded from the take.
 - No agent chat, chain-of-thought, fake tokens, or oversized Inspector appears.
 - All six hosted screens are visible in Claude's region and interactive inside Guild.
+- Both version-pinned origins return direct unauthenticated 200 responses on all six routes and
+  produce fresh Guild captures.
 - Canvas and hosted-screen annotations work in one mode and remain local until review.
 - Review groups drafts correctly and one Send routes one packet per owner.
 - V1/V2 comparison and authenticated human approval work in the clean workspace.

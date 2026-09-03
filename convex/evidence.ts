@@ -107,6 +107,7 @@ export const reportImplementationEvidence = mutation({
 export const listImplementationEvidence = query({
   args: {
     workspaceId: v.id('workspaces'),
+    evidenceId: v.optional(v.id('implementationEvidence')),
     workstreamKey: v.optional(v.string()),
     subjectObjectId: v.optional(v.string()),
     limit: v.optional(v.number()),
@@ -114,25 +115,35 @@ export const listImplementationEvidence = query({
   handler: async (ctx, args) => {
     implementationEvidenceSchemas.list.parse({
       workspaceId: args.workspaceId,
+      ...(args.evidenceId ? { evidenceId: args.evidenceId } : {}),
       ...(args.workstreamKey ? { workstreamKey: args.workstreamKey } : {}),
       ...(args.subjectObjectId ? { subjectObjectId: args.subjectObjectId } : {}),
       limit: args.limit ?? 25,
     });
     await requireWorkspaceMember(ctx, args.workspaceId, 'viewer');
-    const rows = args.workstreamKey
-      ? await ctx.db
-          .query('implementationEvidence')
-          .withIndex('by_workspaceId_and_workstreamKey', (query) =>
-            query.eq('workspaceId', args.workspaceId).eq('workstreamKey', args.workstreamKey!),
-          )
-          .take(args.limit ?? 25)
-      : await ctx.db
-          .query('implementationEvidence')
-          .withIndex('by_workspaceId', (query) => query.eq('workspaceId', args.workspaceId))
-          .take(args.limit ?? 25);
+    const rows = args.evidenceId
+      ? [await ctx.db.get(args.evidenceId)].filter(
+          (row): row is NonNullable<typeof row> =>
+            row !== null && row.workspaceId === args.workspaceId,
+        )
+      : args.workstreamKey
+        ? await ctx.db
+            .query('implementationEvidence')
+            .withIndex('by_workspaceId_and_workstreamKey', (query) =>
+              query.eq('workspaceId', args.workspaceId).eq('workstreamKey', args.workstreamKey!),
+            )
+            .take(args.limit ?? 25)
+        : await ctx.db
+            .query('implementationEvidence')
+            .withIndex('by_workspaceId', (query) => query.eq('workspaceId', args.workspaceId))
+            .take(args.limit ?? 25);
+    const workstreamFiltered =
+      args.evidenceId && args.workstreamKey
+        ? rows.filter((row) => row.workstreamKey === args.workstreamKey)
+        : rows;
     const filtered = args.subjectObjectId
-      ? rows.filter((row) => row.relatedObjectIds.includes(args.subjectObjectId!))
-      : rows;
+      ? workstreamFiltered.filter((row) => row.relatedObjectIds.includes(args.subjectObjectId!))
+      : workstreamFiltered;
     return {
       items: filtered.map((item) => ({
         id: item._id,

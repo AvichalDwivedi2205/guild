@@ -83,8 +83,20 @@ silently presented as the live run.
 
 The working Cinemaverse preview uses a deterministic completed research fixture for the original
 script. Trigger one bounded follow-up question live. This proves interaction without betting the
-entire recording on unpredictable web latency. The hosted baseline is
-`https://cinemaverse-two.vercel.app`; publish later visual revisions through the same stable origin.
+entire recording on unpredictable web latency.
+
+The source design records identify two real deployments:
+
+| Version | Deployment id                      | Reserved version alias              |
+| ------- | ---------------------------------- | ----------------------------------- |
+| V1      | `dpl_Cuzm3NvPHjUi11Lm3PoTVh6ujVWo` | `https://cinemaverse-v1.vercel.app` |
+| V2      | `dpl_CuZDhdAMT2iYHRCDQVCagLsz6pfX` | `https://cinemaverse-v2.vercel.app` |
+
+Both version aliases currently inherit Vercel Authentication. Before recording, they must return a
+direct unauthenticated 200 on all six routes without redirecting to Vercel login. Never put a
+Vercel bypass token in Guild metadata or a recording URL. The mutable public alias
+`https://cinemaverse-two.vercel.app` serves the current V2, but it cannot represent both sides of
+the V1/V2 comparison.
 
 ## 4. Exact master instruction
 
@@ -175,7 +187,8 @@ without opening separate agent chats.
 
 **Visible proof:** The agents occupy and work inside the canvas, not only in right-side boxes.
 Engine glyph, stable role name/accent, objective, source, separate state, target section, elapsed
-time, and artifact count are readable. Progress is not a token stream.
+time, and artifact count are readable. All six initial Jobs overlap in an active state; progress is
+not a token stream.
 
 ### Scene 4 — The canvas becomes shared project memory
 
@@ -254,21 +267,33 @@ its immutable revision.
 **On-screen action**
 
 1. Switch from Interact to Annotate. The live hosted screen must remain fully visible inside Guild.
-2. Drag a rectangular selection around the Research Canvas toolbar and result cards.
+2. Drag a rectangular selection around the Research Canvas toolbar and primary result cards.
 3. Enter this exact comment:
 
    > Move this toward a restrained liquid-glass system: translucent surfaces, subtle blur, crisp
-   > borders, and almost no gradients. Carry it consistently across all six screens while keeping
-   > text, confidence, source freshness, and unresolved risks highly readable.
+   > borders, and almost no gradients. Apply it consistently across all six screens.
 
 4. Add the note to the feedback review; no agent starts yet.
-5. Open `Review & send`. Show the exact architecture and design notes grouped under Agentic Systems
-   Architect · Codex and Product & Visual Designer · Claude Sonnet.
-6. Use the optional overall textbox only for context shared by both agents, then press Send once.
-7. Show the design rectangle, immutable route/viewport/revision, and one grouped revision request per
+5. Add a second design annotation around the evidence/source panel:
+
+   > Increase contrast and hierarchy here. Confidence, citation provenance, retrieval date, source
+   > freshness, and unresolved risk must remain readable at presentation zoom and must never rely
+   > on color alone.
+
+6. Add the second design note to review; no agent starts yet.
+7. Open `Review & send`. Show all three exact notes: one grouped under Agentic Systems Architect ·
+   Codex and two grouped under Product & Visual Designer · Claude Sonnet.
+8. Add this overall instruction, which is deliberately not anchored to a component:
+
+   > Keep the final result easy to scan at presentation zoom. Preserve exact source provenance,
+   > explicit failure states, and human-owned decisions.
+
+   Then press Send once.
+
+9. Show both design anchors, immutable route/viewport/revision, and one grouped revision request per
    target agent—not one Job per annotation.
-8. Show the external Claude state becoming Acknowledged or Working after it retrieves the complete
-   feedback packet, then leave the preview while the work continues.
+10. Show the Codex and Claude Sonnet revision Jobs becoming queued or Working after their Workers
+    retrieve the complete feedback batches, then leave the preview while the work continues.
 
 **Narration**
 
@@ -277,8 +302,8 @@ its immutable revision.
 > anchor, then creates one complete revision request for each owning agent instead of starting a
 > separate job for every comment.
 
-**Visible proof:** The feedback exists once, is attributable to the human, and has a real delivery
-state.
+**Visible proof:** All three drafts exist once, both design notes stay in one Claude packet, the
+architecture note stays in one Codex packet, and each request has a real delivery state.
 
 ### Scene 7 — Implementation evidence and design revision converge
 
@@ -293,9 +318,11 @@ state.
    selection-aware canvas, privacy, and tests.
 3. Briefly show the architecture comment as Addressed and the independent cancellation/failure path
    added to the graph.
-4. Open bounded implementation evidence showing real changed files, checks, commit or PR, and the
-   hosted Cinemaverse preview.
+4. Open bounded implementation evidence inside Guild showing the real pull-request summary when one
+   exists, changed files, checks, commit `a0d2339`, and the hosted Cinemaverse preview. Do not imply
+   that this baseline commit occurred during the take.
 5. Keep `Reported` and `Link verified` provenance visible; do not describe it as Guild-run testing.
+   Do not click the secondary external GitHub action; the audience should remain inside Guild.
 6. Return to Design when the Updated badge appears.
 7. Compare Version 1 and Version 2.
 8. Confirm that the restrained liquid-glass system is consistent, uses almost no gradients, and
@@ -310,8 +337,8 @@ state.
 > requirements they implement. Codex addresses my cancellation requirement, then I compare
 > Claude's restrained liquid-glass revision and approve the exact version I reviewed.
 
-**Visible proof:** Real evidence provenance, resolved feedback, immutable revision comparison, and
-human approval are visible.
+**Visible proof:** Real PR/source evidence remains readable in Guild, provenance is explicit,
+feedback is resolved, revisions are immutable, and human approval is visible.
 
 ### Scene 8 — Open the product and close on Guild
 
@@ -360,7 +387,7 @@ These briefs are configured before recording. They should not be typed on camera
 > Research Canvas, Location Dossier, Candidate Comparison, and Export Brief. The Research Canvas is
 > primary. It must support zoom-dependent detail, selection-aware AI, source provenance, confidence,
 > risks, and accessible contrast. Publish stable screen keys and immutable revisions. Read exact
-> visual feedback before revising, acknowledge it, and publish a new version that names addressed
+> visual feedback before revising, retrieve the complete batch, and publish a new version that names addressed
 > comments. Use Claude Sonnet only.
 
 ### Agentic Systems Architect — Codex
@@ -412,6 +439,8 @@ environment.
 - The hidden supported Controller surface discovers all 25 browser WebMCP tools, including
   `dispatch_feedback_batch`.
 - The paired Runner is online and shows Codex plus Claude Code ready.
+- Runner concurrency is deliberately configured to six for the bounded initial Run, and all six
+  Jobs reach overlapping active states without destabilizing the recording machine.
 - Claude is pinned to Sonnet.
 - The six Role Profiles own valid, visible, non-overlapping sections in a readable 2×3 layout.
 - The Agent dock and active-target badges show the exact stable names, distinct Role accents,
@@ -422,15 +451,20 @@ environment.
 - Agent dock highlighting, progress, errors, and evidence work without the Inspector blocking the
   canvas.
 - The six design screen cards render inside Claude's region. Hosted preview, Interact mode,
-  Annotate mode, multi-note review, grouped feedback delivery, revision comparison, approval, and
-  undo work without leaving Guild.
+  Annotate mode, the exact three-draft review, grouped feedback delivery, revision comparison,
+  approval, and undo work without leaving Guild.
+- A missing optional Preview Bridge does not render a warning over the presentation. Without the
+  bridge, design annotations stay anchored to immutable revision, screen key, route, viewport,
+  scroll offset, and normalized point or rectangle; do not claim stable DOM-element tracking.
 - Presentation camera positions frame every important artifact at readable zoom.
 
 ### Cinemaverse
 
 - The separate repository contains a working vertical slice, not only a PRD.
-- A public or authorized HTTPS preview opens reliably from Guild.
-- The preview is safe to embed and its routes remain on the approved origin.
+- V1 and V2 use their distinct version-pinned HTTPS origins. A signed-out request to every route
+  returns a direct 200 and never redirects to Vercel login.
+- The preview is safe to embed and its routes remain on the exact approved origin. The mutable
+  stable alias is not used for both revisions.
 - Project Setup, Script Review, Research Canvas, Location Dossier, Candidate Comparison, and Export
   have credible visual states.
 - The original demo screenplay fixture is already parsed for the final product shot.
@@ -446,11 +480,15 @@ environment.
 - The visible browser is the Chrome profile signed into `avichaldwivedi2005@gmail.com`, never
   Harshita's profile. The account identity itself stays outside the crop.
 - Any in-app-browser WebMCP Controller remains hidden from the captured frame.
+- Chrome automation is disconnected before capture so the extension's debugging banner cannot
+  appear; live WebMCP writes come from the hidden in-app browser and are verified through realtime.
 - No environment variables, API keys, cookies, local paths, or private source content are visible.
 - Browser zoom and OS scaling make text readable at 1080p.
 - Cursor size is visible but not distracting.
 - Light/dark theme, preview colors, and card text pass visual contrast checks.
 - Network and power are stable; Claude and Codex quotas are sufficient for the bounded run.
+- The three exact annotation texts are staged in a clean plaintext source with no secrets. The take
+  may cut slow typing, but it must show each completed note and its saved draft state.
 - A recovery checkpoint exists, but the normal recording path uses real actions and real state.
 
 ## 8. Recording responsibilities
@@ -522,7 +560,7 @@ The final take should not depend on a large live generation completing within se
 - If a workstream is slow, show its truthful Running state and cut to a checkpoint produced by the
   same accepted run. Do not fake timestamps or states.
 - If Claude cannot complete the feedback revision during the take, record the genuine delivery and
-  acknowledgement, then cut to the genuinely published later revision.
+  Worker retrieval, then cut to the genuinely published later revision.
 - If a hosted preview temporarily fails to embed, use the product's real screenshot fallback and
   record Interact mode separately after the origin issue is resolved.
 - If live research is unstable, use the accepted completed research fixture and run only the final

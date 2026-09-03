@@ -61,10 +61,11 @@ running, waiting, blocked, failed, or review. State never changes an agent's ide
 | `cinemaverse-canvas-frontend`    | Canvas & Frontend Engineer     | Codex         | `#d97706`   |
 | `cinemaverse-qa-security`        | QA, Security & Evaluation Lead | Codex         | `#dc2626`   |
 
-Controllers use the exact `roleLabel`, `engineLabel`, and workstream key when registering a
-workstream. Role accents are configured on Guild Role Profiles or deterministically derived for
-reported external workstreams; they are not extra WebMCP arguments. Engines return identity text
-and truthful state, not logo files, CSS, or invented animation instructions.
+When an external source-work path is used outside the recorded Runner team, Controllers use the
+exact `roleLabel`, `engineLabel`, and workstream key when registering it. Role accents are configured
+on Guild Role Profiles or deterministically derived for reported external workstreams; they are not
+extra WebMCP arguments. Engines return identity text and truthful state, not logo files, CSS, or
+invented animation instructions.
 
 The machine values are `engineLabel: "claude"` for the Product & Visual Designer and
 `engineLabel: "codex"` for all five implementation workstreams. Guild turns those values into the
@@ -84,12 +85,28 @@ The recording uses two synchronized surfaces when needed:
 - a hidden signed-in in-app browser is the WebMCP Controller if Chrome does not expose
   `document.modelContext`.
 
-Both surfaces resolve the new workspace by title and returned id. Controller writes must become
-visible in Chrome through realtime state before the first rehearsal is accepted. Harshita's Chrome
-profile, account-selection screens, callback pages, and Controller UI must never enter the capture.
+Both surfaces may use the title only to find the just-created workspace once. Controller writes
+must become visible in Chrome through realtime state before the first rehearsal is accepted.
+Harshita's Chrome profile, account-selection screens, callback pages, and Controller UI must never
+enter the capture.
+
+After the UI creates the workspace, pin its id from the route in an untracked recording manifest
+and use the id for every Controller call. Do not resolve later writes by title when multiple
+workspaces may share the visible name `Cinemaverse`.
+
+Disconnect Chrome automation before capture so its debugging banner cannot enter the frame. The
+hidden in-app browser remains the WebMCP Controller while Chrome receives realtime updates.
 
 Guild stays on screen after the landing-page opening. Hosted Cinemaverse screens open inside Guild
 Design Focus; the demo does not navigate into a standalone Cinemaverse tab.
+
+The six visible identities are Runner Jobs. Do not register mirrored external workstreams with the
+same Role names or keys. Source-repository evidence may be reported against a stable key without
+creating a duplicate Agent-dock row.
+
+Configure six Runner slots for the initial bounded Run and keep the six Role Jobs dependency-free
+so their active states overlap. If the machine cannot hold all six reliably, the recording gate
+fails; queued Jobs must never be presented as active agents.
 
 ## Recording-quality artifact contract
 
@@ -256,6 +273,11 @@ next action
 
 The orchestrating Controller verifies this packet before publishing it into Guild.
 
+If a real pull request exists, publish its repository label, branch, commit, concise diff summary,
+changed files, checks, and public URL as `pull_request` implementation evidence. Guild renders that
+proof inside its canvas-native Evidence Focus. The external GitHub link is secondary and must not
+replace the on-canvas evidence during the recording.
+
 ## Claude Code handoff
 
 ### What Claude owns
@@ -307,8 +329,9 @@ approval.
 
 ### Human review packet
 
-The user reviews Version 1 inside Guild Focus mode. For the scripted demo, one prepared visual
-direction comment is enough; additional comments are optional. Each requested change is captured as:
+The user reviews Version 1 inside Guild Focus mode. The scripted demo uses two prepared design
+comments: one for the visual system around the toolbar/primary cards and one for evidence
+readability around the source panel. Each requested change is captured as:
 
 ```text
 feedbackId
@@ -325,10 +348,12 @@ exact user comment
 priority if the user gave one
 ```
 
-The prepared design comment requests a restrained liquid-glass system with translucent surfaces,
-subtle blur, crisp borders, almost no gradients, and preserved readability. The orchestrating
-Controller forwards the packet verbatim. It may add technical context, but it does not replace the
-user's visual judgment with its own preference.
+The first design comment requests a restrained liquid-glass system with translucent surfaces,
+subtle blur, crisp borders, and almost no gradients across all six screens. The second requires
+confidence, citation provenance, retrieval date, source freshness, and unresolved risk to remain
+readable at presentation zoom without relying on color. The orchestrating Controller forwards both
+in one packet, verbatim. It may add technical context, but it does not replace the user's visual
+judgment with its own preference.
 
 ### Exact Claude revision prompt
 
@@ -376,12 +401,20 @@ approvedRevisionId: nn7209h4kyn1f7y4qxbjsynmz18dpes2
 headRevisionId: nn7209h4kyn1f7y4qxbjsynmz18dpes2
 origin: https://cinemaverse-two.vercel.app
 stage: visual
-screenKeys: project-setup, script-review, research-canvas, location-dossier,
+screenKeys: setup, script-review, research-canvas, location-dossier,
   candidate-comparison, export-brief
 viewports: desktop, mobile
 decisionSource: authenticated Guild human approval UI
 verification: signed-in get_design_set WebMCP receipt
 ```
+
+The source application is preserved in the private repository
+`AvichalDwivedi2205/cinemaverse` at verified baseline `a0d2339`. Its source design records map V1
+to `dpl_Cuzm3NvPHjUi11Lm3PoTVh6ujVWo` and V2 to `dpl_CuZDhdAMT2iYHRCDQVCagLsz6pfX`. Reserved
+aliases `https://cinemaverse-v1.vercel.app` and `https://cinemaverse-v2.vercel.app` currently inherit
+Vercel Authentication. They are not recording-ready until every route returns a direct signed-out
+200, embeds without `X-Frame-Options: DENY`, and produces fresh Runner captures. Never place a
+protection-bypass token in Guild metadata.
 
 Codex may now consume this packet for final integration. Claude must not create Version 3 unless
 the user supplies new material design feedback.
@@ -389,22 +422,35 @@ the user supplies new material design feedback.
 This packet belongs to the durable source workspace. For the recording, the Controller first
 verifies the source V1 and V2 deployment identities, then projects them into the new workspace as
 new immutable workspace-scoped revisions. The recording creates its own feedback, comparison, and
-approval receipt. It never removes or alters the source approval.
+approval receipt. The feedback-originated Runner Workers retrieve their complete assignment batch;
+there is no separate external-workstream acknowledgement action in this path. It never removes or
+alters the source approval.
+
+Only verified public deployment metadata crosses that boundary. Source-workspace object, revision,
+capture, feedback, and approval IDs do not. Guild creates fresh revision and capture records in the
+recording workspace. Use the neutral design-set title `Cinemaverse product design` across both
+versions so V1 never inherits a V2-specific heading.
+
+The optional Guild Preview Bridge is absent from the current Cinemaverse build. Hosted interaction
+still works, and design feedback remains bound to revision, screen, route, viewport, scroll offset,
+and normalized point or rectangle. Do not claim stable DOM-element anchoring. Guild must not render
+a bridge-unavailable warning over the presentation.
 
 The existing checkpoints keep the take deterministic and conserve Claude Pro credits. Narration
 must not claim that either deployment was generated within the edited seconds. The genuine live
 events are the local Worker execution, canvas publication, WebMCP state changes, human annotations,
-grouped routing, acknowledgement, revision publication, comparison, and approval.
+grouped routing, Worker retrieval, revision publication, comparison, and approval.
 
 ## How Guild and the coding clients communicate
 
 ### Browser Controller path
 
 The signed-in Guild page exposes 25 browser WebMCP tools. A WebMCP-capable browser Controller can
-register workstreams, create canvas artifacts, publish designs, collect exact canvas or hosted-screen
-annotations with `dispatch_feedback_batch`, read feedback, acknowledge it, and report evidence
-directly. One reviewed batch produces at most one revision request per target agent while preserving
-every exact point or rectangle.
+register external workstreams, create canvas artifacts, publish designs, collect exact canvas or
+hosted-screen annotations with `dispatch_feedback_batch`, read and acknowledge external-workstream
+feedback, and report evidence directly. Runner feedback uses Worker retrieval and addressed
+publication instead. One reviewed batch produces at most one revision request per target agent
+while preserving every exact point or rectangle.
 
 When registering external workstreams, the Controller copies the exact workstream key, role label,
 and engine from the stable identity contract. Guild owns the visual badge and state presentation;

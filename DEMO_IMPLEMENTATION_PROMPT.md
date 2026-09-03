@@ -45,11 +45,16 @@ copy environment-variable values, cookies, tokens, or credentials.
 - Guild exposes 25 signed-in browser WebMCP Controller tools, including grouped feedback dispatch.
 - Guild Runner exposes seven assignment-scoped canvas tools to real local Workers.
 - The user's local Codex CLI and Claude Code clients are authenticated.
+- Guild Runner supports up to eight slots; the prior production proof used capacity two, so the
+  recording session must explicitly preflight a bounded concurrency of six.
 - Claude must use Sonnet and never Fable.
 - Guild Cloud performs no model inference and stores no provider API key.
 - Cinemaverse is a separate screenplay-to-location research product and repository.
-- Cinemaverse's six-route vertical slice, tested hosted preview, and verified immutable V1/V2
-  design checkpoints already exist. Reuse those checkpoints to conserve Claude Pro credits.
+- Cinemaverse's six-route vertical slice and verified V1/V2 source design records already exist.
+  Reuse them to conserve Claude Pro credits, but do not publish them into the recording workspace
+  until each deployment has a distinct public, version-pinned origin.
+- The private source repository is `AvichalDwivedi2205/cinemaverse`; verified baseline commit
+  `a0d2339` contains the six-screen product, tests, and architecture documents.
 - The original V2 approval belongs to a prior workspace. The replacement recording must use a new,
   reset-safe workspace and a new approval receipt for its own projected V2 revision.
 - The rejected MP4 and support files were moved to Trash. Never restore, inspect, or reuse them.
@@ -107,9 +112,11 @@ request. Do not select an account on the user's behalf.
 
 ## Create a genuinely new workspace
 
-Create one production workspace titled `Cinemaverse`. It must have a different id from
-`Guild Judge Workspace`, the prior Cinemaverse workspace, and every rejected-recording workspace.
-Do not delete or reset those other workspaces.
+Create one production workspace titled `Cinemaverse` through the authenticated UI. Capture the new
+workspace id from its resulting route. It must differ from `Guild Judge Workspace`, the prior
+Cinemaverse workspace, and every rejected-recording workspace. Write the id to an untracked
+recording manifest and use that exact id for every later Controller call; never resolve by title
+again when duplicate display names exist. Do not delete or reset those other workspaces.
 
 Build a reset-safe baseline containing only:
 
@@ -162,15 +169,28 @@ Use the exact Role briefs in `CINEMAVERSE_AGENT_HANDOFF.md`. Start one Team Run 
 > semantic relationships, and visible WebMCP progress. Do not expose chain-of-thought or fabricate
 > completion. Surface blockers, attach evidence, and leave design and product approval to me.
 
-Run the genuine local clients. It is acceptable for jobs to queue when Runner capacity is lower
-than six. Show truthful states. Do not fabricate parallelism. The five Codex responsibilities must
-produce real Guild artifacts. The bounded Claude Sonnet responsibility must produce the journey,
-wireframes/design rationale, and publish Version 1 screen metadata.
+Run the genuine local clients. Configure the Runner to six slots for the bounded initial Run, keep
+the six initial roles dependency-free, and verify all six Jobs reach overlapping active states. The
+Runner supports up to eight, but the recording machine still has to pass the stability rehearsal.
+Do not describe queued Jobs as active or fabricate parallelism. If six slots are unstable, reduce
+the assignment weight or repair the environment and restart the gate. The five Codex
+responsibilities must produce real Guild artifacts. The bounded Claude Sonnet responsibility must
+produce the journey, wireframes/design rationale, and publish Version 1 screen metadata.
+
+The six visible teammates must be the six authoritative Runner Jobs. Do not register mirrored
+external WebMCP workstreams with the same Role names or keys; that would create duplicate agent rows
+and ambiguous feedback ownership. Report existing Cinemaverse source evidence through
+`report_implementation_evidence` against the stable key without registering a duplicate workstream.
+
+If a real pull request exists, report it with the repository label, branch, commit, concise diff
+summary, changed files, checks, and public PR URL. During the take, open it only in Guild's
+canvas-native Evidence Focus so the audience sees the proof without leaving the infinite-canvas
+workspace. The external GitHub action is secondary and must not be clicked during recording.
 
 ## Required work by region
 
 - Product & Visual Design: user journey, information architecture, six V1 screen cards, visual
-  rationale, feedback acknowledgement, and V2 revision.
+  rationale, feedback retrieval, and V2 revision.
 - Agentic Architecture: screenplay ingestion, scene decomposition, parallel branch lifecycle,
   bounded concurrency, retries/cancellation, synthesis, failure paths, and human decision gate.
 - Search & Evidence: source hierarchy, claim provenance, retrieval dates, freshness, confidence,
@@ -180,21 +200,31 @@ wireframes/design rationale, and publish Version 1 screen metadata.
 - Canvas & Frontend: canvas layout, trackpad navigation, zoom detail, selection-scoped context,
   dossiers, comparison, export, accessibility, and performance.
 - QA, Security & Evaluation: privacy and prompt-injection threat model, citation integrity, stale
-  evidence, cancellation/retry, browser acceptance, and real release evidence.
+  evidence, cancellation/retry, browser acceptance, and real pull-request/release evidence.
 
 Connect the outputs semantically so the audience can see requirements flowing into architecture,
 design, implementation, and verification.
 
 ## Publish the six hosted screens inside Guild
 
-Resolve the verified source V1/V2 design data through signed-in WebMCP. Do not assume that the
-stable alias represents both versions; use each stored immutable deployment origin and route.
-Verify routes and captures before the take.
+Resolve the verified source V1/V2 design data through signed-in WebMCP. The source deployment ids
+are `dpl_Cuzm3NvPHjUi11Lm3PoTVh6ujVWo` for V1 and `dpl_CuZDhdAMT2iYHRCDQVCagLsz6pfX` for V2. The
+reserved version aliases are `https://cinemaverse-v1.vercel.app` and
+`https://cinemaverse-v2.vercel.app`, but they currently inherit Vercel Authentication. Do not use
+them until a signed-out request to every route returns a direct 200 with no auth redirect, they
+embed inside Guild, and the Runner can capture them. Never put a deployment-protection bypass token
+in a URL or Guild payload. The mutable stable alias cannot represent both revisions.
+
+Copy only public deployment identity, origin, route, screen key, viewport, and descriptive
+metadata. Never reuse another workspace's object, revision, capture, feedback, or approval IDs.
+Publishing into the new workspace must create fresh immutable revision and capture records. Use the
+neutral design-set title `Cinemaverse product design` for both revisions so opening V1 does not
+misleadingly display the V2 visual-direction title.
 
 Publish V1 into the new workspace only when the Claude workstream reaches its publication phase.
 Show these six screen cards inside Claude's region:
 
-1. Project Setup — `project-setup`
+1. Project Setup — `setup`
 2. Script Review — `script-review`
 3. Research Canvas — `research-canvas`
 4. Location Dossier — `location-dossier`
@@ -205,12 +235,17 @@ Open Research Canvas in Guild Design Focus. Use Interact mode to pan and open a 
 site remains inside Guild. Do not use a raw HTML page, an external tab, or a static screenshot as
 the interactive proof.
 
+Cinemaverse currently works without Guild's optional Preview Bridge. Guild must not show a bridge
+warning over the presentation. In this mode, preserve honest design anchors using immutable
+revision, screen key, route, viewport, scroll offset, and normalized point or rectangle. Do not
+claim stable DOM-element tracking unless a real bridge handshake is present.
+
 Existing deployments are deterministic checkpoints from genuine prior work. Do not narrate that
 they were generated within the edited seconds. The real on-camera proof is publication into shared
-state, interaction, human feedback, routing, acknowledgement, revision projection, comparison, and
+state, interaction, human feedback, routing, Worker retrieval, revision projection, comparison, and
 approval.
 
-## Collect and send two annotations
+## Collect and send three annotations
 
 First annotate the Codex architecture card with this exact text:
 
@@ -220,17 +255,23 @@ First annotate the Codex architecture card with this exact text:
 Add the draft but do not send it.
 
 Then open V1 Research Canvas inside Guild, switch from Interact to Annotate, drag around the toolbar
-and result cards, and enter:
+and primary result cards, and enter:
 
 > Move this toward a restrained liquid-glass system: translucent surfaces, subtle blur, crisp
-> borders, and almost no gradients. Apply it consistently across all six screens while keeping
-> text, confidence, source freshness, and unresolved risks highly readable.
+> borders, and almost no gradients. Apply it consistently across all six screens.
 
-Add this draft too. Open `Review & send`. Verify:
+Add that draft but do not send. Create a second design rectangle around the evidence/source panel
+and enter:
+
+> Increase contrast and hierarchy here. Confidence, citation provenance, retrieval date, source
+> freshness, and unresolved risk must remain readable at presentation zoom and must never rely on
+> color alone.
+
+Add the third draft. Open `Review & send`. Verify:
 
 - the architecture note is under Agentic Systems Architect · Codex;
-- the design note is under Product & Visual Designer · Claude Sonnet;
-- both exact point/rectangle anchors and immutable revision context remain visible; and
+- both design notes are together under Product & Visual Designer · Claude Sonnet;
+- all three exact point/rectangle anchors and immutable revision context remain visible; and
 - no job started merely because a draft was created.
 
 Put this in the optional overall textbox:
@@ -239,7 +280,13 @@ Put this in the optional overall textbox:
 > explicit failure states, and human-owned decisions.
 
 Press Send once. Verify that at most one complete request is created per owning agent. Then verify
-both agents retrieve and acknowledge their complete packet.
+both feedback-originated Workers retrieve their complete packet. Runner assignment feedback has no
+separate acknowledgement action; addressed state comes from the revised artifact or design
+publication, so do not narrate a nonexistent acknowledgement step.
+
+Stage these exact texts in a clean plaintext source before the take. Paste them deliberately and
+show each completed note plus its saved-draft state; cut slow typing in the final edit. Verify the
+staging source and clipboard contain no secret or personal content.
 
 ## Show real revisions
 
@@ -287,11 +334,18 @@ Run the complete path twice consecutively from the exact clean baseline. A pass 
 - real progress and detailed artifacts in the correct regions;
 - no unsolicited Inspector or unreadable rounded-node text;
 - six screen cards, working embedded Interact mode, and correct routes;
-- canvas and design annotations, local drafts, grouping, one-send routing, and acknowledgement;
+- distinct public version-pinned origins with direct unauthenticated 200 responses on all routes;
+- canvas and design annotations, local drafts, grouping, one-send routing, and Worker retrieval;
+- exactly one Codex note and two Claude notes, with the two Claude notes in one revision request;
 - addressed architecture note, immutable V2, compare, and new-workspace human approval;
 - working selection-scoped cited answer inside Guild;
 - saved camera framing with no clipped content; and
 - no secrets, personal information, notifications, unrelated tabs, or broken state.
+
+Disconnect Chrome automation before capture so its debugging banner cannot enter the recording;
+keep WebMCP control in the hidden in-app browser. Source-control evidence may show the verified
+private repository and baseline commit `a0d2339`, but must not imply that commit was produced during
+the recorded Run.
 
 If either pass fails, fix or restage the cause and restart the pass count at one. If a Guild code
 defect is reproduced, implement the smallest fix, read the relevant Next.js 16.3.4 guide first,
@@ -343,7 +397,7 @@ Report concisely:
 - the new workspace title and verified distinct identity;
 - the real agents run and artifacts created;
 - WebMCP and Runner evidence;
-- grouped feedback, acknowledgement, revision, comparison, and approval receipts;
+- grouped feedback, Worker retrieval, revision, comparison, and approval receipts;
 - two rehearsal outcomes;
 - screen recording and media verification results;
 - any code changes, checks, commits, PR, merge, and deployments;

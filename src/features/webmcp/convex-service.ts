@@ -18,9 +18,10 @@ function workspaceId(value: string): WorkspaceId {
   return value as WorkspaceId;
 }
 
-function id<Table extends 'canvasObjects' | 'canvasEdges' | 'teams' | 'teamRuns' | 'jobs'>(
-  value: string,
-): Id<Table> {
+function id<
+  Table extends
+    'canvasObjects' | 'canvasEdges' | 'teams' | 'teamRuns' | 'jobs' | 'implementationEvidence',
+>(value: string): Id<Table> {
   return value as Id<Table>;
 }
 
@@ -625,6 +626,7 @@ export function createConvexWebMcpService(client: ConvexReactClient): GuildWebMc
     async listImplementationEvidence(input) {
       return client.query(api.evidence.listImplementationEvidence, {
         workspaceId: workspaceId(input.workspaceId),
+        ...(input.evidenceId ? { evidenceId: id<'implementationEvidence'>(input.evidenceId) } : {}),
         ...(input.workstreamKey ? { workstreamKey: input.workstreamKey } : {}),
         ...(input.subjectObjectId ? { subjectObjectId: input.subjectObjectId } : {}),
         limit: input.limit,
