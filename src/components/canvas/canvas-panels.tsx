@@ -1118,6 +1118,12 @@ function jobLabel(job: CanvasJob) {
   return labels[job.state];
 }
 
+function regionLabel(job: CanvasJob) {
+  if (!job.reservation) return 'Unavailable';
+  const { x, y, width, height } = job.reservation.bounds;
+  return `Region ${Math.round(x)}, ${Math.round(y)} · ${Math.round(width)} × ${Math.round(height)}`;
+}
+
 function JobsPanel({
   data,
   actions,
@@ -1171,7 +1177,15 @@ function JobsPanel({
             <dl>
               <div>
                 <dt>Target</dt>
-                <dd>{job.targetObjectId || 'Reserved Region'}</dd>
+                <dd>
+                  {data.objects.find((object) => object.id === job.targetObjectId)?.title ||
+                    job.targetObjectId ||
+                    'Workspace'}
+                </dd>
+              </div>
+              <div>
+                <dt>Reserved canvas</dt>
+                <dd>{regionLabel(job)}</dd>
               </div>
               <div>
                 <dt>Runner</dt>

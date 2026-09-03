@@ -78,6 +78,7 @@ describe('Convex Run integration', () => {
 
     const first = await asOwner.mutation(api.runs.startTeam, args);
     const replay = await asOwner.mutation(api.runs.startTeam, args);
+    const status = await asOwner.query(api.runs.getStatus, { teamRunId: first.runId });
     const stored = await t.run(async (ctx) => {
       const jobs = await ctx.db
         .query('jobs')
@@ -109,6 +110,33 @@ describe('Convex Run integration', () => {
       dependencyJobIds: [first.jobIds[0]],
     });
     expect(stored.reservations.filter(Boolean)).toHaveLength(2);
+    expect(status?.jobs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          reservation: expect.objectContaining({
+            status: 'reserved',
+            bounds: expect.objectContaining({
+              x: expect.any(Number),
+              y: expect.any(Number),
+              width: expect.any(Number),
+              height: expect.any(Number),
+            }),
+          }),
+        }),
+      ]),
+    );
+    const [firstJob, secondJob] = status!.jobs;
+    if (!firstJob?.reservation || !secondJob?.reservation) {
+      throw new Error('expected_reserved_regions');
+    }
+    const firstBounds = firstJob.reservation.bounds;
+    const secondBounds = secondJob.reservation.bounds;
+    const intersects =
+      firstBounds.x < secondBounds.x + secondBounds.width &&
+      firstBounds.x + firstBounds.width > secondBounds.x &&
+      firstBounds.y < secondBounds.y + secondBounds.height &&
+      firstBounds.y + firstBounds.height > secondBounds.y;
+    expect(intersects).toBe(false);
   });
 
   it('assigns one dependency-free Job to the exact object and rejects a non-member', async () => {

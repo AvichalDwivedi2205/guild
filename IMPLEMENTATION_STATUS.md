@@ -12,6 +12,18 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-03 (visible reserved-region evidence)
+
+- Run queries now return each Job's server-allocated canvas reservation, limited to its bounds and
+  lifecycle status; Runner secrets, capabilities, and lease data remain excluded.
+- Runs & Jobs shows a readable target and `Region x, y · width × height` for every Job. This makes
+  spatial isolation inspectable in the product and available to WebMCP acceptance instead of
+  requiring a database-only assertion.
+- Red/green evidence: integration coverage first failed while reservations were absent, then proved
+  two Team Run Jobs receive non-overlapping regions; panel coverage first failed while the region
+  was invisible, then passed after the UI exposed it. Full gates and production replay remain
+  pending for this batch.
+
 ## Snapshot — 2026-09-03 (executable accessibility gate)
 
 - Added an Axe-powered Playwright gate for WCAG A/AA, keyboard navigation, workspace panel focus,

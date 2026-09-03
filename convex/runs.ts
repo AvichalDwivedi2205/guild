@@ -41,6 +41,28 @@ function compatibleRunnerExists(job: Doc<'jobs'>, runners: readonly Doc<'runners
   );
 }
 
+async function jobsWithRuntimeState(
+  ctx: QueryCtx,
+  jobs: readonly Doc<'jobs'>[],
+  runners: readonly Doc<'runners'>[],
+) {
+  return await Promise.all(
+    jobs.map(async (job) => {
+      const reservation = await ctx.db
+        .query('canvasReservations')
+        .withIndex('by_jobId', (index) => index.eq('jobId', job._id))
+        .unique();
+      return {
+        ...job,
+        waitingForRunner: job.state === 'queued' ? !compatibleRunnerExists(job, runners) : false,
+        reservation: reservation
+          ? { bounds: reservation.bounds, status: reservation.status }
+          : null,
+      };
+    }),
+  );
+}
+
 export const list = query({
   args: { workspaceId: v.id('workspaces'), limit: v.optional(v.number()) },
   returns: v.array(v.any()),
@@ -57,14 +79,7 @@ export const list = query({
     return await Promise.all(
       runs.map(async (run) => {
         const jobs = await runJobs(ctx, run._id);
-        const jobStatuses = [];
-        for (const job of jobs) {
-          jobStatuses.push({
-            ...job,
-            waitingForRunner:
-              job.state === 'queued' ? !compatibleRunnerExists(job, runners) : false,
-          });
-        }
+        const jobStatuses = await jobsWithRuntimeState(ctx, jobs, runners);
         return {
           run,
           jobs: jobStatuses,
@@ -239,13 +254,7 @@ export const getStatus = query({
     if (!run) return null;
     await requireWorkspaceMember(ctx, run.workspaceId);
     const [jobs, runners] = await Promise.all([runJobs(ctx, run._id), availableRunners(ctx)]);
-    const jobStatuses = [];
-    for (const job of jobs) {
-      jobStatuses.push({
-        ...job,
-        waitingForRunner: job.state === 'queued' ? !compatibleRunnerExists(job, runners) : false,
-      });
-    }
+    const jobStatuses = await jobsWithRuntimeState(ctx, jobs, runners);
     return {
       run,
       jobs: jobStatuses,

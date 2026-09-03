@@ -63,6 +63,10 @@ function workspaceData(): CanvasWorkspaceData {
         runnerId: null,
         progressMessage: null,
         errorMessage: null,
+        reservation: {
+          status: 'reserved',
+          bounds: { x: 840, y: 120, width: 720, height: 560 },
+        },
       },
     ],
     teamRuns: [
@@ -166,6 +170,7 @@ describe('CanvasRightPanel', () => {
     const panel = screen.getByRole('complementary', { name: 'Runs & Jobs' });
     expect(within(panel).getByText('Waiting for Runner')).toBeVisible();
     expect(within(panel).queryByText(/working on/i)).not.toBeInTheDocument();
+    expect(within(panel).getByText('Region 840, 120 · 720 × 560')).toBeVisible();
   });
 
   it('keeps canvas usable while honestly reporting no Runner', () => {
