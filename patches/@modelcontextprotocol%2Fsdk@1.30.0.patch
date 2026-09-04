@@ -1,0 +1,38 @@
+diff --git a/dist/cjs/server/zod-json-schema-compat.js b/dist/cjs/server/zod-json-schema-compat.js
+index bc067dad0ab4f63b52b0889c10ff30d64e132a01..2ed2d899d784e3d89652f6f1d0b3ecbeb2ad00d1 100644
+--- a/dist/cjs/server/zod-json-schema-compat.js
++++ b/dist/cjs/server/zod-json-schema-compat.js
+@@ -36,12 +36,12 @@ const zod_compat_js_1 = require("./zod-compat.js");
+ const zod_to_json_schema_1 = require("zod-to-json-schema");
+ function mapMiniTarget(t) {
+     if (!t)
+-        return 'draft-7';
++        return 'draft-2020-12';
+     if (t === 'jsonSchema7' || t === 'draft-7')
+         return 'draft-7';
+     if (t === 'jsonSchema2019-09' || t === 'draft-2020-12')
+         return 'draft-2020-12';
+-    return 'draft-7'; // fallback
++    return 'draft-2020-12'; // fallback
+ }
+ function toJsonSchemaCompat(schema, opts) {
+     if ((0, zod_compat_js_1.isZ4Schema)(schema)) {
+diff --git a/dist/esm/server/zod-json-schema-compat.js b/dist/esm/server/zod-json-schema-compat.js
+index 62f7fd0ef1a323d674f003a305bfa359e6e744e5..063b3c6c836845dc50fc6a4f920daa08697a8a94 100644
+--- a/dist/esm/server/zod-json-schema-compat.js
++++ b/dist/esm/server/zod-json-schema-compat.js
+@@ -8,12 +8,12 @@ import { getObjectShape, safeParse, isZ4Schema, getLiteralValue } from './zod-co
+ import { zodToJsonSchema } from 'zod-to-json-schema';
+ function mapMiniTarget(t) {
+     if (!t)
+-        return 'draft-7';
++        return 'draft-2020-12';
+     if (t === 'jsonSchema7' || t === 'draft-7')
+         return 'draft-7';
+     if (t === 'jsonSchema2019-09' || t === 'draft-2020-12')
+         return 'draft-2020-12';
+-    return 'draft-7'; // fallback
++    return 'draft-2020-12'; // fallback
+ }
+ export function toJsonSchemaCompat(schema, opts) {
+     if (isZ4Schema(schema)) {
