@@ -6,8 +6,6 @@
 
 ![Guild Cinemaverse workspace showing six AI-owned workstreams on the shared canvas](docs/images/guild-cinemaverse-six-agent-workspace.jpg)
 
-_Cinemaverse in Guild: six specialist AI workstreams coordinating product design, architecture,
-evidence, backend, frontend, and quality on one shared canvas._
 
 Guild gives humans and AI workers one shared project surface. Product briefs, architecture,
 flows, designs, implementation tasks, comments, progress, evidence, and decisions live on a
