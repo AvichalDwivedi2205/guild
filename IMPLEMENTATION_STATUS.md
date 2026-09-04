@@ -12,6 +12,56 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-04 (final Cinemaverse demo master)
+
+- Completed the replacement demo in the clean production `Cinemaverse` workspace
+  `ms74z2cxz3he96xs7seaj3rw2n8drapj`. The recorded canvas uses six large agent-owned regions in a
+  2×3 layout; every region is filled with detailed, expandable artifacts rather than sparse status
+  cards or a right-rail-only activity view.
+- Recorded the complete Guild-first story: landing page, PRD, six-agent Team Run, live canvas
+  population, six hosted design screens, detailed architecture/evidence/backend/frontend/QA
+  artifacts, an anchored Codex architecture comment, two anchored Claude design comments, one
+  unanchored overall instruction, grouped Review & Send, implementation evidence, revised
+  architecture, V2 hosted design interaction, comparison, approval, and the final Guild overview.
+- Added production implementation evidence object `jh77vb5tkzmmev1n6c4ejwmbjn8dr5xe` with reported
+  changed-files, checks, commit, and hosted-preview evidence. Semantic text-backed evidence now
+  opens Evidence Focus rather than the generic inline text editor; the focused action-registry test
+  passes.
+- Tightened production layouts for architecture, backend/data, and QA/security through native
+  WebMCP canvas commands. The latest Ready deployment is `dpl_Hfz9LwhHnZmYMxxZgzjUTver61tE` at
+  `https://guild-rose-two.vercel.app`.
+- The silent delivery master is
+  `artifacts/demo-video/2026-09-04/Guild-Cinemaverse-demo-master.mp4`: H.264, 1920×1080,
+  30 fps, 195.833 seconds, no audio. A separate normal-speed master is preserved. FFmpeg decoded
+  every frame without error, black-frame detection found no qualifying gaps, and four complete
+  timeline contact sheets plus exact transition/end frames were visually reviewed. The brief
+  remote-loading shot was removed and the final frame returns to the complete Guild canvas.
+
+## Snapshot — 2026-09-04 (readable agent regions and recording interaction gate)
+
+- Fixed the visual defect found in the rejected demo: flow-node data now carries direct child
+  counts, so occupied sections no longer render the false `Drop objects here` empty state behind
+  real artifacts. Agent-owned regions suppress the empty hint before work starts as well.
+- Multiline Markdown text artifacts now render as solid document cards instead of transparent
+  labels. Their compact preview depth scales with card height, making the generated contracts
+  visibly substantial at a focused presentation zoom while the complete body remains expandable.
+- Added a dedicated annotation capture layer above React Flow. Canvas annotation mode now reliably
+  owns pointer hit-testing, identifies the smallest object under a click or drag, and opens the
+  lightweight feedback composer; React Flow no longer swallows component annotations.
+- Production deployment `dpl_2UYg4rsy64hW48P18jtTWkjTvu1s` reached Ready and claimed
+  `https://guild-rose-two.vercel.app`. A signed-in production dry run proved the complete
+  architecture annotation, two hosted-design annotations, grouped two-agent review, overall
+  instruction, and discard-without-dispatch path.
+- Created the replacement clean `Cinemaverse` workspace
+  `ms74z2cxz3he96xs7seaj3rw2n8drapj` with one PRD, six 1600×1200 owned regions, six Role Profiles,
+  one saved team, and no prior Runs. Re-paired `Avichal's Mac` with this workspace; production
+  context reports both Codex and Claude ready and Runner capacity six.
+- The full local gate passes: formatting, zero-warning lint, strict TypeScript, 66 application test
+  files / 221 tests, protocol build/typecheck, and Runner typecheck. The V1 and V2 Cinemaverse
+  origins return public HTTP 200 for all six canonical routes. The clean opening footage is
+  captured; the live Team Run remains intentionally unstarted until Claude's documented 08:30 IST
+  session reset.
+
 ## Snapshot — 2026-09-04 (single-take recording baseline)
 
 - Created a new production Guild workspace titled `Cinemaverse` with id
@@ -1341,8 +1391,8 @@ CI and production proof:
 - [x] Setup, controller/Worker skills, WebMCP protocol, demo flow, and handoff material are tracked.
 - [x] Cinemaverse Versions 1 and 2, the approved hosted preview, and the Guild orchestration
       evidence exist.
-- [ ] Create a separate clean Cinemaverse workspace baseline, rehearse the grouped annotation flow,
-      and record a new silent master only after the user starts the recording phase.
+- [x] Create a separate clean Cinemaverse workspace baseline, rehearse the grouped annotation flow,
+      and record a new silent master after the user starts the recording phase.
 
 ## Demo production evidence — 3 September 2026
 
