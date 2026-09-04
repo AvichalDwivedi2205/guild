@@ -26,7 +26,7 @@ describe('Convex assets and capture tasks', () => {
     const workspaceId = await asOwner.mutation(api.workspaces.create, {
       title: 'Captured design workspace',
     });
-    await asOwner.mutation(api.design.publishDesignPreview, {
+    const published = await asOwner.mutation(api.design.publishDesignPreview, {
       workspaceId,
       source: 'ui',
       idempotencyKey: 'design:publish:capture:success:0001',
@@ -207,6 +207,18 @@ describe('Convex assets and capture tasks', () => {
       designSetKey: 'capture-success',
     });
     expect(designSet?.screenRevisions[0]?.captures[0]?.viewportAssetId).toBe(finalized.assetId);
+    const context = await asOwner.query(api.canvas.getWorkspaceContext, {
+      workspaceId,
+      objectLimit: 50,
+    });
+    const screen = context.objects.find((object) => object._id === published.screenObjectIds[0]);
+    expect(screen?.contentPreview).toEqual(
+      expect.objectContaining({
+        kind: 'design_screen',
+        viewportAssetId: finalized.assetId,
+        url: expect.stringMatching(/^https?:\/\//u),
+      }),
+    );
     const authorized = await asOwner.query(api.assets.getAuthorizedAssetUrl, {
       workspaceId,
       assetId: finalized.assetId,

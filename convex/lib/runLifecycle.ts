@@ -204,15 +204,31 @@ export async function createTeamRun(
     });
   }
 
-  const reservations = allocateReservedRegions({
+  const fallbackReservations = allocateReservedRegions({
     jobIds,
     canvasBounds: canvasBounds(objects),
   });
-  for (const reservation of reservations) {
+  const fallbackByJobId = new Map(
+    fallbackReservations.map((reservation) => [reservation.jobId, reservation]),
+  );
+  for (const [index, jobId] of jobIds.entries()) {
+    const role = roleProfiles[index]!;
+    const target = targetByRole.get(role._id)!;
+    const fallback = fallbackByJobId.get(jobId)!;
+    const reservation =
+      target.type === 'section'
+        ? {
+            jobId,
+            x: 48,
+            y: 64,
+            width: Math.max(1, target.width - 96),
+            height: Math.max(1, target.height - 112),
+          }
+        : fallback;
     await ctx.db.insert('canvasReservations', {
       workspaceId: input.workspaceId,
       teamRunId: runId,
-      jobId: reservation.jobId as Id<'jobs'>,
+      jobId,
       bounds: {
         x: reservation.x,
         y: reservation.y,

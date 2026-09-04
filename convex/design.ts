@@ -206,8 +206,8 @@ async function applyPublication(
     logicalKey: galleryLogicalKey(request.designSetKey),
     objectType: 'section',
     title: request.title,
-    size: { width: 960, height: 520 },
-    position: { x: 80, y: 80 },
+    size: { width: 1440, height: 700 },
+    position: { x: 48, y: 440 },
     ...(request.targetSectionId
       ? { parentId: request.targetSectionId as Id<'canvasObjects'> }
       : {}),
@@ -245,6 +245,8 @@ async function applyPublication(
     .slice()
     .sort((left, right) => left.order - right.order)
     .entries()) {
+    const column = index % 3;
+    const row = Math.floor(index / 3);
     const projection = await upsertProjectedObject(ctx, {
       workspaceId,
       principal,
@@ -253,8 +255,8 @@ async function applyPublication(
       logicalKey: screenLogicalKey(request.designSetKey, screen.screenKey),
       objectType: screenType,
       title: screen.name,
-      size: { width: 220, height: 160 },
-      position: { x: 24 + index * 236, y: 64 },
+      size: { width: 430, height: 240 },
+      position: { x: 32 + column * 456, y: 64 + row * 272 },
       parentId: galleryObjectId,
       semantics: {
         semanticType: 'designScreen',

@@ -196,13 +196,19 @@ describe('Convex Runner integration', () => {
         .query('comments')
         .withIndex('by_workspaceId_and_targetType', (query) => query.eq('workspaceId', workspaceId))
         .collect();
-      return { job, teamRun, lease, claim, reservation, steps, comments };
+      const createdObject = await ctx.db.get(createdObjectId as never);
+      return { job, teamRun, lease, claim, reservation, steps, comments, createdObject };
     });
     expect(stored.job).toMatchObject({ state: 'completed', attempt: 1, fencingToken: 1 });
     expect(stored.teamRun).toMatchObject({ state: 'completed' });
     expect(stored.lease).not.toBeNull();
     expect(stored.claim).not.toBeNull();
     expect(stored.reservation).toMatchObject({ status: 'completed' });
+    expect(stored.createdObject).toMatchObject({
+      parentId: expect.any(String),
+      x: 48,
+      y: 72,
+    });
     expect(stored.steps).toHaveLength(1);
     expect(stored.comments).toEqual(
       expect.arrayContaining([

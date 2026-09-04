@@ -41,6 +41,53 @@ function publishArgs(workspaceId: Id<'workspaces'>, overrides: Record<string, un
 }
 
 describe('Convex design publication', () => {
+  it('lays six screen previews out as a readable non-overlapping grid', async () => {
+    const t = convexTest(schema, modules);
+    const asOwner = t.withIdentity(identity);
+    const workspaceId = await asOwner.mutation(api.workspaces.create, {
+      title: 'Six-screen design workspace',
+      boardMode: 'diagram',
+    });
+    const screens = Array.from({ length: 6 }, (_, index) => ({
+      screenKey: `screen-${index + 1}`,
+      name: `Screen ${index + 1}`,
+      route: `/screen-${index + 1}`,
+      order: index,
+      viewports: ['desktop' as const],
+    }));
+
+    await asOwner.mutation(
+      api.design.publishDesignPreview,
+      publishArgs(workspaceId, {
+        idempotencyKey: 'design:publish:six-screen-grid:0001',
+        designSetKey: 'six-screen-grid',
+        title: 'Six screen grid',
+        screens,
+      }),
+    );
+    const context = await asOwner.query(api.canvas.getWorkspaceContext, {
+      workspaceId,
+      objectLimit: 50,
+    });
+    const gallery = context.objects.find(
+      (object) => object.logicalKey === 'design:six-screen-grid',
+    );
+    const previews = context.objects
+      .filter((object) => object.parentId === gallery?._id)
+      .sort((left, right) => left.y - right.y || left.x - right.x);
+
+    expect(gallery).toMatchObject({ width: 1440, height: 700 });
+    expect(previews).toHaveLength(6);
+    expect(previews.map(({ x, y, width, height }) => ({ x, y, width, height }))).toEqual([
+      { x: 32, y: 64, width: 430, height: 240 },
+      { x: 488, y: 64, width: 430, height: 240 },
+      { x: 944, y: 64, width: 430, height: 240 },
+      { x: 32, y: 336, width: 430, height: 240 },
+      { x: 488, y: 336, width: 430, height: 240 },
+      { x: 944, y: 336, width: 430, height: 240 },
+    ]);
+  });
+
   it('publishes a gallery card, replays identically, and rejects stale or marked-up payloads', async () => {
     const t = convexTest(schema, modules);
     const asOwner = t.withIdentity(identity);

@@ -71,13 +71,13 @@ export function findPlacement(input: {
   region: Rectangle;
   size: { width: number; height: number };
   occupied: readonly Rectangle[];
+  edgePadding?: number;
 }): PlacementResult {
-  const startX = snapToPlacementGrid(input.region.x + reservedRegionLayout.innerPadding);
-  const startY = snapToPlacementGrid(input.region.y + reservedRegionLayout.innerPadding);
-  const lastX =
-    input.region.x + input.region.width - reservedRegionLayout.innerPadding - input.size.width;
-  const lastY =
-    input.region.y + input.region.height - reservedRegionLayout.innerPadding - input.size.height;
+  const edgePadding = input.edgePadding ?? reservedRegionLayout.innerPadding;
+  const startX = snapToPlacementGrid(input.region.x + edgePadding);
+  const startY = snapToPlacementGrid(input.region.y + edgePadding);
+  const lastX = input.region.x + input.region.width - edgePadding - input.size.width;
+  const lastY = input.region.y + input.region.height - edgePadding - input.size.height;
   const paddedOccupied = input.occupied.map((rectangle) =>
     padRectangle(rectangle, reservedRegionLayout.innerPadding),
   );

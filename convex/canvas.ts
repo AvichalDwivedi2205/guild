@@ -23,6 +23,7 @@ import {
 import { requireWorkspaceMember } from './lib/auth';
 import { createContentPreview, createContentSnapshot } from './lib/content';
 import { assertCanvasObjectCanBeDeleted } from './lib/roleOwnership';
+import { convexAssetStore } from './lib/assetStore';
 import { normalizeNodeStyle } from '../src/domain/palette';
 import { boundedText, limits } from './lib/policies';
 import {
@@ -244,6 +245,7 @@ async function validateWorkerRectangle(
   const collision = objects.some(
     (object) =>
       object._id !== excludeObjectId &&
+      object.hierarchyPath.includes(principal.worker.claim.targetObjectId) &&
       object.createdByJobId !== principal.jobId &&
       rectanglesIntersect(rectangle, objectRectangle(object)),
   );
@@ -348,12 +350,14 @@ async function executeCanvasCommand(
         )
         .take(limits.canvasObjects);
       const occupied = objects
+        .filter((object) => object.hierarchyPath.includes(principal.worker.claim.targetObjectId))
         .map(objectRectangle)
         .filter((rectangle) => rectanglesIntersect(rectangle, principal.worker.reservation.bounds));
       const placement = findPlacement({
         region: principal.worker.reservation.bounds,
         size: command.size,
         occupied,
+        edgePadding: 0,
       });
       if ('ok' in placement) throw new Error(placement.code);
       position = { x: placement.x, y: placement.y };
@@ -898,6 +902,49 @@ export const getWorkspaceContext = query({
         )
         .take(edgeLimit),
     ]);
+    const assetStore = convexAssetStore(ctx);
+    const projectedObjects = await Promise.all(
+      objects.map(async (object) => {
+        const preview = object.contentPreview;
+        if (
+          object.type !== 'image' ||
+          !preview ||
+          typeof preview !== 'object' ||
+          Array.isArray(preview) ||
+          preview.kind !== 'design_screen' ||
+          typeof preview.viewportAssetId !== 'string'
+        ) {
+          return object;
+        }
+        let asset = await ctx.db.get(preview.viewportAssetId as Id<'assets'>);
+        if (asset?.designScreenRevisionId) {
+          const designScreenRevisionId = asset.designScreenRevisionId;
+          const captures = await ctx.db
+            .query('previewCaptureTasks')
+            .withIndex('by_designScreenRevisionId', (index) =>
+              index.eq('designScreenRevisionId', designScreenRevisionId),
+            )
+            .take(4);
+          const desktopAssetId = captures.find(
+            (capture) =>
+              capture.viewportKey === 'desktop' &&
+              capture.state === 'completed' &&
+              capture.viewportAssetId,
+          )?.viewportAssetId;
+          if (desktopAssetId) asset = await ctx.db.get(desktopAssetId);
+        }
+        if (!asset || asset.workspaceId !== args.workspaceId || asset.status !== 'ready') {
+          return object;
+        }
+        const url = await assetStore.getUrl(asset.storageId);
+        return url
+          ? {
+              ...object,
+              contentPreview: { ...preview, viewportAssetId: asset._id, url },
+            }
+          : object;
+      }),
+    );
     return {
       workspace: {
         _id: workspace._id,
@@ -905,7 +952,7 @@ export const getWorkspaceContext = query({
         boardMode: workspace.boardMode,
         updatedAt: workspace.updatedAt,
       },
-      objects,
+      objects: projectedObjects,
       edges,
     };
   },

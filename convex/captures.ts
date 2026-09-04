@@ -96,6 +96,9 @@ async function completeCapturedTask(
     (sibling) => sibling._id === task._id || sibling.state === 'completed',
   );
   if (ready) {
+    const desktopAssetId = siblings.find(
+      (sibling) => sibling.viewportKey === 'desktop' && sibling.viewportAssetId,
+    )?.viewportAssetId;
     await ctx.db.patch(task.designScreenRevisionId, { captureReady: true });
     const screenRevision = await ctx.db.get(task.designScreenRevisionId);
     if (screenRevision) {
@@ -104,7 +107,7 @@ async function completeCapturedTask(
         await ctx.db.patch(screen.canvasObjectId, {
           contentPreview: {
             kind: 'design_screen',
-            viewportAssetId: assets.viewportAssetId,
+            viewportAssetId: desktopAssetId ?? assets.viewportAssetId,
             captureReady: true,
           },
           updatedAt: now,

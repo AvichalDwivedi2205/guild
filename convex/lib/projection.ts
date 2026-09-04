@@ -52,6 +52,7 @@ export async function upsertProjectedObject(
   let position = input.position ?? { x: 80, y: 80 };
   if (input.principal.kind === 'worker' && !existing) {
     const reservation = input.principal.worker.reservation.bounds;
+    const claimTargetId = input.principal.worker.claim.targetObjectId;
     const objects = await ctx.db
       .query('canvasObjects')
       .withIndex('by_workspaceId_and_isDeleted', (index) =>
@@ -59,12 +60,14 @@ export async function upsertProjectedObject(
       )
       .take(limits.canvasObjects);
     const occupied = objects
+      .filter((object) => object.hierarchyPath.includes(claimTargetId))
       .map((object) => ({ x: object.x, y: object.y, width: object.width, height: object.height }))
       .filter((rectangle) => rectanglesIntersect(rectangle, reservation));
     const placement = findPlacement({
       region: reservation,
       size: input.size,
       occupied,
+      edgePadding: 0,
     });
     if ('ok' in placement) throw new Error(placement.code);
     position = { x: placement.x, y: placement.y };

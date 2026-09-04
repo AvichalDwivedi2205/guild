@@ -6,7 +6,6 @@ import { describe, expect, it } from 'vitest';
 import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
 import schema from '../../convex/schema';
-import { rectanglesIntersect } from '../../src/domain/geometry';
 
 const modules = import.meta.glob('../../convex/**/*.*s');
 
@@ -130,9 +129,8 @@ describe('Convex Run integration', () => {
     if (!firstJob?.reservation || !secondJob?.reservation) {
       throw new Error('expected_reserved_regions');
     }
-    const firstBounds = firstJob.reservation.bounds;
-    const secondBounds = secondJob.reservation.bounds;
-    expect(rectanglesIntersect(firstBounds, secondBounds)).toBe(false);
+    expect(firstJob.reservation.bounds).toEqual({ x: 48, y: 64, width: 344, height: 208 });
+    expect(secondJob.reservation.bounds).toEqual({ x: 48, y: 64, width: 344, height: 208 });
   });
 
   it('assigns one dependency-free Job to the exact object and rejects a non-member', async () => {
