@@ -6,7 +6,6 @@
 
 ![Guild Cinemaverse workspace showing six AI-owned workstreams on the shared canvas](docs/images/guild-cinemaverse-six-agent-workspace.jpg)
 
-
 Guild gives humans and AI workers one shared project surface. Product briefs, architecture,
 flows, designs, implementation tasks, comments, progress, evidence, and decisions live on a
 realtime infinite canvas instead of being scattered across chat threads and disconnected tools.
