@@ -38,7 +38,7 @@ Status vocabulary:
   immutable at `https://cinemaverse-v1.vercel.app`.
 - The delivery master is
   `artifacts/demo-video/2026-09-04/Guild-Cinemaverse-demo-final.mp4`: silent H.264, 1920×1080,
-  30 fps, 201.63 seconds. Four typing intervals are selectively accelerated to 5× and the assembled
+  30 fps, 201.77 seconds. Four typing intervals are selectively accelerated to 5× and the assembled
   story uses a gentle 1.15× presentation retime. FFmpeg decoded the complete file without error;
   the entire timeline was inspected at one-second intervals, with separate opening, loading,
   revision, and final-frame checks. No opening black frames, placeholder design captures, unrelated
@@ -46,8 +46,10 @@ Status vocabulary:
   the repeated object-opening sequence with a deliberate Product, Architecture, Evidence, Backend,
   Frontend, and QA canvas tour. Only the fifth workstream's detailed Markdown artifact is expanded;
   the others remain readable in their owned regions before the tour continues to the six-screen
-  Design progression. Dense timeline review and FFmpeg freeze detection found no five-second frozen
-  hold in the revised walkthrough, without rerunning or fabricating agent work.
+  Design progression. The corrected second stop uses the clean pre-annotation Architecture view and
+  remains visible from 0:59 through 1:02 before the tour advances to Evidence. Dense timeline review
+  and FFmpeg freeze detection found no five-second frozen hold in the revised walkthrough, without
+  rerunning or fabricating agent work.
 
 ## Snapshot — 2026-09-04 (final Cinemaverse demo master)
 
