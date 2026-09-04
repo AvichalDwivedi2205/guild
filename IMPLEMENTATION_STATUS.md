@@ -12,6 +12,27 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-04 (dedicated judge viewer access)
+
+- Added exactly one production `workspaceMembers` record granting the dedicated judge identity
+  `viewer` access to the accepted `Cinemaverse` workspace
+  `ms74z2cxz3he96xs7seaj3rw2n8drapj`. A production query confirmed one matching membership and no
+  duplicate; the temporary import payload was deleted after the successful import.
+- Verified the production sign-in with the dedicated judge Google account. `/workspaces` showed
+  exactly one visible workspace, `Cinemaverse · Viewer`, and the direct workspace URL rendered the
+  complete canvas. The create-object interaction reported `Editing unavailable` for this session.
+- Verified native WebMCP from the signed-in Codex in-app browser. The page registered the complete
+  25-tool Guild catalog, `list_workspaces` returned only the viewer-scoped Cinemaverse workspace,
+  and `get_workspace_context` returned 45 objects, 26 edges, six Role Profiles, and all six owned
+  workstream regions. Targeted `search_canvas` calls found the architecture contracts, six route
+  specifications, producer journey, design system, and the captured six-screen design revision.
+- `get_runner_status` returned two online, idle Runner records for the paired Mac, each with
+  concurrency six and authenticated Codex CLI and Claude Code engines. A schema-valid
+  `apply_canvas_changes` probe from the viewer session failed at the server, and a follow-up canvas
+  search confirmed that no probe object was created.
+- No credential, environment value, or judge email address was added to tracked files. This was a
+  production access and verification batch only; no application deployment was required.
+
 ## Snapshot — 2026-09-04 (replacement Cinemaverse delivery master)
 
 - Completed the accepted Guild-first recording in the clean production `Cinemaverse` workspace
