@@ -12,6 +12,38 @@ Status vocabulary:
   client.
 - **Not started** — no meaningful implementation exists yet.
 
+## Snapshot — 2026-09-04 (replacement Cinemaverse delivery master)
+
+- Completed the accepted Guild-first recording in the clean production `Cinemaverse` workspace
+  `ms7fx6dd4psnybgm8k2r6dmbg98dsb6j`. The opening shows Guild immediately for twelve seconds,
+  then a real six-role Team Run transitions the large owned regions through Ready, Queued, Working,
+  and populated states. Five Codex workstreams publish detailed, expandable product, architecture,
+  evidence, backend, frontend, and QA artifacts; Claude Sonnet's visual work appears as six captured
+  screens inside its owned region.
+- Implemented truthful in-region execution visibility. The canvas derives agent-region activity
+  from live roles, Jobs, and runs; renderers show provider, role, stage, status copy, pulse, progress,
+  and skeletons at presentation scale instead of leaving empty regions or relying on the side dock.
+  Focused store and renderer coverage was added, and the complete gate passes 66 application test
+  files / 222 tests plus formatting, zero-warning lint, TypeScript, protocol build/typecheck, and
+  Runner typecheck.
+- Recorded the complete control loop inside Guild: detailed PRD, visible parallel work, dense
+  workstream artifacts, V1 six-screen gallery, annotation-mode cursor, one component-bound Codex
+  note, two design notes, one unbound overall instruction, grouped two-agent dispatch, revised
+  architecture, a materially changed liquid-glass design, screen interaction, cited answer,
+  dossier/export views, approval, and the final complete canvas.
+- Claude Code Sonnet produced the revised Cinemaverse design on branch
+  `codex/cinemaverse-liquid-glass-v2`, commit `a856f75`. Its checks and production build passed. The
+  stable public revision is deployment `dpl_34t5ttmGeoX53xVuw5oozbuA1w3g` at
+  `https://cinemaverse-v2.vercel.app`; all six desktop/mobile Guild captures completed. V1 remains
+  immutable at `https://cinemaverse-v1.vercel.app`.
+- The delivery master is
+  `artifacts/demo-video/2026-09-04/Guild-Cinemaverse-demo-final.mp4`: silent H.264, 1920×1080,
+  30 fps, 197.3 seconds. Four typing intervals are selectively accelerated to 5× and the assembled
+  story uses a gentle 1.15× presentation retime. FFmpeg decoded the complete file without error;
+  the entire timeline was inspected at one-second intervals, with separate opening, loading,
+  revision, and final-frame checks. No opening black frames, placeholder design captures, unrelated
+  tabs, large Inspector, or standalone Cinemaverse sequence remain.
+
 ## Snapshot — 2026-09-04 (final Cinemaverse demo master)
 
 - Completed the replacement demo in the clean production `Cinemaverse` workspace
@@ -1391,8 +1423,8 @@ CI and production proof:
 - [x] Setup, controller/Worker skills, WebMCP protocol, demo flow, and handoff material are tracked.
 - [x] Cinemaverse Versions 1 and 2, the approved hosted preview, and the Guild orchestration
       evidence exist.
-- [x] Create a separate clean Cinemaverse workspace baseline, rehearse the grouped annotation flow,
-      and record a new silent master after the user starts the recording phase.
+- [x] Separate clean Cinemaverse workspace, grouped annotation flow, truthful agent-state recording,
+      revised hosted design, approval, and the replacement silent master are complete.
 
 ## Demo production evidence — 3 September 2026
 
