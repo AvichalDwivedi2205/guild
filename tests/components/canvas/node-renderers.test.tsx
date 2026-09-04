@@ -232,6 +232,29 @@ describe('canvas node renderers', () => {
     });
     render(<ContainerNodeRenderer {...props(agentRegion, false)} />);
     expect(screen.queryByText('Drop objects here')).not.toBeInTheDocument();
+    cleanup();
+
+    render(
+      <ContainerNodeRenderer
+        {...({
+          ...props(agentRegion, false),
+          data: {
+            object: agentRegion,
+            directChildCount: 0,
+            agentActivity: {
+              roleName: 'Agentic Systems Architect',
+              engine: 'codex',
+              phase: 'working',
+              message: 'Designing the bounded research control plane.',
+            },
+          },
+        } as NodeProps<GuildFlowNode>)}
+      />,
+    );
+    expect(screen.getAllByText('Working…')).toHaveLength(2);
+    expect(screen.getByText('Agentic Systems Architect')).toBeVisible();
+    expect(screen.getByText('Designing the bounded research control plane.')).toBeVisible();
+    cleanup();
 
     const component = object({
       type: 'wireframeComponent',

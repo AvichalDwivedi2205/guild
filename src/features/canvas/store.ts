@@ -21,9 +21,17 @@ import type { CanvasWorkspaceActions } from '@/features/canvas/types';
 
 export type CanvasTool = 'select' | 'pan' | 'connect' | 'annotate';
 
+export type AgentRegionActivity = {
+  roleName: string;
+  engine: 'codex' | 'claude';
+  phase: 'ready' | 'queued' | 'working' | 'complete' | 'blocked';
+  message: string;
+};
+
 export type GuildFlowNodeData = {
   object: CanvasObject;
   directChildCount: number;
+  agentActivity?: AgentRegionActivity;
 } & Record<string, unknown>;
 
 export type GuildFlowNode = Node<GuildFlowNodeData, CanvasObjectType>;
@@ -36,12 +44,13 @@ function toFlowNode(
   object: CanvasObject,
   selected: boolean,
   directChildCount: number,
+  agentActivity?: AgentRegionActivity,
 ): GuildFlowNode {
   return {
     id: object.id,
     type: object.type,
     position: object.position,
-    data: { object, directChildCount },
+    data: { object, directChildCount, ...(agentActivity ? { agentActivity } : {}) },
     width: object.size.width,
     height: object.size.height,
     style: { width: object.size.width, height: object.size.height },
@@ -116,6 +125,7 @@ type CanvasInteractionStore = {
     objects: readonly CanvasObject[],
     edges: readonly CanvasEdge[],
     actions: CanvasWorkspaceActions,
+    agentActivityBySectionId?: Readonly<Record<string, AgentRegionActivity>>,
   ) => void;
   applyNodeChanges: (changes: NodeChange<GuildFlowNode>[]) => void;
   applyEdgeChanges: (changes: EdgeChange<GuildFlowEdge>[]) => void;
@@ -145,7 +155,7 @@ export const useCanvasInteractionStore = create<CanvasInteractionStore>((set, ge
   pendingViewport: null,
   editingObjectId: null,
   actions: {},
-  hydrate: (workspaceId, objects, edges, actions) => {
+  hydrate: (workspaceId, objects, edges, actions, agentActivityBySectionId) => {
     const current = get();
     const changedWorkspace = current.workspaceId !== null && current.workspaceId !== workspaceId;
     const selectedNodeIds = changedWorkspace ? [] : current.selectedNodeIds;
@@ -169,6 +179,7 @@ export const useCanvasInteractionStore = create<CanvasInteractionStore>((set, ge
         object,
         selected.has(object.id),
         directChildCountByParentId.get(object.id) ?? 0,
+        agentActivityBySectionId?.[object.id],
       );
     });
     const availableIds = new Set(nextNodes.map((node) => node.id));

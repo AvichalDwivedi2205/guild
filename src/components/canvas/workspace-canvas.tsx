@@ -36,6 +36,7 @@ import Link from 'next/link';
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type MouseEvent as ReactMouseEvent,
@@ -54,7 +55,11 @@ import { ExpandedObjectDialog } from '@/components/canvas/expanded-object-dialog
 import { canvasNodeTypes } from '@/components/canvas/node-renderers';
 import { CanvasRightPanel, type CanvasPanel } from '@/components/canvas/canvas-panels';
 import { SelectionToolbar } from '@/components/canvas/selection-toolbar';
-import { type GuildFlowNode, useCanvasInteractionStore } from '@/features/canvas/store';
+import {
+  type AgentRegionActivity,
+  type GuildFlowNode,
+  useCanvasInteractionStore,
+} from '@/features/canvas/store';
 import { useFeedbackStore } from '@/features/feedback/store';
 import type {
   CanvasCollaborator,
@@ -867,9 +872,54 @@ export function WorkspaceCanvas({
   webMcpState?: WebMcpRegistrationState;
 }) {
   const hydrate = useCanvasInteractionStore((state) => state.hydrate);
+  const agentActivityBySectionId = useMemo(() => {
+    const activity: Record<string, AgentRegionActivity> = {};
+    for (const role of data.roleProfiles) {
+      if (!role.ownedSectionId) continue;
+      const job =
+        data.jobs.find((candidate) => candidate.id === role.currentJobId) ??
+        [...data.jobs].reverse().find((candidate) => candidate.roleProfileId === role.id);
+      let phase: AgentRegionActivity['phase'] = 'ready';
+      let message = 'Ready to begin assigned work.';
+      if (
+        job?.waitingForRunner ||
+        job?.state === 'queued' ||
+        job?.state === 'blocked_by_dependency'
+      ) {
+        phase = 'queued';
+        message = job?.waitingForRunner
+          ? 'Waiting for the paired local Runner.'
+          : 'Queued with an isolated workspace claim.';
+      } else if (job?.state === 'leased' || job?.state === 'running' || role.state === 'working') {
+        phase = 'working';
+        message = job?.progressMessage || 'Working through the assigned product responsibility.';
+      } else if (job?.state === 'completed') {
+        phase = 'complete';
+        message = job.progressMessage || 'Published the assigned canvas artifacts.';
+      } else if (
+        job?.state === 'failed' ||
+        job?.state === 'cancelled' ||
+        role.state === 'auth_needed' ||
+        role.state === 'offline'
+      ) {
+        phase = 'blocked';
+        message = job?.errorMessage || 'This workstream needs attention.';
+      } else if (role.state === 'queued') {
+        phase = 'queued';
+        message = 'Queued with an isolated workspace claim.';
+      }
+      activity[role.ownedSectionId] = {
+        roleName: role.name,
+        engine: role.engine,
+        phase,
+        message,
+      };
+    }
+    return activity;
+  }, [data.jobs, data.roleProfiles]);
   useEffect(() => {
-    hydrate(data.workspaceId, data.objects, data.edges, actions);
-  }, [actions, data.edges, data.objects, data.workspaceId, hydrate]);
+    hydrate(data.workspaceId, data.objects, data.edges, actions, agentActivityBySectionId);
+  }, [actions, agentActivityBySectionId, data.edges, data.objects, data.workspaceId, hydrate]);
 
   return (
     <ReactFlowProvider>

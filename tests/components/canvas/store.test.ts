@@ -105,6 +105,33 @@ describe('canvas interaction store', () => {
     expect(useCanvasInteractionStore.getState().nodes[1]?.data.directChildCount).toBe(0);
   });
 
+  it('hydrates real agent activity into the owned region', () => {
+    const section = object({
+      id: 'section-1',
+      type: 'section',
+      semantics: { semanticType: 'agentRegion' },
+    });
+    useCanvasInteractionStore.getState().hydrate(
+      'workspace-1',
+      [section],
+      [],
+      {},
+      {
+        'section-1': {
+          roleName: 'Product & Visual Designer',
+          engine: 'claude',
+          phase: 'queued',
+          message: 'Queued with an isolated workspace claim.',
+        },
+      },
+    );
+
+    expect(useCanvasInteractionStore.getState().nodes[0]?.data.agentActivity).toMatchObject({
+      roleName: 'Product & Visual Designer',
+      phase: 'queued',
+    });
+  });
+
   it('does not overwrite a node while a local drag or resize is active', () => {
     useCanvasInteractionStore.getState().hydrate('workspace-1', [object()], [], {});
     useCanvasInteractionStore.getState().beginInteraction('object-1');

@@ -327,9 +327,25 @@ export function MediaNodeRenderer({ data, selected }: NodeProps<GuildFlowNode>) 
 }
 
 export function ContainerNodeRenderer({ data, selected }: NodeProps<GuildFlowNode>) {
-  const { object, directChildCount } = data;
+  const { object, directChildCount, agentActivity } = data;
   const isAgentRegion = object.semantics.semanticType === 'agentRegion';
   const showEmptyHint = directChildCount === 0 && !isAgentRegion;
+  const activePhase =
+    agentActivity?.phase === 'working' && directChildCount > 0
+      ? 'publishing'
+      : agentActivity?.phase;
+  const phaseLabel =
+    activePhase === 'queued'
+      ? 'Queued'
+      : activePhase === 'working'
+        ? 'Working…'
+        : activePhase === 'publishing'
+          ? 'Publishing…'
+          : activePhase === 'complete'
+            ? 'Complete'
+            : activePhase === 'blocked'
+              ? 'Needs attention'
+              : 'Ready';
   return (
     <NodeChrome object={object} selected={selected} family="container">
       <div className={styles.containerHeader}>
@@ -343,14 +359,32 @@ export function ContainerNodeRenderer({ data, selected }: NodeProps<GuildFlowNod
           />
         </div>
         {isAgentRegion ? (
-          <strong className={styles.containerCount}>
+          <strong className={styles.containerCount} data-phase={activePhase}>
             {directChildCount === 0
-              ? 'Ready for agent output'
-              : `${directChildCount} artifact${directChildCount === 1 ? '' : 's'}`}
+              ? phaseLabel
+              : `${directChildCount} artifact${directChildCount === 1 ? '' : 's'}${activePhase === 'publishing' ? ' · Publishing' : ''}`}
           </strong>
         ) : null}
       </div>
       {showEmptyHint ? <div className={styles.containerEmpty}>Drop objects here</div> : null}
+      {isAgentRegion && directChildCount === 0 && agentActivity ? (
+        <div className={styles.agentRegionProgress} data-phase={activePhase} role="status">
+          <div className={styles.agentRegionIdentity}>
+            <span>{agentActivity.engine === 'claude' ? 'Claude Sonnet' : 'Codex'}</span>
+            <strong>{agentActivity.roleName}</strong>
+          </div>
+          <div className={styles.agentRegionPhase}>
+            <i /> <i /> <i />
+            <span>{phaseLabel}</span>
+          </div>
+          <p>{agentActivity.message}</p>
+          <div className={styles.agentRegionSkeleton} aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </div>
+        </div>
+      ) : null}
     </NodeChrome>
   );
 }

@@ -2497,6 +2497,152 @@
   white-space: nowrap;
 }
 
+.containerCount[data-phase='queued'],
+.containerCount[data-phase='working'],
+.containerCount[data-phase='publishing'] {
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--region-accent) 38%, transparent);
+  animation: agent-region-pulse 1.6s ease-out infinite;
+}
+
+.agentRegionProgress {
+  position: absolute;
+  inset: 118px 72px 64px;
+  display: grid;
+  align-content: center;
+  gap: 24px;
+  padding: 56px;
+  border: 2px solid color-mix(in srgb, var(--region-accent) 34%, transparent);
+  border-radius: 28px;
+  background: color-mix(in srgb, var(--region-accent) 8%, rgba(15, 15, 14, 0.78));
+}
+
+.agentRegionIdentity {
+  display: grid;
+  gap: 8px;
+}
+
+.agentRegionIdentity > span {
+  color: color-mix(in srgb, var(--region-accent) 78%, white);
+  font-size: 22px;
+  font-weight: 760;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.agentRegionIdentity > strong {
+  color: #fff;
+  font-size: 42px;
+  line-height: 1.08;
+}
+
+.agentRegionPhase {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #fff;
+  font-size: 28px;
+  font-weight: 720;
+}
+
+.agentRegionPhase i {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--region-accent);
+  animation: agent-region-dot 1.2s ease-in-out infinite;
+}
+
+.agentRegionPhase i:nth-child(2) {
+  animation-delay: 140ms;
+}
+
+.agentRegionPhase i:nth-child(3) {
+  margin-right: 8px;
+  animation-delay: 280ms;
+}
+
+.agentRegionProgress[data-phase='ready'] .agentRegionPhase i,
+.agentRegionProgress[data-phase='complete'] .agentRegionPhase i,
+.agentRegionProgress[data-phase='blocked'] .agentRegionPhase i {
+  animation: none;
+}
+
+.agentRegionProgress p {
+  max-width: 900px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 24px;
+  line-height: 1.45;
+}
+
+.agentRegionSkeleton {
+  display: grid;
+  gap: 18px;
+  margin-top: 14px;
+}
+
+.agentRegionSkeleton span {
+  height: 22px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--region-accent) 20%, rgba(255, 255, 255, 0.1));
+  background-size: 220% 100%;
+}
+
+.agentRegionSkeleton span:nth-child(2) {
+  width: 82%;
+}
+
+.agentRegionSkeleton span:nth-child(3) {
+  width: 58%;
+}
+
+.agentRegionProgress[data-phase='queued'] .agentRegionSkeleton span,
+.agentRegionProgress[data-phase='working'] .agentRegionSkeleton span {
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--region-accent) 35%, rgba(255, 255, 255, 0.2)),
+    transparent
+  );
+  animation: agent-region-shimmer 1.8s linear infinite;
+}
+
+@keyframes agent-region-dot {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+
+@keyframes agent-region-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -120% 0;
+  }
+}
+
+@keyframes agent-region-pulse {
+  70%,
+  100% {
+    box-shadow: 0 0 0 14px transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .containerCount,
+  .agentRegionPhase i,
+  .agentRegionSkeleton span {
+    animation: none !important;
+  }
+}
+
 .containerEmpty {
   display: grid;
   height: calc(100% - 54px);
