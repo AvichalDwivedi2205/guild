@@ -11,7 +11,7 @@
 /coverage/
 /playwright-report/
 /test-results/
-/artifacts/demo-video/
+/artifacts/
 
 # production
 /build/

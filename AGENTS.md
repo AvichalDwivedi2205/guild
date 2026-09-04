@@ -8,12 +8,10 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-## Guild implementation handoff
+## Guild implementation guidance
 
-Before implementation, deployment, or handoff work, read `Initial_Prompt.md` and
-`IMPLEMENTATION_STATUS.md` after the four canonical product documents. Update
-`IMPLEMENTATION_STATUS.md` after every meaningful batch, and keep claims tied to code, tests, or
-deployed evidence. Never copy environment-variable values or secrets into tracked files.
+Use `README.md` as the product and repository overview. Keep implementation claims tied to code,
+tests, or deployed evidence. Never copy environment-variable values or secrets into tracked files.
 
 ## Guild agent protocols
 
