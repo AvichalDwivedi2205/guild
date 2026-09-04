@@ -22,6 +22,8 @@ const DENIED_BUILTIN_TOOLS = [
   'WebFetch',
   'WebSearch',
   'Task',
+  'Glob',
+  'Grep',
 ].join(',');
 
 export class ClaudeAdapter implements EngineAdapter {
