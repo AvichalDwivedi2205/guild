@@ -101,6 +101,8 @@ describe('canvas interaction store', () => {
       section.id,
       child.id,
     ]);
+    expect(useCanvasInteractionStore.getState().nodes[0]?.data.directChildCount).toBe(1);
+    expect(useCanvasInteractionStore.getState().nodes[1]?.data.directChildCount).toBe(0);
   });
 
   it('does not overwrite a node while a local drag or resize is active', () => {

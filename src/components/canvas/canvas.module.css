@@ -41,6 +41,10 @@
     radial-gradient(circle at 72% -20%, rgba(93, 112, 98, 0.15), transparent 42%), var(--substrate);
 }
 
+.workspaceCanvas[data-tool='annotate'] :global(.react-flow__node) {
+  pointer-events: none;
+}
+
 .workspaceCanvas button,
 .workspaceCanvas input,
 .workspaceCanvas textarea,
@@ -318,6 +322,13 @@
 
 .workspaceCanvas[data-tool='annotate'] :global(.react-flow__pane),
 .workspaceCanvas[data-tool='annotate'] :global(.react-flow__node) {
+  cursor: cell;
+}
+
+.annotationCaptureLayer {
+  position: absolute;
+  z-index: 10;
+  inset: 0;
   cursor: cell;
 }
 
@@ -1095,7 +1106,7 @@
 }
 
 .markdownContent[data-compact='true'] {
-  max-height: 5.6em;
+  max-height: calc(var(--guild-node-preview-lines, 5) * 1.45em);
   overflow: hidden;
 }
 
@@ -2143,6 +2154,13 @@
   box-shadow: none;
 }
 
+.node[data-node-type='text'][data-family='document'] {
+  border-color: var(--palette-paper-border);
+  color: var(--palette-paper-ink);
+  background: var(--palette-paper-fill);
+  box-shadow: 0 4px 12px rgba(35, 31, 23, 0.07);
+}
+
 .node[data-node-type='mindMapNode'] {
   display: flex;
   padding-block: clamp(24px, 10%, 72px);
@@ -2188,6 +2206,38 @@
   box-shadow: none;
 }
 
+.node[data-family='container'][data-semantic-type='agentRegion'] {
+  border-style: solid;
+  color: var(--canvas-ink);
+  background: color-mix(in srgb, var(--region-accent, var(--canvas-purple)) 7%, #1d1c1a);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--region-accent, var(--canvas-purple)) 18%, transparent);
+}
+
+.node[data-family='container'][data-semantic-type='agentRegion'][data-palette='paper'] {
+  --region-accent: #c9c3b5;
+}
+
+.node[data-family='container'][data-semantic-type='agentRegion'][data-palette='amber'] {
+  --region-accent: #d99a19;
+}
+
+.node[data-family='container'][data-semantic-type='agentRegion'][data-palette='peach'] {
+  --region-accent: #df8a4c;
+}
+
+.node[data-family='container'][data-semantic-type='agentRegion'][data-palette='mint'] {
+  --region-accent: #37a979;
+}
+
+.node[data-family='container'][data-semantic-type='agentRegion'][data-palette='lilac'] {
+  --region-accent: #8b6cf2;
+}
+
+.node[data-family='container'][data-semantic-type='agentRegion'][data-palette='rose'] {
+  --region-accent: #db4f7d;
+}
+
 .node[data-node-type='stack'] {
   border-style: solid;
 }
@@ -2222,7 +2272,7 @@
   font-size: 11px;
   line-height: 1.45;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 5;
+  -webkit-line-clamp: var(--guild-node-preview-lines, 5);
 }
 
 .node[data-node-type='mindMapNode'] .nodeBody,
@@ -2237,6 +2287,11 @@
   cursor: text;
   font-size: 16px;
   font-weight: 650;
+}
+
+.node[data-family='document'] .textNode {
+  font-size: 13px;
+  font-weight: 520;
 }
 
 .inlineTextEditor {
@@ -2392,8 +2447,24 @@
 }
 
 .containerHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
   padding: 11px 13px;
   border-bottom: 1px dashed #aaa59a;
+}
+
+.node[data-semantic-type='agentRegion'] .containerHeader {
+  border-bottom-color: color-mix(
+    in srgb,
+    var(--region-accent, var(--canvas-purple)) 42%,
+    transparent
+  );
+}
+
+.containerHeader > div {
+  min-width: 0;
 }
 
 .containerHeader > span {
@@ -2406,6 +2477,24 @@
 .containerHeader .nodeTitle {
   margin-top: 2px;
   font-size: 12px;
+}
+
+.node[data-semantic-type='agentRegion'] .containerHeader .nodeTitle {
+  font-size: 15px;
+}
+
+.containerCount {
+  display: inline-flex;
+  margin-top: 7px;
+  padding: 4px 7px;
+  border: 1px solid color-mix(in srgb, var(--region-accent) 45%, transparent);
+  border-radius: 999px;
+  color: color-mix(in srgb, var(--region-accent) 78%, white);
+  background: color-mix(in srgb, var(--region-accent) 13%, transparent);
+  font-size: 9px;
+  font-weight: 760;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .containerEmpty {
@@ -2558,6 +2647,13 @@
   color: var(--canvas-ink);
   background: transparent;
   box-shadow: none;
+}
+
+:global(html[data-theme='dark']) .node[data-node-type='text'][data-family='document'] {
+  border-color: var(--palette-paper-border);
+  color: var(--palette-paper-ink);
+  background: var(--palette-paper-fill);
+  box-shadow: var(--shadow-1);
 }
 
 .node[data-palette='paper'] {

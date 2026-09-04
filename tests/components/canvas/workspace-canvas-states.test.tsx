@@ -10,6 +10,8 @@ import { WorkspaceCanvas } from '@/components/canvas/workspace-canvas';
 import type { CanvasObject } from '@/domain/canvas';
 import type { CanvasWorkspaceData } from '@/features/canvas/types';
 
+const reactFlowFitView = vi.hoisted(() => vi.fn());
+
 vi.mock('@xyflow/react', () => ({
   Background: () => null,
   BackgroundVariant: { Dots: 'dots' },
@@ -53,7 +55,8 @@ vi.mock('@xyflow/react', () => ({
   ReactFlowProvider: ({ children }: PropsWithChildren) => <>{children}</>,
   ViewportPortal: ({ children }: PropsWithChildren) => <>{children}</>,
   useReactFlow: () => ({
-    fitView: vi.fn(),
+    fitView: reactFlowFitView,
+    getNode: (id: string) => ({ id }),
     zoomIn: vi.fn(),
     zoomOut: vi.fn(),
     getZoom: () => 1,
@@ -122,6 +125,7 @@ const detailedTask: CanvasObject = {
 };
 
 beforeEach(() => {
+  reactFlowFitView.mockClear();
   class MockResizeObserver {
     observe() {}
     disconnect() {}
@@ -176,6 +180,26 @@ describe('WorkspaceCanvas state surfaces', () => {
     expect(screen.queryByRole('dialog', { name: 'Detailed agent result' })).not.toBeInTheDocument();
   });
 
+  it('fits a section to the viewport on double-click', () => {
+    const section: CanvasObject = {
+      ...detailedTask,
+      id: 'section-detail',
+      type: 'section',
+      title: 'Agentic Systems Architect section',
+    };
+    render(<WorkspaceCanvas data={{ ...data('ready'), objects: [section] }} actions={{}} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Double-click first node' }));
+
+    expect(reactFlowFitView).toHaveBeenCalledWith({
+      nodes: [{ id: 'section-detail' }],
+      padding: 0.08,
+      duration: 400,
+      maxZoom: 1,
+    });
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
   it('pans with trackpad scrolling while preserving pinch zoom', () => {
     render(<WorkspaceCanvas data={data('ready')} actions={{}} />);
 
@@ -185,11 +209,11 @@ describe('WorkspaceCanvas state surfaces', () => {
     expect(flow).toHaveAttribute('data-zoom-on-pinch', 'true');
   });
 
-  it('shows truthful browser WebMCP availability', () => {
+  it('shows active WebMCP without presenting an optional browser capability as an error', () => {
     const { rerender } = render(
       <WorkspaceCanvas data={data('ready')} actions={{}} webMcpState="unsupported" />,
     );
-    expect(screen.getByRole('status')).toHaveTextContent('WebMCP unavailable in this browser');
+    expect(screen.queryByText('WebMCP unavailable in this browser')).not.toBeInTheDocument();
 
     rerender(<WorkspaceCanvas data={data('ready')} actions={{}} webMcpState="active" />);
     expect(screen.getByRole('status')).toHaveTextContent('WebMCP ready');

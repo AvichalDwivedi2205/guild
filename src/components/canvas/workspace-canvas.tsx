@@ -446,7 +446,7 @@ function CanvasViewport({
   const selectedNodeIds = useCanvasInteractionStore((state) => state.selectedNodeIds);
   const interactingNodeIds = useCanvasInteractionStore((state) => state.interactingNodeIds);
   const connectorRelationship = useCanvasInteractionStore((state) => state.connectorRelationship);
-  const { getViewport, setViewport, screenToFlowPosition } = useReactFlow();
+  const { fitView, getNode, getViewport, setViewport, screenToFlowPosition } = useReactFlow();
   const flowRegionRef = useRef<HTMLElement | null>(null);
   const [panel, setPanel] = useState<CanvasPanel | null>(null);
   const [inspectorEditingObjectId, setInspectorEditingObjectId] = useState<string | null>(null);
@@ -467,12 +467,19 @@ function CanvasViewport({
         onOpenFocus?.(object);
         return;
       }
+      if (action === 'fit') {
+        const node = getNode(object.id);
+        if (node) void fitView({ nodes: [node], padding: 0.08, duration: 400, maxZoom: 1 });
+        selectOnly(object.id);
+        setPanel(null);
+        return;
+      }
       if (object.type === 'icon') return;
       selectOnly(object.id);
       setPanel(null);
       setExpandedObjectId(object.id);
     },
-    [onOpenFocus, selectOnly],
+    [fitView, getNode, onOpenFocus, selectOnly],
   );
   const commentOnObject = useCallback((object: CanvasObject) => {
     useFeedbackStore.getState().openComposer({
@@ -766,9 +773,16 @@ function CanvasViewport({
         </ReactFlow>
         <CanvasCreationToolbar actions={actions} />
         {tool === 'annotate' ? (
-          <div className={styles.annotationModeNotice} role="status">
-            <MessageSquarePlus size={15} /> Annotation mode · click a component or drag a region
-          </div>
+          <>
+            <div
+              className={styles.annotationCaptureLayer}
+              aria-hidden="true"
+              onMouseDown={beginAnnotation}
+            />
+            <div className={styles.annotationModeNotice} role="status">
+              <MessageSquarePlus size={15} /> Annotation mode · click a component or drag a region
+            </div>
+          </>
         ) : null}
         {annotationDrag ? (
           <div
@@ -832,14 +846,9 @@ function CanvasViewport({
         {data.status === 'ready' ? <Wifi size={12} /> : <CloudOff size={12} />}
         {statusLabel(data.status)}
       </div>
-      {webMcpState ? (
+      {webMcpState && webMcpState !== 'unsupported' ? (
         <div className={styles.webMcpStatus} data-state={webMcpState} role="status">
-          WebMCP{' '}
-          {webMcpState === 'active'
-            ? 'ready'
-            : webMcpState === 'unsupported'
-              ? 'unavailable in this browser'
-              : webMcpState}
+          WebMCP {webMcpState === 'active' ? 'ready' : webMcpState}
         </div>
       ) : null}
     </div>

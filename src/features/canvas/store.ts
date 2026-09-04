@@ -23,6 +23,7 @@ export type CanvasTool = 'select' | 'pan' | 'connect' | 'annotate';
 
 export type GuildFlowNodeData = {
   object: CanvasObject;
+  directChildCount: number;
 } & Record<string, unknown>;
 
 export type GuildFlowNode = Node<GuildFlowNodeData, CanvasObjectType>;
@@ -31,12 +32,16 @@ export type GuildFlowEdgeData = {
 } & Record<string, unknown>;
 export type GuildFlowEdge = Edge<GuildFlowEdgeData, 'connector'>;
 
-function toFlowNode(object: CanvasObject, selected: boolean): GuildFlowNode {
+function toFlowNode(
+  object: CanvasObject,
+  selected: boolean,
+  directChildCount: number,
+): GuildFlowNode {
   return {
     id: object.id,
     type: object.type,
     position: object.position,
-    data: { object },
+    data: { object, directChildCount },
     width: object.size.width,
     height: object.size.height,
     style: { width: object.size.width, height: object.size.height },
@@ -147,12 +152,24 @@ export const useCanvasInteractionStore = create<CanvasInteractionStore>((set, ge
     const interactingNodeIds = changedWorkspace ? new Set<string>() : current.interactingNodeIds;
     const selected = new Set(selectedNodeIds);
     const localNodeById = new Map(current.nodes.map((node) => [node.id, node]));
+    const directChildCountByParentId = new Map<string, number>();
+    for (const object of objects) {
+      if (!object.parentId) continue;
+      directChildCountByParentId.set(
+        object.parentId,
+        (directChildCountByParentId.get(object.parentId) ?? 0) + 1,
+      );
+    }
     const nextNodes = sortObjectsParentFirst(objects).map((object) => {
       if (interactingNodeIds.has(object.id)) {
         const local = localNodeById.get(object.id);
         if (local) return local;
       }
-      return toFlowNode(object, selected.has(object.id));
+      return toFlowNode(
+        object,
+        selected.has(object.id),
+        directChildCountByParentId.get(object.id) ?? 0,
+      );
     });
     const availableIds = new Set(nextNodes.map((node) => node.id));
     set({

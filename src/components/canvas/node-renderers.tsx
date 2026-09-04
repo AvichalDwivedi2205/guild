@@ -10,7 +10,7 @@ import {
   Shapes,
 } from 'lucide-react';
 import { Handle, NodeResizer, Position, type NodeProps, type ResizeParams } from '@xyflow/react';
-import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
 
 import type { CanvasObject } from '@/domain/canvas';
 import { resolvePaletteId } from '@/domain/palette';
@@ -55,6 +55,7 @@ function NodeChrome({
   const finishInteraction = useCanvasInteractionStore((state) => state.finishInteraction);
   const persistResize = useCanvasInteractionStore((state) => state.actions.persistResize);
   const palette = resolvePaletteId(object.style, object.type);
+  const previewLines = Math.max(5, Math.min(18, Math.floor((object.size.height - 76) / 18)));
 
   const finishResize = (_event: unknown, params: ResizeParams) => {
     finishInteraction(object.id);
@@ -71,7 +72,9 @@ function NodeChrome({
       data-family={family}
       data-node-type={object.type}
       data-variant={object.variant ?? 'default'}
+      data-semantic-type={object.semantics.semanticType || undefined}
       data-palette={palette}
+      style={{ '--guild-node-preview-lines': previewLines } as CSSProperties}
       data-selected={selected || undefined}
       data-locked={object.locked || undefined}
       aria-label={`${object.title || object.type} canvas object`}
@@ -137,6 +140,9 @@ function InlineTextNode({ object, selected }: { object: CanvasObject; selected: 
     optimisticText && object.revisions.content < optimisticText.revision
       ? optimisticText.text
       : persistedText;
+  const family = /(^|\n)\s*(#{1,6}\s|[-*+]\s|\d+\.\s)|\n\n/.test(visibleText)
+    ? 'document'
+    : 'diagram';
 
   useEffect(() => {
     if (!editing) return;
@@ -164,7 +170,7 @@ function InlineTextNode({ object, selected }: { object: CanvasObject; selected: 
 
   if (editing) {
     return (
-      <NodeChrome object={object} selected={selected} family="diagram">
+      <NodeChrome object={object} selected={selected} family={family}>
         <textarea
           ref={editorRef}
           className={`${styles.inlineTextEditor} nodrag nowheel`}
@@ -193,7 +199,7 @@ function InlineTextNode({ object, selected }: { object: CanvasObject; selected: 
     <NodeChrome
       object={object}
       selected={selected}
-      family="diagram"
+      family={family}
       onDoubleClick={() => {
         setDraft(visibleText);
         setEditing(true);
@@ -321,19 +327,30 @@ export function MediaNodeRenderer({ data, selected }: NodeProps<GuildFlowNode>) 
 }
 
 export function ContainerNodeRenderer({ data, selected }: NodeProps<GuildFlowNode>) {
-  const { object } = data;
+  const { object, directChildCount } = data;
+  const isAgentRegion = object.semantics.semanticType === 'agentRegion';
+  const showEmptyHint = directChildCount === 0 && !isAgentRegion;
   return (
     <NodeChrome object={object} selected={selected} family="container">
       <div className={styles.containerHeader}>
-        <span>
-          {object.type === 'stack' ? 'Task stack' : object.semantics.projectArea || 'Section'}
-        </span>
-        <NodeTitle
-          object={object}
-          fallback={object.type === 'stack' ? 'Untitled stack' : 'Untitled section'}
-        />
+        <div>
+          <span>
+            {object.type === 'stack' ? 'Task stack' : object.semantics.projectArea || 'Section'}
+          </span>
+          <NodeTitle
+            object={object}
+            fallback={object.type === 'stack' ? 'Untitled stack' : 'Untitled section'}
+          />
+        </div>
+        {isAgentRegion ? (
+          <strong className={styles.containerCount}>
+            {directChildCount === 0
+              ? 'Ready for agent output'
+              : `${directChildCount} artifact${directChildCount === 1 ? '' : 's'}`}
+          </strong>
+        ) : null}
       </div>
-      <div className={styles.containerEmpty}>Drop objects here</div>
+      {showEmptyHint ? <div className={styles.containerEmpty}>Drop objects here</div> : null}
     </NodeChrome>
   );
 }

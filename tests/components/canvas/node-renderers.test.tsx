@@ -47,7 +47,10 @@ function object(overrides: Partial<CanvasObject>): CanvasObject {
 }
 
 function props(value: CanvasObject, selected = true): NodeProps<GuildFlowNode> {
-  return { data: { object: value }, selected } as unknown as NodeProps<GuildFlowNode>;
+  return {
+    data: { object: value, directChildCount: 0 },
+    selected,
+  } as unknown as NodeProps<GuildFlowNode>;
 }
 
 afterEach(() => {
@@ -131,6 +134,21 @@ describe('canvas node renderers', () => {
     expect(screen.getByText('Fenced writes', { selector: 'strong' })).toBeVisible();
     first.unmount();
 
+    const document = object({
+      type: 'text',
+      title: 'Architecture contract',
+      content: { text: '# Architecture contract\n\nDetailed governed behavior.' },
+      size: { width: 700, height: 440 },
+    });
+    const documentView = render(<DiagramNodeRenderer {...props(document)} />);
+    expect(
+      screen.getByRole('article', { name: 'Architecture contract canvas object' }),
+    ).toHaveAttribute('data-family', 'document');
+    expect(
+      screen.getByRole('article', { name: 'Architecture contract canvas object' }),
+    ).toHaveStyle({ '--guild-node-preview-lines': '18' });
+    documentView.unmount();
+
     const task = object({
       type: 'task',
       title: 'Implement worker',
@@ -195,6 +213,25 @@ describe('canvas node renderers', () => {
     expect(screen.getByText('implementation')).toBeVisible();
     expect(screen.getByText('Drop objects here')).toBeVisible();
     first.unmount();
+
+    const occupied = render(
+      <ContainerNodeRenderer
+        {...({
+          ...props(section, false),
+          data: { object: section, directChildCount: 2 },
+        } as NodeProps<GuildFlowNode>)}
+      />,
+    );
+    expect(screen.queryByText('Drop objects here')).not.toBeInTheDocument();
+    occupied.unmount();
+
+    const agentRegion = object({
+      type: 'section',
+      title: 'Agent-owned region',
+      semantics: { semanticType: 'agentRegion', projectArea: 'architecture' },
+    });
+    render(<ContainerNodeRenderer {...props(agentRegion, false)} />);
+    expect(screen.queryByText('Drop objects here')).not.toBeInTheDocument();
 
     const component = object({
       type: 'wireframeComponent',

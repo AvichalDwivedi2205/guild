@@ -16,6 +16,9 @@ describe('canvas action registry', () => {
     expect(
       primaryAction({ type: 'link', semantics: { semanticType: 'implementationEvidence' } }),
     ).toBe('focus-evidence');
+    expect(
+      primaryAction({ type: 'text', semantics: { semanticType: 'implementationEvidence' } }),
+    ).toBe('focus-evidence');
   });
 
   it('exposes contextual actions without embedding renderer policy', () => {

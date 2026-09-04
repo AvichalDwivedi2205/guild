@@ -16,11 +16,11 @@ export type CanvasContextAction =
 export function primaryAction(
   object: Pick<CanvasObject, 'type' | 'semantics'>,
 ): CanvasPrimaryAction {
+  if (object.semantics.semanticType === 'designScreen') return 'focus-design';
+  if (object.semantics.semanticType === 'implementationEvidence') return 'focus-evidence';
   if (object.type === 'text' || object.type === 'sticky' || object.type === 'annotation') {
     return 'inline-edit';
   }
-  if (object.semantics.semanticType === 'designScreen') return 'focus-design';
-  if (object.semantics.semanticType === 'implementationEvidence') return 'focus-evidence';
   if (object.type === 'section' || object.type === 'stack' || object.type === 'wireframeFrame') {
     return 'fit';
   }
